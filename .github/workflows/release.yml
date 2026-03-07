@@ -1,0 +1,120 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: dbpemesanan
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          cache: composer
+      - name: Backend deps
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+      - name: Backend env
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=dbpemesanan" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=" >> .env
+      - name: Backend test
+        working-directory: backend
+        run: php artisan test
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Customer deps
+        working-directory: apps/customer-next
+        run: npm ci
+      - name: Customer build
+        working-directory: apps/customer-next
+        run: npm run build
+      - name: Admin deps
+        working-directory: apps/admin-next
+        run: npm ci
+      - name: Admin build
+        working-directory: apps/admin-next
+        run: npm run build
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: POS deps
+        working-directory: apps/pos-flutter
+        run: flutter pub get
+      - name: POS test
+        working-directory: apps/pos-flutter
+        run: flutter test
+
+      - name: Package backend
+        run: |
+          tar -czf backend.tar.gz backend \
+            --exclude=backend/vendor \
+            --exclude=backend/node_modules \
+            --exclude=backend/storage/logs \
+            --exclude=backend/storage/framework/cache \
+            --exclude=backend/storage/framework/sessions \
+            --exclude=backend/storage/framework/views
+      - name: Package admin build
+        run: |
+          tar -czf admin-next.tar.gz apps/admin-next/.next apps/admin-next/public apps/admin-next/package.json apps/admin-next/next.config.js
+      - name: Package customer build
+        run: |
+          tar -czf customer-next.tar.gz apps/customer-next/.next apps/customer-next/public apps/customer-next/package.json apps/customer-next/next.config.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend
+          path: backend.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-next
+          path: admin-next.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: customer-next
+          path: customer-next.tar.gz
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/backend/backend.tar.gz
+            artifacts/admin-next/admin-next.tar.gz
+            artifacts/customer-next/customer-next.tar.gz
