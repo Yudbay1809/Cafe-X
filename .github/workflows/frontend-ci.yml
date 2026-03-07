@@ -20,6 +20,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/customer-next/package-lock.json
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
       - run: npx playwright install chromium --with-deps
       - run: npm run test:e2e
@@ -37,6 +38,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/admin-next/package-lock.json
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
       - run: npx playwright install chromium --with-deps
       - run: npm run test:e2e
