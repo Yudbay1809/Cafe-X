@@ -41,4 +41,5 @@ flutter run -d windows
 
 ## Catatan
 - Semua app memakai API base `http://127.0.0.1:9000/api/v1`.
-- Jika backend pindah port, update `.env` masing‑masing app.
+- Jika backend pindah port, update `.env` masing-masing app.
+- Repo ini memakai Git LFS untuk aset gambar/PDF (pastikan Git LFS terpasang).
