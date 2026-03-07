@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///D:/Cafe-X-laravel/apps/customer-next/app/loading.tsx"],"sourcesContent":["export default function Loading() {\n  return (\n    <main className=\"loading-screen\">\n      <div className=\"loading-card\">\n        <div className=\"loading-title\" />\n        <div className=\"loading-bar\" />\n        <div className=\"loading-bar short\" />\n        <div className=\"loading-grid\">\n          <div className=\"loading-skel\" />\n          <div className=\"loading-skel\" />\n          <div className=\"loading-skel\" />\n          <div className=\"loading-skel\" />\n        </div>\n      </div>\n    </main>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAK,WAAU;kBACd,cAAA,8OAAC;YAAI,WAAU;;8BACb,8OAAC;oBAAI,WAAU;;;;;;8BACf,8OAAC;oBAAI,WAAU;;;;;;8BACf,8OAAC;oBAAI,WAAU;;;;;;8BACf,8OAAC;oBAAI,WAAU;;sCACb,8OAAC;4BAAI,WAAU;;;;;;sCACf,8OAAC;4BAAI,WAAU;;;;;;sCACf,8OAAC;4BAAI,WAAU;;;;;;sCACf,8OAAC;4BAAI,WAAU;;;;;;;;;;;;;;;;;;;;;;;AAKzB"}}]
-}

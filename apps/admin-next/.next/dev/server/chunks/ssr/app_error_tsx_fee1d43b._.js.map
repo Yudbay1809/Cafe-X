@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///D:/Cafe-X-laravel/apps/admin-next/app/error.tsx"],"sourcesContent":["'use client';\n\nexport default function Error({ error }: { error: Error }) {\n  return (\n    <main>\n      <div className=\"card\">\n        <h1>Terjadi Gangguan</h1>\n        <p className=\"small\">{error.message}</p>\n      </div>\n    </main>\n  );\n}\r\n"],"names":[],"mappings":";;;;;AAAA;;AAEe,SAAS,MAAM,EAAE,KAAK,EAAoB;IACvD,qBACE,8OAAC;kBACC,cAAA,8OAAC;YAAI,WAAU;;8BACb,8OAAC;8BAAG;;;;;;8BACJ,8OAAC;oBAAE,WAAU;8BAAS,MAAM,OAAO;;;;;;;;;;;;;;;;;AAI3C"}}]
-}
