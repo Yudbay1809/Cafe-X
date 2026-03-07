@@ -1,0 +1,25 @@
+name: pos_flutter
+
+description: Cafe-X POS Flutter foundation
+
+publish_to: "none"
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.4.1
+  sqflite_common_ffi: ^2.3.2
+  path: ^1.9.0
+  dio: ^5.7.0
+  flutter_riverpod: ^2.6.1
+  google_fonts: ^6.2.1
+  esc_pos_printer: ^4.1.0
+  esc_pos_utils: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

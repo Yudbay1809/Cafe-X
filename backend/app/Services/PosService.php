@@ -1,0 +1,650 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
+
+class PosService
+{
+    public function __construct(
+        private readonly StockService $stockService,
+        private readonly ShiftService $shiftService,
+        private readonly OrderStateService $orderStateService
+    ) {
+    }
+
+    public function issueToken(string $username, string $role, string $tokenName = 'device'): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $token);
+        DB::table('api_tokens')->insert([
+            'username' => $username,
+            'role_name' => $role,
+            'token_hash' => $hash,
+            'token_name' => $tokenName,
+            'expires_at' => now()->addDays(30),
+            'revoked_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $token;
+    }
+
+    public function nextOrderNo(string $businessDate): string
+    {
+        $prefix = 'ORD-' . date('Ymd', strtotime($businessDate));
+        $last = DB::table('pos_orders')
+            ->where('order_no', 'like', $prefix . '-%')
+            ->orderByDesc('id')
+            ->value('order_no');
+
+        $next = 1;
+        if (is_string($last) && $last !== '') {
+            $parts = explode('-', $last);
+            $lastPart = (string) end($parts);
+            if ($lastPart !== '' && ctype_digit($lastPart)) {
+                $next = ((int) $lastPart) + 1;
+            }
+        }
+
+        return $prefix . '-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function recomputeOrderTotals(int $orderId): array
+    {
+        $subtotal = (float) DB::table('pos_order_items')
+            ->where('order_id', $orderId)
+            ->where('status', 'active')
+            ->sum('line_subtotal');
+
+        $taxPct = (float) DB::table('pos_settings')->where('setting_key', 'tax_pct')->value('setting_value');
+        $servicePct = (float) DB::table('pos_settings')->where('setting_key', 'service_pct')->value('setting_value');
+        $taxPct = min(100, max(0, $taxPct));
+        $servicePct = min(100, max(0, $servicePct));
+
+        $tax = round($subtotal * ($taxPct / 100), 2);
+        $service = round($subtotal * ($servicePct / 100), 2);
+        $total = round($subtotal + $tax + $service, 2);
+
+        DB::table('pos_orders')
+            ->where('id', $orderId)
+            ->update([
+                'subtotal' => $subtotal,
+                'tax_amount' => $tax,
+                'service_amount' => $service,
+                'total_amount' => $total,
+                'sync_version' => DB::raw('sync_version + 1'),
+                'updated_at' => now(),
+            ]);
+
+        return [
+            'subtotal' => $subtotal,
+            'tax_amount' => $tax,
+            'service_amount' => $service,
+            'total_amount' => $total,
+        ];
+    }
+
+    public function createOrder(
+        string $source,
+        string $createdBy,
+        ?int $tableId,
+        string $notes = '',
+        ?int $tenantId = null,
+        ?int $outletId = null,
+        ?int $shiftId = null
+    ): array
+    {
+        $businessDate = now()->toDateString();
+        $orderNo = $this->nextOrderNo($businessDate);
+
+        if ($shiftId === null && $createdBy !== '' && $tenantId !== null) {
+            $shift = $this->shiftService->currentOpenShift($createdBy, $tenantId, $outletId);
+            $shiftId = $shift?->id ? (int) $shift->id : null;
+        }
+
+        $orderId = DB::table('pos_orders')->insertGetId([
+            'order_no' => $orderNo,
+            'business_date' => $businessDate,
+            'tenant_id' => $tenantId,
+            'outlet_id' => $outletId,
+            'table_id' => $tableId,
+            'shift_id' => $shiftId,
+            'source' => $source,
+            'status' => 'new',
+            'notes' => $notes,
+            'created_by' => $createdBy,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return [
+            'order_id' => $orderId,
+            'order_no' => $orderNo,
+            'source' => $source,
+            'status' => 'new',
+            'shift_id' => $shiftId,
+        ];
+    }
+
+    public function addItem(string $username, int $orderId, int $productId, int $qty, string $notes = ''): array
+    {
+        return DB::transaction(function () use ($username, $orderId, $productId, $qty, $notes): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled', 'served'], true)) {
+                throw new RuntimeException('Order tidak valid');
+            }
+
+            $product = DB::table('produk')->lockForUpdate()->where('id_menu', $productId)->first();
+            if (!$product) {
+                throw new RuntimeException('Produk tidak ditemukan');
+            }
+
+            if ((int) $product->stok < $qty) {
+                throw new RuntimeException('Stok tidak mencukupi');
+            }
+
+            $existing = DB::table('pos_order_items')
+                ->lockForUpdate()
+                ->where('order_id', $orderId)
+                ->where('product_id', $productId)
+                ->where('status', 'active')
+                ->first();
+
+            $newQty = $qty + (int) ($existing->qty ?? 0);
+            $unitPrice = (float) $product->harga;
+            $lineSubtotal = round($newQty * $unitPrice, 2);
+
+            if ($existing) {
+                DB::table('pos_order_items')
+                    ->where('id', $existing->id)
+                    ->update([
+                        'qty' => $newQty,
+                        'unit_price' => $unitPrice,
+                        'line_subtotal' => $lineSubtotal,
+                        'notes' => $notes,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('pos_order_items')->insert([
+                    'order_id' => $orderId,
+                    'product_id' => $productId,
+                    'product_name_snapshot' => $product->nama_menu,
+                    'unit_price' => $unitPrice,
+                    'qty' => $newQty,
+                    'line_subtotal' => $lineSubtotal,
+                    'notes' => $notes,
+                    'status' => 'active',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            $this->stockService->decrease($productId, $qty);
+            $this->stockService->recordMovement(
+                tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                productId: $productId,
+                type: 'sale',
+                delta: -$qty,
+                orderId: $orderId,
+                notes: 'Order item added',
+                actor: $username
+            );
+
+            $totals = $this->recomputeOrderTotals($orderId);
+
+            return [
+                'order_id' => $orderId,
+                'product_id' => $productId,
+                'added_qty' => $qty,
+                'totals' => $totals,
+            ];
+        });
+    }
+
+    public function updateItemQty(string $actor, int $orderId, int $productId, int $qty, string $notes = ''): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $productId, $qty, $notes): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid');
+            }
+
+            $item = DB::table('pos_order_items')
+                ->lockForUpdate()
+                ->where('order_id', $orderId)
+                ->where('product_id', $productId)
+                ->where('status', 'active')
+                ->first();
+            if (!$item) {
+                throw new RuntimeException('Item order tidak ditemukan');
+            }
+
+            $product = DB::table('produk')->lockForUpdate()->where('id_menu', $productId)->first();
+            if (!$product) {
+                throw new RuntimeException('Produk tidak ditemukan');
+            }
+
+            $oldQty = (int) $item->qty;
+            $delta = $qty - $oldQty;
+            if ($delta > 0 && (int) $product->stok < $delta) {
+                throw new RuntimeException('Stok tidak mencukupi');
+            }
+            if ($delta > 0) {
+                $this->stockService->decrease($productId, $delta);
+                $this->stockService->recordMovement(
+                    tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                    outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                    productId: $productId,
+                    type: 'sale_adjust',
+                    delta: -$delta,
+                    orderId: $orderId,
+                    notes: 'Adjust qty increase',
+                    actor: $actor
+                );
+            } elseif ($delta < 0) {
+                $restore = abs($delta);
+                $this->stockService->increase($productId, $restore);
+                $this->stockService->recordMovement(
+                    tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                    outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                    productId: $productId,
+                    type: 'qty_reduce_restore',
+                    delta: $restore,
+                    orderId: $orderId,
+                    notes: 'Adjust qty decrease',
+                    actor: $actor
+                );
+            }
+
+            $unitPrice = (float) $item->unit_price;
+            $lineSubtotal = round($qty * $unitPrice, 2);
+            DB::table('pos_order_items')->where('id', $item->id)->update([
+                'qty' => $qty,
+                'line_subtotal' => $lineSubtotal,
+                'notes' => $notes,
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'product_id' => $productId,
+                'old_qty' => $oldQty,
+                'new_qty' => $qty,
+                'totals' => $this->recomputeOrderTotals($orderId),
+            ];
+        });
+    }
+
+    public function cancelItem(string $actor, int $orderId, int $productId, string $reason = ''): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $productId, $reason): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid');
+            }
+
+            $item = DB::table('pos_order_items')
+                ->lockForUpdate()
+                ->where('order_id', $orderId)
+                ->where('product_id', $productId)
+                ->where('status', 'active')
+                ->first();
+            if (!$item) {
+                throw new RuntimeException('Item order tidak ditemukan');
+            }
+
+            $qty = (int) $item->qty;
+            $this->stockService->increase($productId, $qty);
+            $this->stockService->recordMovement(
+                tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                productId: $productId,
+                type: 'item_cancel_restore',
+                delta: $qty,
+                orderId: $orderId,
+                notes: $reason !== '' ? $reason : 'Cancel item',
+                actor: $actor
+            );
+
+            DB::table('pos_order_items')->where('id', $item->id)->update([
+                'status' => 'canceled',
+                'notes' => $reason !== '' ? $reason : $item->notes,
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'product_id' => $productId,
+                'canceled_qty' => $qty,
+                'totals' => $this->recomputeOrderTotals($orderId),
+            ];
+        });
+    }
+
+    public function payOrder(
+        string $actor,
+        int $orderId,
+        string $method,
+        float $amount,
+        string $referenceNo = ''
+    ): array {
+        return DB::transaction(function () use ($actor, $orderId, $method, $amount, $referenceNo): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order) {
+                throw new RuntimeException('Order tidak ditemukan');
+            }
+            if (!$this->orderStateService->canTransition((string) $order->status, 'paid')) {
+                throw new RuntimeException('Status order tidak valid untuk pembayaran');
+            }
+
+            $total = (float) $order->total_amount;
+            if ($amount < $total) {
+                throw new RuntimeException('Nominal pembayaran kurang');
+            }
+
+            $existingPaid = DB::table('pos_payments')->where('order_id', $orderId)->exists();
+            if ($existingPaid) {
+                throw new RuntimeException('Pembayaran order sudah tercatat');
+            }
+
+            DB::table('pos_payments')->insert([
+                'tenant_id' => $order->tenant_id,
+                'outlet_id' => $order->outlet_id,
+                'shift_id' => $order->shift_id,
+                'order_id' => $orderId,
+                'method' => $method,
+                'amount' => $amount,
+                'reference_no' => $referenceNo,
+                'paid_by' => $actor,
+                'paid_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('pos_orders')
+                ->where('id', $orderId)
+                ->update([
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'sync_version' => DB::raw('sync_version + 1'),
+                    'updated_at' => now(),
+                ]);
+
+            return [
+                'order_id' => $orderId,
+                'total' => $total,
+                'paid_amount' => $amount,
+                'change' => round($amount - $total, 2),
+                'paid_at' => now()->format('Y-m-d H:i:s'),
+            ];
+        });
+    }
+
+    public function cancelOrder(string $actor, int $orderId, string $reason = 'Canceled by user'): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $reason): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order) {
+                throw new RuntimeException('Order tidak ditemukan');
+            }
+            if (!$this->orderStateService->canTransition((string) $order->status, 'canceled')) {
+                throw new RuntimeException('Status order tidak valid untuk pembatalan');
+            }
+
+            $items = DB::table('pos_order_items')
+                ->lockForUpdate()
+                ->where('order_id', $orderId)
+                ->where('status', 'active')
+                ->get();
+
+            foreach ($items as $item) {
+                $this->stockService->increase((int) $item->product_id, (int) $item->qty);
+                $this->stockService->recordMovement(
+                    tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                    outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                    productId: (int) $item->product_id,
+                    type: 'cancel_restore',
+                    delta: (int) $item->qty,
+                    orderId: $orderId,
+                    notes: 'Order canceled',
+                    actor: $actor
+                );
+            }
+
+            DB::table('pos_order_items')
+                ->where('order_id', $orderId)
+                ->where('status', 'active')
+                ->update([
+                    'status' => 'canceled',
+                    'updated_at' => now(),
+                ]);
+
+            DB::table('pos_orders')->where('id', $orderId)->update([
+                'status' => 'canceled',
+                'canceled_at' => now(),
+                'canceled_reason' => $reason,
+                'sync_version' => DB::raw('sync_version + 1'),
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'canceled_at' => now()->format('Y-m-d H:i:s'),
+                'reason' => $reason,
+            ];
+        });
+    }
+
+    public function transitionOrderStatus(string $actor, int $orderId, string $toStatus): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $toStatus): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order) {
+                throw new RuntimeException('Order tidak ditemukan');
+            }
+            $from = (string) $order->status;
+            if (!$this->orderStateService->canTransition($from, $toStatus)) {
+                throw new RuntimeException("Transisi status tidak valid: {$from} -> {$toStatus}");
+            }
+
+            $updates = [
+                'status' => $toStatus,
+                'sync_version' => DB::raw('sync_version + 1'),
+                'updated_at' => now(),
+            ];
+            if ($toStatus === 'paid') {
+                $updates['paid_at'] = now();
+            }
+            if ($toStatus === 'canceled') {
+                $updates['canceled_at'] = now();
+            }
+            DB::table('pos_orders')->where('id', $orderId)->update($updates);
+
+            return [
+                'order_id' => $orderId,
+                'from_status' => $from,
+                'to_status' => $toStatus,
+                'updated_by' => $actor,
+                'updated_at' => now()->format('Y-m-d H:i:s'),
+            ];
+        });
+    }
+
+    public function moveOrderTable(string $actor, int $orderId, string $toTableCode): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $toTableCode): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid');
+            }
+            $table = DB::table('pos_tables')->where('table_code', strtoupper($toTableCode))->where('is_active', 1)->first();
+            if (!$table) {
+                throw new RuntimeException('Meja tujuan tidak ditemukan');
+            }
+            DB::table('pos_orders')->where('id', $orderId)->update([
+                'table_id' => (int) $table->id,
+                'updated_at' => now(),
+                'sync_version' => DB::raw('sync_version + 1'),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'to_table_code' => strtoupper($toTableCode),
+                'updated_by' => $actor,
+            ];
+        });
+    }
+
+    public function mergeOrders(string $actor, int $sourceOrderId, int $targetOrderId): array
+    {
+        return DB::transaction(function () use ($actor, $sourceOrderId, $targetOrderId): array {
+            $source = DB::table('pos_orders')->lockForUpdate()->where('id', $sourceOrderId)->first();
+            $target = DB::table('pos_orders')->lockForUpdate()->where('id', $targetOrderId)->first();
+            if (!$source || !$target) {
+                throw new RuntimeException('Order merge tidak ditemukan');
+            }
+            if (in_array($source->status, ['paid', 'canceled'], true) || in_array($target->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order paid/canceled tidak bisa merge');
+            }
+
+            $items = DB::table('pos_order_items')->lockForUpdate()
+                ->where('order_id', $sourceOrderId)->where('status', 'active')->get();
+
+            foreach ($items as $item) {
+                $targetItem = DB::table('pos_order_items')->lockForUpdate()
+                    ->where('order_id', $targetOrderId)
+                    ->where('product_id', (int) $item->product_id)
+                    ->where('status', 'active')
+                    ->first();
+                if ($targetItem) {
+                    $newQty = (int) $targetItem->qty + (int) $item->qty;
+                    DB::table('pos_order_items')->where('id', $targetItem->id)->update([
+                        'qty' => $newQty,
+                        'line_subtotal' => round($newQty * (float) $targetItem->unit_price, 2),
+                        'updated_at' => now(),
+                    ]);
+                    DB::table('pos_order_items')->where('id', $item->id)->update([
+                        'status' => 'moved',
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    DB::table('pos_order_items')->where('id', $item->id)->update([
+                        'order_id' => $targetOrderId,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            DB::table('pos_orders')->where('id', $sourceOrderId)->update([
+                'status' => 'canceled',
+                'canceled_reason' => 'Merged to #' . $targetOrderId,
+                'canceled_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $targetTotals = $this->recomputeOrderTotals($targetOrderId);
+
+            return [
+                'source_order_id' => $sourceOrderId,
+                'target_order_id' => $targetOrderId,
+                'target_totals' => $targetTotals,
+                'updated_by' => $actor,
+            ];
+        });
+    }
+
+    public function splitOrder(string $actor, int $orderId, array $items): array
+    {
+        return DB::transaction(function () use ($actor, $orderId, $items): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid');
+            }
+            $new = $this->createOrder(
+                source: (string) $order->source,
+                createdBy: $actor,
+                tableId: $order->table_id ? (int) $order->table_id : null,
+                notes: 'Split from #' . $orderId,
+                tenantId: $order->tenant_id ? (int) $order->tenant_id : null,
+                outletId: $order->outlet_id ? (int) $order->outlet_id : null,
+                shiftId: $order->shift_id ? (int) $order->shift_id : null
+            );
+            $newOrderId = (int) $new['order_id'];
+
+            foreach ($items as $it) {
+                $pid = (int) ($it['product_id'] ?? 0);
+                $qty = (int) ($it['qty'] ?? 0);
+                if ($pid < 1 || $qty < 1) {
+                    throw new RuntimeException('Item split tidak valid');
+                }
+                $srcItem = DB::table('pos_order_items')->lockForUpdate()
+                    ->where('order_id', $orderId)
+                    ->where('product_id', $pid)
+                    ->where('status', 'active')
+                    ->first();
+                if (!$srcItem || (int) $srcItem->qty < $qty) {
+                    throw new RuntimeException('Qty split melebihi item sumber');
+                }
+
+                $remain = (int) $srcItem->qty - $qty;
+                if ($remain === 0) {
+                    DB::table('pos_order_items')->where('id', $srcItem->id)->update([
+                        'status' => 'split',
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    DB::table('pos_order_items')->where('id', $srcItem->id)->update([
+                        'qty' => $remain,
+                        'line_subtotal' => round($remain * (float) $srcItem->unit_price, 2),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                DB::table('pos_order_items')->insert([
+                    'tenant_id' => $order->tenant_id,
+                    'order_id' => $newOrderId,
+                    'product_id' => $pid,
+                    'product_name_snapshot' => $srcItem->product_name_snapshot,
+                    'unit_price' => $srcItem->unit_price,
+                    'qty' => $qty,
+                    'line_subtotal' => round($qty * (float) $srcItem->unit_price, 2),
+                    'notes' => 'Split from #' . $orderId,
+                    'status' => 'active',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            $sourceTotals = $this->recomputeOrderTotals($orderId);
+            $newTotals = $this->recomputeOrderTotals($newOrderId);
+
+            return [
+                'source_order_id' => $orderId,
+                'new_order_id' => $newOrderId,
+                'source_totals' => $sourceTotals,
+                'new_totals' => $newTotals,
+                'updated_by' => $actor,
+            ];
+        });
+    }
+
+    public function receiptData(int $orderId): array
+    {
+        $order = DB::table('pos_orders')->where('id', $orderId)->first();
+        if (!$order) {
+            throw new RuntimeException('Order tidak ditemukan');
+        }
+        $items = DB::table('pos_order_items')->where('order_id', $orderId)->where('status', 'active')->orderBy('id')->get();
+        $payments = DB::table('pos_payments')->where('order_id', $orderId)->orderBy('id')->get();
+        return [
+            'order' => $order,
+            'items' => $items,
+            'payments' => $payments,
+            'printed_at' => now()->format('Y-m-d H:i:s'),
+        ];
+    }
+}

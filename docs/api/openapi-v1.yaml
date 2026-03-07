@@ -1,0 +1,597 @@
+openapi: 3.1.0
+info:
+  title: Cafe-X POS API
+  version: 1.0.0
+  description: |
+    Core API for POS, QR table ordering, shift, payment, and offline sync.
+servers:
+  - url: https://api.cafex.local/api/v1
+tags:
+  - name: Health
+  - name: Auth
+  - name: Master
+  - name: Shift
+  - name: Orders
+  - name: QR
+  - name: Sync
+  - name: Reports
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, maxLength: 100 }
+                password: { type: string, maxLength: 255 }
+                device_name: { type: string, maxLength: 100 }
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      responses:
+        '200':
+          description: Logout success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /master/products:
+    get:
+      tags: [Master]
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /master/tables:
+    get:
+      tags: [Master]
+      responses:
+        '200':
+          description: Table list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /tables/upsert:
+    post:
+      tags: [Master]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [table_code, table_name]
+              properties:
+                table_code: { type: string, maxLength: 50 }
+                table_name: { type: string, maxLength: 100 }
+                is_active: { type: boolean }
+                qr_token: { type: string, maxLength: 80 }
+      responses:
+        '200':
+          description: Table saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /shift/open:
+    post:
+      tags: [Shift]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [opening_cash]
+              properties:
+                opening_cash: { type: number, minimum: 0 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Shift opened
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '409':
+          description: Open shift already exists
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /shift/close:
+    post:
+      tags: [Shift]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [closing_cash]
+              properties:
+                closing_cash: { type: number, minimum: 0 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Shift closed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '404':
+          description: No open shift
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/create:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  enum: [POS, QR]
+                  default: POS
+                table_code: { type: string, maxLength: 50 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /orders/add-item:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, product_id, qty]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                product_id: { type: integer, minimum: 1 }
+                qty: { type: integer, minimum: 1, maximum: 1000 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Item added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '409':
+          description: Business conflict (stock/order state)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/update-item:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, product_id, qty]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                product_id: { type: integer, minimum: 1 }
+                qty: { type: integer, minimum: 1 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200': { description: Item qty updated }
+  /orders/cancel-item:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, product_id]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                product_id: { type: integer, minimum: 1 }
+                reason: { type: string, maxLength: 255 }
+      responses:
+        '200': { description: Item canceled }
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Order detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/pay:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, method, amount]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                method:
+                  type: string
+                  enum: [cash, qris, transfer, card, other]
+                amount: { type: number, minimum: 0 }
+                reference_no: { type: string, maxLength: 100 }
+      responses:
+        '200':
+          description: Payment success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '409':
+          description: Conflict (paid/canceled/insufficient)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/status:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, status]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                status:
+                  type: string
+                  enum: [new, preparing, ready, served, paid, canceled]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '409':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/cancel:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                reason: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: Order canceled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '409':
+          description: Conflict (already paid/canceled)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /orders/move-table:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, to_table_code]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                to_table_code: { type: string, maxLength: 50 }
+      responses:
+        '200': { description: Order table moved }
+  /orders/merge:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_order_id, target_order_id]
+              properties:
+                source_order_id: { type: integer, minimum: 1 }
+                target_order_id: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Orders merged }
+  /orders/split:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, items]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [product_id, qty]
+                    properties:
+                      product_id: { type: integer, minimum: 1 }
+                      qty: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Order split }
+  /orders/receipt:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Receipt data }
+  /orders/reprint:
+    post:
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id]
+              properties:
+                order_id: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Receipt reprint data }
+  /qr/create-order:
+    post:
+      tags: [QR]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [table_token]
+              properties:
+                table_token: { type: string, maxLength: 80 }
+                notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: QR order created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '404':
+          description: Invalid token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /qr/menu/{tableToken}:
+    get:
+      tags: [QR]
+      security: []
+      parameters:
+        - in: path
+          name: tableToken
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: QR menu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /qr/place-order:
+    post:
+      tags: [QR]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [table_token, items]
+              properties:
+                table_token: { type: string, maxLength: 80 }
+                notes: { type: string, maxLength: 255 }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [product_id, qty]
+                    properties:
+                      product_id: { type: integer, minimum: 1 }
+                      qty: { type: integer, minimum: 1 }
+                      notes: { type: string, maxLength: 255 }
+      responses:
+        '200':
+          description: QR place order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /qr/order-status/{tableToken}/{orderId}:
+    get:
+      tags: [QR]
+      security: []
+      parameters:
+        - in: path
+          name: tableToken
+          required: true
+          schema: { type: string }
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: QR order status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /sync/pull:
+    post:
+      tags: [Sync]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id: { type: string, maxLength: 100 }
+                cursor: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Pull sync payload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /sync/push:
+    post:
+      tags: [Sync]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [events]
+              properties:
+                device_id: { type: string, maxLength: 100 }
+                events:
+                  type: array
+                  items:
+                    type: object
+                    required: [type, payload]
+                    properties:
+                      type: { type: string }
+                      payload: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: Push sync result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+  /reports/summary:
+    get:
+      tags: [Reports]
+      responses:
+        '200':
+          description: Summary report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+        '402':
+          description: Feature not included in current package
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /reports/shift:
+    get:
+      tags: [Reports]
+      parameters:
+        - in: query
+          name: shift_id
+          required: false
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Shift report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OkResponse' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+  schemas:
+    OkResponse:
+      type: object
+      properties:
+        ok: { type: boolean, const: true }
+        message: { type: string }
+        data: { type: object, additionalProperties: true }
+        server_time: { type: string }
+    ErrorResponse:
+      type: object
+      properties:
+        ok: { type: boolean, const: false }
+        message: { type: string }
+        meta: { type: object, additionalProperties: true }
+        server_time: { type: string }

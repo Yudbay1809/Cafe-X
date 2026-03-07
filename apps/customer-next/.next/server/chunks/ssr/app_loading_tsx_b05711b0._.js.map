@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../app/loading.tsx"],"sourcesContent":["export default function Loading() {\n  return (\n    <main>\n      <div className=\"card\">Loading...</div>\n    </main>\n  );\n}\r\n"],"names":[],"mappings":"uDAAe,SAAS,IACtB,MACE,CAAA,EAAA,EAAA,GAAA,EAAC,OAAA,UACC,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,gBAAO,gBAG5B"}

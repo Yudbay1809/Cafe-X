@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,8821,s=>{"use strict";var e=s.i(43476);function a({error:s}){return(0,e.jsx)("main",{children:(0,e.jsxs)("div",{className:"card",children:[(0,e.jsx)("h1",{children:"Terjadi Gangguan"}),(0,e.jsx)("p",{className:"small",children:s.message})]})})}s.s(["default",()=>a])}]);

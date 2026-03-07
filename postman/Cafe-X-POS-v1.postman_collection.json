@@ -1,0 +1,68 @@
+{
+  "info": {
+    "name": "Cafe-X POS API v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from OpenAPI v1 baseline"
+  },
+  "item": [
+    {
+      "name": "Auth Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"device_name\": \"postman\"\n}" }
+      }
+    },
+    {
+      "name": "Order Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/orders/create", "host": ["{{base_url}}"], "path": ["orders", "create"] },
+        "body": { "mode": "raw", "raw": "{\n  \"source\": \"POS\"\n}" }
+      }
+    },
+    {
+      "name": "Order Add Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/orders/add-item", "host": ["{{base_url}}"], "path": ["orders", "add-item"] },
+        "body": { "mode": "raw", "raw": "{\n  \"order_id\": {{order_id}},\n  \"product_id\": 1,\n  \"qty\": 1\n}" }
+      }
+    },
+    {
+      "name": "Order Pay",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/orders/pay", "host": ["{{base_url}}"], "path": ["orders", "pay"] },
+        "body": { "mode": "raw", "raw": "{\n  \"order_id\": {{order_id}},\n  \"method\": \"cash\",\n  \"amount\": 50000\n}" }
+      }
+    },
+    {
+      "name": "Sync Push",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/sync/push", "host": ["{{base_url}}"], "path": ["sync", "push"] },
+        "body": { "mode": "raw", "raw": "{\n  \"events\": [\n    {\n      \"type\": \"create_order\",\n      \"payload\": { \"source\": \"POS\" }\n    }\n  ]\n}" }
+      }
+    }
+  ]
+}

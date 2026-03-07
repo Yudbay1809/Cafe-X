@@ -1,0 +1,23 @@
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
+
+class PrinterService {
+  Future<void> printText({
+    required String ip,
+    required int port,
+    required String text,
+  }) async {
+    final profile = await CapabilityProfile.load();
+    final printer = NetworkPrinter(PaperSize.mm80, profile);
+    final res = await printer.connect(ip, port: port);
+    if (res != PosPrintResult.success) {
+      throw StateError('Printer connect failed: ${res.msg}');
+    }
+    for (final line in text.split('\n')) {
+      printer.text(line);
+    }
+    printer.feed(2);
+    printer.cut();
+    printer.disconnect();
+  }
+}

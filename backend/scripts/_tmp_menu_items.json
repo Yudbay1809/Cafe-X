@@ -1,0 +1,322 @@
+[
+    {
+        "gambar":  "/images/menu/menu-espresso.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Espresso"
+    },
+    {
+        "gambar":  "/images/menu/menu-americano.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Americano"
+    },
+    {
+        "gambar":  "/images/menu/menu-cappuccino.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Cappuccino"
+    },
+    {
+        "gambar":  "/images/menu/menu-latte.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-flat-white.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  30000,
+        "id_menu":  null,
+        "nama_menu":  "Flat White"
+    },
+    {
+        "gambar":  "/images/menu/menu-mocha.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  30000,
+        "id_menu":  null,
+        "nama_menu":  "Mocha"
+    },
+    {
+        "gambar":  "/images/menu/menu-caramel-latte.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  32000,
+        "id_menu":  null,
+        "nama_menu":  "Caramel Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-vanilla-latte.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  32000,
+        "id_menu":  null,
+        "nama_menu":  "Vanilla Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-hazelnut-latte.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  32000,
+        "id_menu":  null,
+        "nama_menu":  "Hazelnut Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-cold-brew.jpg",
+        "jenis_menu":  "coffee",
+        "stok":  99,
+        "harga":  30000,
+        "id_menu":  null,
+        "nama_menu":  "Cold Brew"
+    },
+    {
+        "gambar":  "/images/menu/menu-matcha-latte.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  25000,
+        "id_menu":  null,
+        "nama_menu":  "Matcha Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-chocolate.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  22000,
+        "id_menu":  null,
+        "nama_menu":  "Chocolate"
+    },
+    {
+        "gambar":  "/images/menu/menu-taro-latte.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  24000,
+        "id_menu":  null,
+        "nama_menu":  "Taro Latte"
+    },
+    {
+        "gambar":  "/images/menu/menu-red-velvet.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  24000,
+        "id_menu":  null,
+        "nama_menu":  "Red Velvet"
+    },
+    {
+        "gambar":  "/images/menu/menu-lemon-tea.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  20000,
+        "id_menu":  null,
+        "nama_menu":  "Lemon Tea"
+    },
+    {
+        "gambar":  "/images/menu/menu-lychee-tea.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  22000,
+        "id_menu":  null,
+        "nama_menu":  "Lychee Tea"
+    },
+    {
+        "gambar":  "/images/menu/menu-honey-lemon.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  22000,
+        "id_menu":  null,
+        "nama_menu":  "Honey Lemon"
+    },
+    {
+        "gambar":  "/images/menu/menu-thai-tea.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  24000,
+        "id_menu":  null,
+        "nama_menu":  "Thai Tea"
+    },
+    {
+        "gambar":  "/images/menu/menu-strawberry-milk.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  23000,
+        "id_menu":  null,
+        "nama_menu":  "Strawberry Milk"
+    },
+    {
+        "gambar":  "/images/menu/menu-sparkling-peach-tea.jpg",
+        "jenis_menu":  "non coffee",
+        "stok":  99,
+        "harga":  24000,
+        "id_menu":  null,
+        "nama_menu":  "Sparkling Peach Tea"
+    },
+    {
+        "gambar":  "/images/menu/menu-nasi-goreng.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  45000,
+        "id_menu":  null,
+        "nama_menu":  "Nasi Goreng"
+    },
+    {
+        "gambar":  "/images/menu/menu-chicken-steak.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  48000,
+        "id_menu":  null,
+        "nama_menu":  "Chicken Steak"
+    },
+    {
+        "gambar":  "/images/menu/menu-beef-steak.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  52000,
+        "id_menu":  null,
+        "nama_menu":  "Beef Steak"
+    },
+    {
+        "gambar":  "/images/menu/menu-spaghetti-bolognese.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  45000,
+        "id_menu":  null,
+        "nama_menu":  "Spaghetti Bolognese"
+    },
+    {
+        "gambar":  "/images/menu/menu-spaghetti-aglio-olio.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  42000,
+        "id_menu":  null,
+        "nama_menu":  "Spaghetti Aglio Olio"
+    },
+    {
+        "gambar":  "/images/menu/menu-chicken-katsu-curry.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  48000,
+        "id_menu":  null,
+        "nama_menu":  "Chicken Katsu Curry"
+    },
+    {
+        "gambar":  "/images/menu/menu-beef-burger.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  45000,
+        "id_menu":  null,
+        "nama_menu":  "Beef Burger"
+    },
+    {
+        "gambar":  "/images/menu/menu-grilled-chicken-rice.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  42000,
+        "id_menu":  null,
+        "nama_menu":  "Grilled Chicken Rice"
+    },
+    {
+        "gambar":  "/images/menu/menu-fish-and-chips.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  48000,
+        "id_menu":  null,
+        "nama_menu":  "Fish and Chips"
+    },
+    {
+        "gambar":  "/images/menu/menu-chicken-teriyaki.jpg",
+        "jenis_menu":  "main course",
+        "stok":  99,
+        "harga":  45000,
+        "id_menu":  null,
+        "nama_menu":  "Chicken Teriyaki"
+    },
+    {
+        "gambar":  "/images/menu/menu-french-fries.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  22000,
+        "id_menu":  null,
+        "nama_menu":  "French Fries"
+    },
+    {
+        "gambar":  "/images/menu/menu-onion-rings.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  22000,
+        "id_menu":  null,
+        "nama_menu":  "Onion Rings"
+    },
+    {
+        "gambar":  "/images/menu/menu-spring-rolls.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  24000,
+        "id_menu":  null,
+        "nama_menu":  "Spring Rolls"
+    },
+    {
+        "gambar":  "/images/menu/menu-chicken-wings.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Chicken Wings"
+    },
+    {
+        "gambar":  "/images/menu/menu-garlic-bread.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  20000,
+        "id_menu":  null,
+        "nama_menu":  "Garlic Bread"
+    },
+    {
+        "gambar":  "/images/menu/menu-nachos.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  25000,
+        "id_menu":  null,
+        "nama_menu":  "Nachos"
+    },
+    {
+        "gambar":  "/images/menu/menu-caesar-salad.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  26000,
+        "id_menu":  null,
+        "nama_menu":  "Caesar Salad"
+    },
+    {
+        "gambar":  "/images/menu/menu-potato-wedges.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  23000,
+        "id_menu":  null,
+        "nama_menu":  "Potato Wedges"
+    },
+    {
+        "gambar":  "/images/menu/menu-mozzarella-sticks.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  28000,
+        "id_menu":  null,
+        "nama_menu":  "Mozzarella Sticks"
+    },
+    {
+        "gambar":  "/images/menu/menu-soup-of-the-day.jpg",
+        "jenis_menu":  "appetizer",
+        "stok":  99,
+        "harga":  20000,
+        "id_menu":  null,
+        "nama_menu":  "Soup of the Day"
+    }
+]
