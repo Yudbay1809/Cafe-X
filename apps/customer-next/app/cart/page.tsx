@@ -9,9 +9,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 export default function CartPage() {
   const search = useSearchParams();
-  const session = getSession();
-  const tableToken = search.get('tableToken') || session?.tableToken || '';
-  const cartKey = tableToken || 'public';
+  const searchToken = search.get('tableToken') || '';
+  const [activeToken, setActiveToken] = useState(() => searchToken || getSession()?.tableToken || '');
+  const cartKey = activeToken || 'public';
   const [items, setItems] = useState(getCart(cartKey));
   const [notes, setNotes] = useState('');
   const [placing, setPlacing] = useState(false);
@@ -19,6 +19,17 @@ export default function CartPage() {
   const [tableCode, setTableCode] = useState('');
   const router = useRouter();
   const tableCodePattern = /^[A-Z]{1,2}\d{1,3}$/;
+
+  useEffect(() => {
+    if (searchToken) {
+      setActiveToken(searchToken);
+      return;
+    }
+    const session = getSession();
+    if (session?.tableToken) {
+      setActiveToken(session.tableToken);
+    }
+  }, [searchToken]);
 
   useEffect(() => {
     setItems(getCart(cartKey));
@@ -42,7 +53,7 @@ export default function CartPage() {
     setPlacing(true);
     setError('');
     try {
-      let token = tableToken;
+      let token = activeToken;
       if (!token) {
         const code = tableCode.trim().toUpperCase();
         if (!code) {
@@ -58,7 +69,9 @@ export default function CartPage() {
         const lookup = await customerApi.tableTokenByCode(code);
         token = lookup.data.table_token;
         moveCart(cartKey, token);
-        setSession({ tableToken: token, table: lookup.data.table });
+        const currentSession = getSession();
+        setSession({ ...(currentSession || { tableToken: '' }), tableToken: token, table: lookup.data.table });
+        setActiveToken(token);
       }
 
       const payload = {
@@ -75,7 +88,21 @@ export default function CartPage() {
       router.push(`/order-status?tableToken=${encodeURIComponent(token)}&orderId=${r.data.order_id}`);
     } catch (e: any) {
       if (e instanceof ApiError) {
-        setError(e.message || 'Gagal place order');
+        if ([400, 404, 410].includes(e.status)) {
+          setError('Token meja tidak valid atau sudah expired. Silakan masukkan nomor meja lagi.');
+          const currentSession = getSession();
+          if (currentSession) {
+            setSession({ ...currentSession, tableToken: '', table: undefined });
+          } else {
+            setSession({ tableToken: '' });
+          }
+          setActiveToken('');
+          if (searchToken) {
+            router.replace('/cart');
+          }
+        } else {
+          setError(e.message || 'Gagal place order');
+        }
       } else {
         setError('Gagal place order');
       }
@@ -88,8 +115,8 @@ export default function CartPage() {
     <main>
       <div className="card">
         <h1>Cart</h1>
-        <p className="small">Token: {tableToken || '-'}</p>
-        {!tableToken ? <p className="small">Masukkan nomor meja sebelum place order.</p> : null}
+        <p className="small">Token: {activeToken || '-'}</p>
+        {!activeToken ? <p className="small">Masukkan nomor meja sebelum place order.</p> : null}
       </div>
       {items.map((i) => (
         <div className="card" key={i.product_id}>
@@ -104,7 +131,7 @@ export default function CartPage() {
       ))}
       <div className="card">
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Catatan order" />
-        {!tableToken ? (
+        {!activeToken ? (
           <div style={{ marginTop: 12 }}>
             <input
               value={tableCode}
