@@ -78,9 +78,26 @@ class OrderController extends Controller
         $q = trim((string) $request->query('q', ''));
         $limit = (int) ($request->query('limit') ?? 50);
         $limit = $limit > 0 && $limit <= 200 ? $limit : 50;
+        $page = (int) ($request->query('page') ?? 1);
+        $page = $page > 0 ? $page : 1;
+        $offset = ($page - 1) * $limit;
 
-        $query = DB::table('pos_orders as o')
+        $base = DB::table('pos_orders as o')
             ->leftJoin('pos_tables as t', 't.id', '=', 'o.table_id')
+            ->when($tenantId > 0, fn ($qb) => $qb->where('o.tenant_id', $tenantId))
+            ->when($outletId > 0, fn ($qb) => $qb->where('o.outlet_id', $outletId))
+            ->when($status !== '', fn ($qb) => $qb->where('o.status', $status))
+            ->when($q !== '', function ($qb) use ($q) {
+                $qb->where(function ($w) use ($q) {
+                    $w->where('o.order_no', 'like', "%{$q}%")
+                      ->orWhere('t.table_code', 'like', "%{$q}%")
+                      ->orWhere('t.table_name', 'like', "%{$q}%");
+                });
+            });
+
+        $total = (int) (clone $base)->count('o.id');
+
+        $items = (clone $base)
             ->select([
                 'o.id',
                 'o.order_no',
@@ -92,21 +109,17 @@ class OrderController extends Controller
                 't.table_code',
                 't.table_name',
             ])
-            ->when($tenantId > 0, fn ($qb) => $qb->where('o.tenant_id', $tenantId))
-            ->when($outletId > 0, fn ($qb) => $qb->where('o.outlet_id', $outletId))
-            ->when($status !== '', fn ($qb) => $qb->where('o.status', $status))
-            ->when($q !== '', function ($qb) use ($q) {
-                $qb->where(function ($w) use ($q) {
-                    $w->where('o.order_no', 'like', "%{$q}%")
-                      ->orWhere('t.table_code', 'like', "%{$q}%")
-                      ->orWhere('t.table_name', 'like', "%{$q}%");
-                });
-            })
             ->orderByDesc('o.id')
-            ->limit($limit);
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
 
-        $items = $query->get();
-        return $this->ok(['items' => $items->all()]);
+        return $this->ok([
+            'items' => $items->all(),
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+        ]);
     }
 
     public function addItem(OrderAddItemRequest $request)
@@ -376,3 +389,4 @@ class OrderController extends Controller
         }
     }
 }
+

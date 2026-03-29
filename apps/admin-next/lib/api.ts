@@ -53,18 +53,19 @@ export const adminApi = {
   shiftOpen: (opening_cash: number, notes = '') => api('/shift/open', { method: 'POST', body: JSON.stringify({ opening_cash, notes }) }),
   shiftClose: (closing_cash: number, notes = '') => api('/shift/close', { method: 'POST', body: JSON.stringify({ closing_cash, notes }) }),
   ordersCreate: (source = 'POS') => api<{ order_id: number }>('/orders/create', { method: 'POST', body: JSON.stringify({ source }) }),
-  ordersList: (params?: { status?: string; q?: string; limit?: number }) => {
+    ordersList: (params?: { status?: string; q?: string; limit?: number; page?: number }) => {
     const qs = new URLSearchParams();
     if (params?.status) qs.set('status', params.status);
     if (params?.q) qs.set('q', params.q);
     if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.page) qs.set('page', String(params.page));
     const query = qs.toString();
-    return api<{ items: any[] }>(`/orders${query ? `?${query}` : ''}`);
-  },
-  outlets: () => api<{ items: any[] }>('/outlets'),
+    return api<{ items: any[]; page: number; limit: number; total: number }>(`/orders${query ? `?${query}` : ''}`);
+  },  outlets: () => api<{ items: any[] }>('/outlets'),
   outletUpdateBrand: (id: number, body: any) => api(`/outlets/${id}/brand`, { method: 'PUT', body: JSON.stringify(body) }),
   orderDetail: (id: number) => api<{ order: any; items: any[] }>(`/orders/${id}`),
   orderStatus: (order_id: number, status: string) => api('/orders/status', { method: 'POST', body: JSON.stringify({ order_id, status }) }),
   reportSummary: () => api('/reports/summary'),
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
 };
+

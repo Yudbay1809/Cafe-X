@@ -141,10 +141,12 @@ input:focus, select:focus, textarea:focus, button:focus {
   font-size: 12px;
   margin-left: 6px;
 }
-.status-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.status-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
 .status-step { padding: 8px; border-radius: 12px; background: #e2e8f0; text-align: center; font-size: 12px; }
 .status-step.active { background: #0f766e; color: #fff; }
 .status-step.done { background: #0ea5e9; color: #fff; }
+.status-step.paid { background: #16a34a; color: #fff; }
+.status-step.canceled { background: #ef4444; color: #fff; }
 
 .pulse {
   animation: pulse 0.35s ease-in-out;
@@ -252,3 +254,4 @@ input:focus, select:focus, textarea:focus, button:focus {
   .cart-drawer { right: 12px; left: 12px; width: auto; }
   .status-steps { grid-template-columns: repeat(2, 1fr); }
 }
+

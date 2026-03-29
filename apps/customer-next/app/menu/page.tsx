@@ -26,6 +26,7 @@ export default function MenuPage() {
   const [cartPreview, setCartPreview] = useState<Array<{ name: string; qty: number }>>([]);
   const [animateCount, setAnimateCount] = useState(false);
   const router = useRouter();
+  const session = getSession();
 
   useEffect(() => {
     const load = () => {
@@ -35,7 +36,8 @@ export default function MenuPage() {
           setProducts(r.data.products || []);
           if (tableToken) {
             setTable(r.data.table);
-            setSession({ tableToken, table: r.data.table });
+            const currentSession = getSession();
+            setSession({ ...(currentSession || { tableToken: '' }), tableToken, table: r.data.table });
             if (r.data.table?.is_active === false) {
               setError('Meja tidak aktif');
             }
@@ -56,14 +58,14 @@ export default function MenuPage() {
             return;
           }
           const cache = getMenuCache(cartKey);
-          if (!navigator.onLine && cache) {
+          if (cache) {
             setProducts(cache.products);
             setTable(cache.table || null);
-            setOfflineNotice('Menampilkan menu cache (offline).');
-          } else {
-            setError(e.message || 'Gagal memuat menu');
-            if (tableToken) clearSession();
+            setOfflineNotice(`Menampilkan menu cache (${cache.cachedAt}).`);
+            return;
           }
+          setError(e.message || 'Gagal memuat menu');
+          if (tableToken) clearSession();
         })
         .finally(() => setLoading(false));
     };
@@ -133,6 +135,8 @@ export default function MenuPage() {
     setTimeout(() => setAnimateCount(false), 350);
   }
 
+  const lastOrderToken = session?.tableToken || tableToken;
+
   return (
     <main>
       <div className="sticky-header">
@@ -161,6 +165,18 @@ export default function MenuPage() {
               </button>
             ))}
           </div>
+          {session?.lastOrderId && lastOrderToken ? (
+            <div style={{ width: '100%' }}>
+              <button
+                className="ghost"
+                onClick={() =>
+                  router.push(`/order-status?tableToken=${encodeURIComponent(lastOrderToken)}&orderId=${session.lastOrderId}`)
+                }
+              >
+                Lihat Order Terakhir #{session.lastOrderId}
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
       {loading ? <div className="card">Loading menu...</div> : null}

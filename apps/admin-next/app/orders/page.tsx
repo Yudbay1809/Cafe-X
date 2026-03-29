@@ -15,25 +15,33 @@ export default function OrdersPage() {
   const [status, setStatus] = useState('all');
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 20;
   const { t } = useI18n();
 
-  async function load() {
+  async function load(nextPage = page) {
     try {
       setError('');
       const r = await adminApi.ordersList({
         status: status === 'all' ? undefined : status,
         q: query || undefined,
-        limit: 100,
+        limit,
+        page: nextPage,
       });
-      setItems(r.items);
+      setItems(r.items || []);
+      setTotal(r.total ?? r.items?.length ?? 0);
+      setMsg(`Menampilkan ${r.items?.length ?? 0} dari ${r.total ?? 0}`);
     } catch (e: any) {
       setError(e.message || 'Gagal load orders');
     }
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    load(page);
+  }, [page]);
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
     <RequireAuth>
@@ -50,8 +58,26 @@ export default function OrdersPage() {
               <option value="canceled">Canceled</option>
             </select>
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('searchOrder')} />
-            <button className="btn" onClick={load}>{t('search')}</button>
-            <button className="btn outline" onClick={() => { setStatus('all'); setQuery(''); }}>{t('reset')}</button>
+            <button
+              className="btn"
+              onClick={() => {
+                setPage(1);
+                load(1);
+              }}
+            >
+              {t('search')}
+            </button>
+            <button
+              className="btn outline"
+              onClick={() => {
+                setStatus('all');
+                setQuery('');
+                setPage(1);
+                load(1);
+              }}
+            >
+              {t('reset')}
+            </button>
           </div>
           <p className="small">{msg}</p>
         </div>
@@ -87,6 +113,11 @@ export default function OrdersPage() {
               ))}
             </tbody>
           </table>
+          <div className="toolbar" style={{ marginTop: 12, justifyContent: 'space-between' }}>
+            <button className="btn outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>Prev</button>
+            <div className="small">Page {page} / {totalPages}</div>
+            <button className="btn outline" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
+          </div>
         </div>
         {detail ? (
           <div className="card">

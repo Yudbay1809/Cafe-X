@@ -38,9 +38,15 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   String _userName = '-';
   late final AnimationController _syncController;
   Timer? _sessionTimer;
-  Timer? _autoSyncTimer;
+    _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
+    _checkNetwork();
+    _netTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
   bool _syncing = false;
   String _lastSync = '-';
+  bool _isOnline = true;
+  int _netFailCount = 0;
+  int _netOkCount = 0;
+  Timer? _netTimer;
 
   @override
   void initState() {
@@ -54,6 +60,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _sessionTimer = Timer.periodic(const Duration(seconds: 30), (_) => _checkSession());
     _loadLastSync();
     _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
+    _checkNetwork();
+    _netTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
   }
 
   Future<void> _refreshPending() async {
@@ -105,9 +113,39 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     setState(() => _lastSync = value);
   }
 
+  Future<void> _checkNetwork() async {
+    try {
+      final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+      final dio = Dio(BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 3),
+      ));
+      final res = await dio.get('/api/v1/health');
+      if (res.statusCode == 200) {
+        _netOkCount += 1;
+        _netFailCount = 0;
+        if (_netOkCount >= 2 && !_isOnline && mounted) {
+          setState(() => _isOnline = true);
+        }
+      } else {
+        throw StateError('health failed');
+      }
+    } catch (_) {
+      _netFailCount += 1;
+      _netOkCount = 0;
+      if (_netFailCount >= 2 && _isOnline && mounted) {
+        setState(() => _isOnline = false);
+      }
+    }
+  }
   Future<void> _runAutoSync() async {
     if (_syncing || !_isLoggedIn) return;
     _syncing = true;
+    if (!_isOnline) {
+      _syncing = false;
+      return;
+    }
     try {
       final session = await widget.services.authService.currentSession();
       if (session == null) return;
@@ -187,6 +225,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _syncController.dispose();
     _sessionTimer?.cancel();
     _autoSyncTimer?.cancel();
+    _netTimer?.cancel();
     super.dispose();
   }
 
@@ -263,6 +302,18 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                   child: Center(
                     child: Row(
                       children: [
+                        Icon(
+                          _isOnline ? Icons.wifi : Icons.wifi_off,
+                          color: _isOnline ? Colors.green.shade200 : Colors.red.shade200,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isOnline ? 'Online' : 'Offline',
+                          style: TextStyle(
+                            color: _isOnline ? Colors.green.shade200 : Colors.red.shade200,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         RotationTransition(
                           turns: _syncController,
                           child: Icon(
@@ -272,7 +323,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          _pendingEvents > 0 ? 'Offline Queue: $_pendingEvents' : 'Online',
+                          'Queue: $_pendingEvents',
                           style: TextStyle(
                             color: _pendingEvents > 0 ? Colors.amber.shade200 : Colors.green.shade200,
                           ),
@@ -385,3 +436,13 @@ class _ActionIntent extends Intent {
 
   final String action;
 }
+
+
+
+
+
+
+
+
+
+

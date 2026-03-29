@@ -40,14 +40,19 @@ export default function OrderStatusPage() {
     };
   }, [tableToken, orderId]);
 
+  const steps = ['new', 'preparing', 'ready', 'served'];
+  const statusIndex = steps.indexOf(status);
+  const isPaid = status === 'paid';
+  const isCanceled = status === 'canceled';
+
   return (
     <main>
       <div className="card">
         <h1>Status Order</h1>
         <p>Order #{orderId}</p>
         <div className="status-steps" style={{ marginTop: 12 }}>
-          {['new', 'preparing', 'ready', 'served'].map((s) => {
-            const isDone = ['new', 'preparing', 'ready', 'served'].indexOf(s) < ['new', 'preparing', 'ready', 'served'].indexOf(status);
+          {steps.map((s, idx) => {
+            const isDone = isPaid ? true : statusIndex > -1 && idx < statusIndex;
             const isActive = status === s;
             return (
               <div key={s} className={`status-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`}>
@@ -55,6 +60,8 @@ export default function OrderStatusPage() {
               </div>
             );
           })}
+          {isPaid ? <div className="status-step paid">paid</div> : null}
+          {isCanceled ? <div className="status-step canceled">canceled</div> : null}
         </div>
         <p>Status: <b>{status}</b></p>
         <p>Total: {formatRupiah(total)}</p>

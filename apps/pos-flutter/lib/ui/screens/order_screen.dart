@@ -30,6 +30,8 @@ class _OrderScreenState extends State<OrderScreen> {
   double _discount = 0;
   String _status = '';
   bool _loading = false;
+  bool _refreshingMenu = false;
+  String _menuStatus = '';
   StreamSubscription<String>? _shortcutSub;
 
   @override
@@ -37,6 +39,7 @@ class _OrderScreenState extends State<OrderScreen> {
     super.initState();
     _loadTables();
     _loadProducts();
+    _refreshMaster();
     _shortcutSub = widget.services.shortcutBus.stream.listen((action) {
       if (action == 'new_order') {
         setState(() {
@@ -61,6 +64,27 @@ class _OrderScreenState extends State<OrderScreen> {
     setState(() => _tables = tables);
   }
 
+  Future<void> _refreshMaster() async {
+    if (_refreshingMenu) return;
+    setState(() {
+      _refreshingMenu = true;
+      _menuStatus = '';
+    });
+    try {
+      final session = await widget.services.authService.currentSession();
+      if (session == null) throw StateError('Belum login');
+      await widget.services.cacheService.refreshMaster(token: session.accessToken);
+      await _loadTables();
+      await _loadProducts();
+      if (!mounted) return;
+      setState(() => _menuStatus = 'Menu diperbarui');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _menuStatus = 'Gagal update menu, pakai cache');
+    } finally {
+      if (mounted) setState(() => _refreshingMenu = false);
+    }
+  }
   Future<void> _loadProducts() async {
     _allProducts = await widget.services.cacheService.allProducts();
     _applyFilters();
@@ -320,6 +344,17 @@ class _OrderScreenState extends State<OrderScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
+                          ElevatedButton(
+                            onPressed: _refreshingMenu ? null : _refreshMaster,
+                            child: Text(_refreshingMenu ? 'Refreshing...' : 'Refresh Menu'),
+                          ),
+                          const SizedBox(width: 8),
+                          if (_menuStatus.isNotEmpty) Text(_menuStatus),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
                           ElevatedButton(onPressed: _loading ? null : _loadOpenOrders, child: const Text('Hold/Resume')),
                           const SizedBox(width: 8),
                           OutlinedButton(onPressed: _loading ? null : _moveTable, child: const Text('Pindah Meja')),
@@ -482,3 +517,9 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 }
+
+
+
+
+
+

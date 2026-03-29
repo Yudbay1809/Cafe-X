@@ -4,25 +4,26 @@ import { AdminShell } from '@/components/AdminShell';
 import { RequireAuth } from '@/components/RequireAuth';
 import { useI18n } from '@/components/I18nProvider';
 import { adminApi } from '@/lib/api';
+import { formatRupiah } from '@/lib/money';
 import { useEffect, useState } from 'react';
 
 export default function Page() {
   const { t } = useI18n();
-  const [stats, setStats] = useState({ orders: 0, reports: 0, tables: 0 });
+  const [stats, setStats] = useState({ orders: 0, sales: 0, tables: 0, date: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const [orders, tables, summary] = await Promise.all([
-          adminApi.ordersList({ limit: 1 }),
+        const [tables, summary] = await Promise.all([
           adminApi.tables(),
           adminApi.reportSummary().catch(() => null),
         ]);
         setStats({
-          orders: orders.items?.length ?? 0,
+          orders: summary?.orders_count ?? 0,
+          sales: summary?.sales_total ?? 0,
           tables: tables.items?.length ?? 0,
-          reports: summary?.total_orders ?? summary?.total_transactions ?? 0,
+          date: summary?.date ?? '',
         });
       } catch (e: any) {
         setError(e.message || 'Gagal memuat dashboard');
@@ -37,6 +38,7 @@ export default function Page() {
         <div className="card">
           <h1>{t('dashboard')}</h1>
           <p className="small">{t('dashboardSubtitle')}</p>
+          {stats.date ? <p className="small">Tanggal: {stats.date}</p> : null}
         </div>
         <div className="grid3">
           <div className="card">
@@ -44,8 +46,8 @@ export default function Page() {
             <h2>{stats.orders}</h2>
           </div>
           <div className="card">
-            <div className="small">{t('reports')}</div>
-            <h2>{stats.reports}</h2>
+            <div className="small">Sales</div>
+            <h2>{formatRupiah(stats.sales)}</h2>
           </div>
           <div className="card">
             <div className="small">{t('tables')}</div>
