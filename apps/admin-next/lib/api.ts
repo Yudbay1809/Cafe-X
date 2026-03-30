@@ -67,5 +67,18 @@ export const adminApi = {
   orderStatus: (order_id: number, status: string) => api('/orders/status', { method: 'POST', body: JSON.stringify({ order_id, status }) }),
   reportSummary: () => api('/reports/summary'),
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
+  auditLogs: (params?: { event?: string; actor?: string; entity?: string; from?: string; to?: string; page?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.event) qs.set('event', params.event);
+    if (params?.actor) qs.set('actor', params.actor);
+    if (params?.entity) qs.set('entity', params.entity);
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const query = qs.toString();
+    return api<{ items: any[]; page: number; limit: number; total: number }>(`/audit-logs${query ? `?${query}` : ''}`);
+  },
 };
+
 

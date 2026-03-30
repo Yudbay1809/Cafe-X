@@ -42,6 +42,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     super.dispose();
   }
 
+  Future<double> _getTotal(String orderLocalId) async {
+    final detail = await widget.services.orderService.detail(orderLocalId);
+    if (detail == null) {
+      throw StateError('Order tidak ditemukan');
+    }
+    if (detail.status == OrderStatus.paid || detail.status == OrderStatus.canceled) {
+      throw StateError('Order sudah paid/canceled');
+    }
+    if (detail.totalAmount <= 0) {
+      throw StateError('Total order tidak valid');
+    }
+    return detail.totalAmount;
+  }
+
   Future<void> _pay() async {
     setState(() {
       _loading = true;
@@ -52,10 +66,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (session == null) throw StateError('Belum login');
       final orderLocalId = _orderId.text.trim();
       if (orderLocalId.isEmpty) throw StateError('Order ID kosong');
+      final total = await _getTotal(orderLocalId);
       final payments = _rows.map((r) {
         final amount = double.tryParse(r.amount) ?? 0;
         return PaymentPart(method: r.method, amount: amount);
       }).toList();
+      final sum = payments.fold<double>(0, (a, b) => a + b.amount);
+      if (sum <= 0) throw StateError('Total pembayaran harus > 0');
+      if (sum < total) throw StateError('Total pembayaran kurang dari total order');
       final result = await widget.services.paymentService.payOrder(
         token: session.accessToken,
         actor: session.username,
@@ -71,14 +89,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Future<double> _getTotal(String orderLocalId) async {
-    final detail = await widget.services.orderService.detail(orderLocalId);
-    if (detail == null) {
-      throw StateError('Order tidak ditemukan');
-    }
-    return detail.totalAmount;
   }
 
   Future<void> _quickPay(PaymentMethod method) async {

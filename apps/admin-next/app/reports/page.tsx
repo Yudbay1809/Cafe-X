@@ -14,6 +14,36 @@ export default function ReportsPage() {
   const [error, setError] = useState('');
   const { t } = useI18n();
 
+  const exportShiftCsv = () => {
+    if (!shift) return;
+    const lines: string[] = [];
+    lines.push('Shift ID,Opened At,Closed At,Opening Cash,Closing Cash,Expected Cash,Variance,Orders Total,Void Count');
+    lines.push([
+      shift.shift?.id ?? '',
+      shift.shift?.opened_at ?? '',
+      shift.shift?.closed_at ?? '',
+      shift.cash?.opening_cash ?? 0,
+      shift.cash?.closing_cash ?? 0,
+      shift.cash?.expected_cash ?? 0,
+      shift.cash?.variance_cash ?? 0,
+      shift.orders_total ?? 0,
+      shift.void_count ?? 0,
+    ].join(','));
+    lines.push('');
+    lines.push('Payments By Method');
+    lines.push('Method,Count,Total');
+    (shift.payments_by_method || []).forEach((p: any) => {
+      lines.push([p.method, p.trx_count, p.total ?? 0].join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `shift-${shift.shift?.id || 'unknown'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <RequireAuth>
       <AdminShell title={t('reports')} subtitle={t('reportsSubtitle')}>
@@ -76,6 +106,7 @@ export default function ReportsPage() {
           <div className="grid2">
             <div className="card">
               <h3>{t('shifts')} #{shift.shift?.id}</h3>
+              <button className="btn outline" onClick={exportShiftCsv} style={{ marginTop: 8 }}>{t('exportCsv') || 'Export CSV'}</button>
               <div className="small">{t('openedAt')}: {shift.shift?.opened_at || '-'}</div>
               <div className="small">{t('closedAt')}: {shift.shift?.closed_at || '-'}</div>
               <div style={{ height: 10 }} />
@@ -137,3 +168,5 @@ export default function ReportsPage() {
     </RequireAuth>
   );
 }
+
+

@@ -588,6 +588,11 @@ components:
         message: { type: string }
         data: { type: object, additionalProperties: true }
         server_time: { type: string }
+      example:
+        ok: true
+        message: OK
+        data: {}
+        server_time: "2026-03-30 10:00:00"
     ErrorResponse:
       type: object
       properties:
@@ -595,3 +600,9 @@ components:
         message: { type: string }
         meta: { type: object, additionalProperties: true }
         server_time: { type: string }
+      example:
+        ok: false
+        message: "Validation error"
+        meta: {}
+        server_time: "2026-03-30 10:00:00"
+

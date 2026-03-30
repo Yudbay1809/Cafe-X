@@ -258,3 +258,13 @@ input, select, textarea {
   0%, 100% { transform: translateY(0); opacity: 0.6; }
   50% { transform: translateY(-6px); opacity: 1; }
 }
+
+.kitchen-board { align-items: start; }
+.kitchen-column { background: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.3); }
+.kitchen-column h3 { margin-top: 0; }
+.kitchen-column .small { color: #64748b; }
+.kitchen-item { padding: 12px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.25); box-shadow: none; background: #fff; }
+.kitchen-column .kitchen-item + .kitchen-item { margin-top: 8px; }
+
+.table-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.density-select { min-width: 160px; }

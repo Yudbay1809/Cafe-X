@@ -38,12 +38,11 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   String _userName = '-';
   late final AnimationController _syncController;
   Timer? _sessionTimer;
-    _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
-    _checkNetwork();
-    _netTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
+  Timer? _autoSyncTimer;
   bool _syncing = false;
   String _lastSync = '-';
   bool _isOnline = true;
+  bool _syncConflict = false;
   int _netFailCount = 0;
   int _netOkCount = 0;
   Timer? _netTimer;
@@ -152,7 +151,9 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
       final dio = Dio(BaseOptions(baseUrl: baseUrl));
       final worker = SyncWorker(dio);
-      await worker.pushPull(session.accessToken);
+      final result = await worker.pushPull(session.accessToken);
+      final hasConflict = result["has_conflict"] == true;
+      if (mounted) setState(() => _syncConflict = hasConflict);
       final now = DateTime.now().toIso8601String();
       await _config.setString('last_sync', now);
       if (!mounted) return;
@@ -328,6 +329,12 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                             color: _pendingEvents > 0 ? Colors.amber.shade200 : Colors.green.shade200,
                           ),
                         ),
+                        if (_syncConflict) ...[
+                          const SizedBox(width: 12),
+                          Icon(Icons.warning, color: Colors.red.shade200),
+                          const SizedBox(width: 6),
+                          Text('Conflict', style: TextStyle(color: Colors.red.shade200)),
+                        ],
                       ],
                     ),
                   ),
@@ -374,26 +381,56 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  if (isWide && _isLoggedIn)
-                    NavigationRail(
-                      selectedIndex: _navIndex(),
-                      onDestinationSelected: (i) => _setNavByIndex(i),
-                      labelType: NavigationRailLabelType.all,
-                      destinations: const [
-                        NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Dashboard')),
-                        NavigationRailDestination(icon: Icon(Icons.schedule), label: Text('Shift')),
-                        NavigationRailDestination(icon: Icon(Icons.shopping_bag), label: Text('Order')),
-                        NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Payment')),
-                        NavigationRailDestination(icon: Icon(Icons.receipt), label: Text('Receipt')),
-                        NavigationRailDestination(icon: Icon(Icons.kitchen), label: Text('Kitchen')),
-                        NavigationRailDestination(icon: Icon(Icons.bar_chart), label: Text('Reports')),
-                        NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
-                        NavigationRailDestination(icon: Icon(Icons.help), label: Text('SOP')),
+                  if (_syncConflict)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning, color: Colors.red.shade400),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Konflik sync terdeteksi. Periksa log dan lakukan resolve di Settings.',
+                              style: TextStyle(color: Color(0xFF7F1D1D)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (isWide && _isLoggedIn)
+                          NavigationRail(
+                            selectedIndex: _navIndex(),
+                            onDestinationSelected: (i) => _setNavByIndex(i),
+                            labelType: NavigationRailLabelType.all,
+                            destinations: const [
+                              NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Dashboard')),
+                              NavigationRailDestination(icon: Icon(Icons.schedule), label: Text('Shift')),
+                              NavigationRailDestination(icon: Icon(Icons.shopping_bag), label: Text('Order')),
+                              NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Payment')),
+                              NavigationRailDestination(icon: Icon(Icons.receipt), label: Text('Receipt')),
+                              NavigationRailDestination(icon: Icon(Icons.kitchen), label: Text('Kitchen')),
+                              NavigationRailDestination(icon: Icon(Icons.bar_chart), label: Text('Reports')),
+                              NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
+                              NavigationRailDestination(icon: Icon(Icons.monitor_heart), label: Text('Device Health')),
+                              NavigationRailDestination(icon: Icon(Icons.help), label: Text('SOP')),
+                            ],
+                          ),
+                        Expanded(child: _screen()),
                       ],
                     ),
-                  Expanded(child: _screen()),
+                  ),
                 ],
               ),
             ),
@@ -415,12 +452,12 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   }
 
   int _navIndex() {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'SOP'];
+    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'Device Health', 'SOP'];
     return labels.indexOf(_current).clamp(0, labels.length - 1);
   }
 
   void _setNavByIndex(int index) {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'SOP'];
+    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'Device Health', 'SOP'];
     setState(() => _current = labels[index]);
   }
 }
@@ -436,6 +473,13 @@ class _ActionIntent extends Intent {
 
   final String action;
 }
+
+
+
+
+
+
+
 
 
 

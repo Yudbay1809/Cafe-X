@@ -14,6 +14,8 @@ export default function CartPage() {
   const cartKey = activeToken || 'public';
   const [items, setItems] = useState(getCart(cartKey));
   const [notes, setNotes] = useState('');
+  const [voucherCode, setVoucherCode] = useState('');
+  const [discountPct, setDiscountPct] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
   const [tableCode, setTableCode] = useState('');
@@ -36,6 +38,8 @@ export default function CartPage() {
   }, [cartKey]);
 
   const total = useMemo(() => items.reduce((a, b) => a + b.price * b.qty, 0), [items]);
+  const discountAmount = Math.round(total * (discountPct / 100));
+  const totalAfterDiscount = Math.max(0, total - discountAmount);
 
   function updateQty(productId: number, qty: number) {
     const next = items.map((x) => (x.product_id === productId ? { ...x, qty: Math.max(1, qty) } : x));
@@ -82,8 +86,17 @@ export default function CartPage() {
       const r = await customerApi.placeOrder(payload);
       clearCart(token);
       const session = getSession();
+      const lastOrderItems = items.map((x) => ({
+        product_id: x.product_id,
+        name: x.name,
+        price: x.price,
+        qty: x.qty,
+        notes: x.notes,
+      }));
       if (session) {
-        setSession({ ...session, lastOrderId: r.data.order_id, lastOrderNo: r.data.order_no });
+        setSession({ ...session, lastOrderId: r.data.order_id, lastOrderNo: r.data.order_no, lastOrderItems });
+      } else {
+        setSession({ tableToken: token, lastOrderId: r.data.order_id, lastOrderNo: r.data.order_no, lastOrderItems });
       }
       router.push(`/order-status?tableToken=${encodeURIComponent(token)}&orderId=${r.data.order_id}`);
     } catch (e: any) {
@@ -140,12 +153,39 @@ export default function CartPage() {
             />
           </div>
         ) : null}
+        <div style={{ marginTop: 12 }}>
+          <div className="small">Voucher</div>
+          <div className="toolbar">
+            <input value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} placeholder="Kode voucher" />
+            <button
+              onClick={() => {
+                const code = voucherCode.trim().toUpperCase();
+                if (code === 'CAFEX10') setDiscountPct(10);
+                else if (code === 'CAFEX20') setDiscountPct(20);
+                else setDiscountPct(0);
+              }}
+            >
+              Terapkan
+            </button>
+          </div>
+          {discountPct > 0 ? <div className="small">Diskon {discountPct}% diterapkan</div> : null}
+        </div>
         {error ? <p className="small">{error}</p> : null}
       </div>
       <div className="sticky-footer">
         <div className="cart-item">
-          <span>Total</span>
+          <span>Subtotal</span>
           <span>{formatRupiah(total)}</span>
+        </div>
+        {discountPct > 0 ? (
+          <div className="cart-item">
+            <span>Diskon</span>
+            <span>-{formatRupiah(discountAmount)}</span>
+          </div>
+        ) : null}
+        <div className="cart-item">
+          <span>Total</span>
+          <span>{formatRupiah(totalAfterDiscount)}</span>
         </div>
         <div className="toolbar" style={{ marginTop: 8 }}>
           <button disabled={placing || items.length === 0} onClick={placeOrder}>
@@ -156,3 +196,6 @@ export default function CartPage() {
     </main>
   );
 }
+
+
+

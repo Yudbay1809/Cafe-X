@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import '../../core/local_db.dart';
+import '../../core/app_config_service.dart';
+import '../../core/security_utils.dart';
 import '../../features/order/order_models.dart';
 import '../../pos_app_service.dart';
 import '../ui_utils.dart';
@@ -32,6 +34,7 @@ class _OrderScreenState extends State<OrderScreen> {
   bool _loading = false;
   bool _refreshingMenu = false;
   String _menuStatus = '';
+  final _config = AppConfigService();
   StreamSubscription<String>? _shortcutSub;
 
   @override
@@ -191,7 +194,29 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
+  Future<bool> _ensureSensitiveAllowed({required String action, required double amount}) async {
+    final thresholdRaw = await _config.getString('cancel_high_threshold', fallback: '500000');
+    final threshold = double.tryParse(thresholdRaw) ?? 500000;
+    if (amount < threshold) return true;
+    final guard = await widget.services.authService.permissionGuard();
+    if (guard.canSensitiveAction(action)) return true;
+    final pinHash = await _config.getString('manager_pin_hash', fallback: '');
+    if (pinHash.isEmpty) {
+      showError(context, StateError('PIN override belum diset di Settings'));
+      return false;
+    }
+    final pin = await promptText(context, title: 'Masukkan PIN Override', hint: 'PIN', isNumber: true, obscure: true);
+    if (!mounted) return false;
+    if (pin == null || pin.isEmpty) return false;
+    if (hashPin(pin) != pinHash) {
+      showError(context, StateError('PIN salah'));
+      return false;
+    }
+    return true;
+  }
   Future<void> _cancelItem(PosOrderItem item) async {
+    final allowed = await _ensureSensitiveAllowed(action: 'void_large', amount: item.lineSubtotal);
+    if (!allowed) return;
     setState(() => _loading = true);
     try {
       final session = await widget.services.authService.currentSession();
@@ -234,6 +259,8 @@ class _OrderScreenState extends State<OrderScreen> {
     if (_currentOrderLocalId == null) return;
     final session = await widget.services.authService.currentSession();
     if (session == null) throw StateError('Belum login');
+    final allowed = await _ensureSensitiveAllowed(action: 'cancel_large', amount: _total);
+    if (!allowed) return;
     // ignore: use_build_context_synchronously
     final reason = await promptText(context, title: 'Alasan cancel', hint: 'Mis. customer batal');
     if (!mounted) return;
@@ -517,6 +544,21 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

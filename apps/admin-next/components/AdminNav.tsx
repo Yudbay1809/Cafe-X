@@ -13,9 +13,9 @@ export function AdminNav() {
     { href: '/tables', label: t('tables') },
     { href: '/shifts', label: t('shifts') },
     { href: '/orders', label: t('orders') },
-    { href: '/reports', label: t('reports') },
+    { href: '/reports', label: t('reports') },\n    { href: '/audit-logs', label: t('auditLogs') },
     { href: '/kitchen', label: t('kitchen') },
-    { href: '/settings/outlets', label: t('outlets') },
+    { href: '/settings/outlets', label: t('outlets') },\n    { href: '/ops/backup', label: t('backupScheduler') },\n    { href: '/ops/incidents', label: t('incidentReport') },
   ];
   return (
     <nav className="sidebar-nav">
@@ -30,3 +30,4 @@ export function AdminNav() {
     </nav>
   );
 }
+

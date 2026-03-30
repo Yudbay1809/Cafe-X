@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\QrController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ShiftController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\SyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,5 +60,6 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/sync/push', [SyncController::class, 'push'])->middleware(['perm:sync.use', 'throttle:40,1']);
         Route::get('/reports/summary', [ReportController::class, 'summary'])->middleware(['perm:report.view', 'feature:reports.basic']);
         Route::get('/reports/shift', [ReportController::class, 'shift'])->middleware(['perm:report.shift', 'feature:reports.basic']);
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('perm:audit.view');
     });
 });

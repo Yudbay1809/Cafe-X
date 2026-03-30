@@ -12,7 +12,10 @@ export default function ProductsPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
+  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(5);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
   const [form, setForm] = useState({
     nama_menu: '',
     jenis_menu: '',
@@ -40,11 +43,65 @@ export default function ProductsPage() {
   }, []);
 
   const categories = Array.from(new Set(items.map((i) => i.jenis_menu).filter(Boolean)));
+  const lowStockCount = items.filter((i) => (i.stok ?? 0) <= lowStockThreshold).length;
   const filtered = items.filter((i) => {
     const inCategory = category === 'all' || i.jenis_menu === category;
     const inQuery = !query || String(i.nama_menu || '').toLowerCase().includes(query.toLowerCase());
-    return inCategory && inQuery;
+    const isLow = (i.stok ?? 0) <= lowStockThreshold;
+    const inLow = !lowStockOnly || isLow;
+    return inCategory && inQuery && inLow;
   });
+
+  function exportCsv() {
+    const headers = ['nama_menu','jenis_menu','harga','stok','gambar','is_active'];
+    const rows = filtered.map((i) => [
+      i.nama_menu ?? '',
+      i.jenis_menu ?? '',
+      i.harga ?? 0,
+      i.stok ?? 0,
+      i.gambar ?? '',
+      i.is_active ? 1 : 0,
+    ]);
+    const csv = [headers.join(','), ...rows.map((r) => r.map((v) => String(v).replace(/,/g, ' ')).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importCsv(file: File) {
+    setImporting(true);
+    setError('');
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) throw new Error('CSV kosong');
+      const header = lines[0].split(',').map((s) => s.trim());
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        const row: any = {};
+        header.forEach((h, idx) => row[h] = (cols[idx] ?? '').trim());
+        if (!row.nama_menu) continue;
+        const payload = {
+          nama_menu: row.nama_menu,
+          jenis_menu: row.jenis_menu || '',
+          harga: Number(row.harga || 0),
+          stok: Number(row.stok || 0),
+          gambar: row.gambar || '',
+          is_active: row.is_active === '0' ? false : true,
+        };
+        await adminApi.productCreate(payload);
+      }
+      await load();
+    } catch (e: any) {
+      setError(e.message || 'Gagal import CSV');
+    } finally {
+      setImporting(false);
+    }
+  }
 
   return (
     <RequireAuth>
@@ -68,6 +125,30 @@ export default function ProductsPage() {
             </select>
             <button className="btn outline" onClick={() => { setQuery(''); setCategory('all'); }}>{t('reset')}</button>
             <button className="btn" onClick={load}>{t('search')}</button>
+            <input
+              type="number"
+              value={lowStockThreshold}
+              onChange={(e) => setLowStockThreshold(Number(e.target.value || 0))}
+              placeholder="Low stock threshold"
+              style={{ maxWidth: 140 }}
+            />
+            <button className="btn outline" onClick={() => setLowStockOnly(!lowStockOnly)}>
+              {lowStockOnly ? 'All Stock' : 'Low Stock Only'}
+            </button>
+            <span className="small">Low stock: {lowStockCount}</span>
+            <button className="btn outline" onClick={exportCsv}>Export CSV</button>
+            <label className="btn outline" style={{ cursor: 'pointer' }}>
+              {importing ? 'Importing...' : 'Import CSV'}
+              <input
+                type="file"
+                accept=".csv"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importCsv(f);
+                }}
+              />
+            </label>
           </div>
         </div>
         <div className="card">
@@ -146,7 +227,7 @@ export default function ProductsPage() {
               <h3>{i.nama_menu}</h3>
               <div className="product-meta">
                 <span className="pill">{i.jenis_menu || 'Uncategorized'}</span>
-                <span className={i.stok <= 5 ? 'pill warning' : 'pill success'}>
+                <span className={(i.stok ?? 0) <= lowStockThreshold ? 'pill warning' : 'pill success'}>
                   Stok {i.stok}
                 </span>
               </div>
@@ -189,3 +270,4 @@ export default function ProductsPage() {
     </RequireAuth>
   );
 }
+

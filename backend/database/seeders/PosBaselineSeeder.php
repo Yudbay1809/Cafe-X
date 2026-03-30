@@ -50,7 +50,7 @@ class PosBaselineSeeder extends Seeder
             'table.manage' => 'Manage tables',
             'product.manage' => 'Manage products',
             'report.view' => 'View reports',
-            'report.shift' => 'View shift report',
+            'report.shift' => 'View shift report',\n            'audit.view' => 'View audit logs',
             'sync.use' => 'Use sync endpoints',
             'user.manage' => 'Manage users',
         ];
@@ -62,8 +62,8 @@ class PosBaselineSeeder extends Seeder
         }
 
         $roles = [
-            'owner' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'sync.use', 'user.manage'],
-            'admin' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'sync.use'],
+            'owner' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use', 'user.manage'],
+            'admin' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use'],
             'kasir' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.reprint', 'shift.open', 'shift.close', 'report.shift', 'sync.use'],
             'kitchen' => ['order.create'],
         ];
@@ -169,3 +169,5 @@ class PosBaselineSeeder extends Seeder
         );
     }
 }
+
+

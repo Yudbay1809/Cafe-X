@@ -18,7 +18,7 @@ const DICT: Dict = {
   tables: { id: 'Meja', en: 'Tables' },
   shifts: { id: 'Shift', en: 'Shifts' },
   orders: { id: 'Order', en: 'Orders' },
-  reports: { id: 'Laporan', en: 'Reports' },
+  reports: { id: 'Laporan', en: 'Reports' },\n  auditLogs: { id: 'Audit Logs', en: 'Audit Logs' },\n  auditLogsSubtitle: { id: 'Riwayat aktivitas kritikal', en: 'Critical activity history' },\n  backupScheduler: { id: 'Backup Scheduler', en: 'Backup Scheduler' },\n  backupSchedulerSubtitle: { id: 'Jadwal backup otomatis', en: 'Automatic backup schedule' },\n  runBackupNow: { id: 'Jalankan Backup', en: 'Run Backup' },\n  backupNotes: { id: 'Catatan Backup', en: 'Backup Notes' },\n  incidentReport: { id: 'Incident Report', en: 'Incident Report' },\n  incidentReportSubtitle: { id: 'Laporan insiden cepat', en: 'Quick incident reporting' },\n  submitIncident: { id: 'Kirim Laporan', en: 'Submit Report' },\n
   kitchen: { id: 'Dapur', en: 'Kitchen' },
   loginAdmin: { id: 'Login Admin', en: 'Admin Login' },
   username: { id: 'Username', en: 'Username' },
@@ -103,7 +103,7 @@ const DICT: Dict = {
   brandName: { id: 'Nama Brand', en: 'Brand Name' },
   brandColor: { id: 'Warna Brand', en: 'Brand Color' },
   contactPhone: { id: 'Kontak', en: 'Contact' },
-  save: { id: 'Simpan', en: 'Save' },
+  save: { id: 'Simpan', en: 'Save' },\n  exportCsv: { id: 'Export CSV', en: 'Export CSV' },
   settings: { id: 'Pengaturan', en: 'Settings' },
   outlets: { id: 'Outlet', en: 'Outlets' },
   allCategories: { id: 'Semua kategori', en: 'All categories' },
@@ -149,3 +149,5 @@ export function useI18n() {
   if (!ctx) throw new Error('useI18n must be used within I18nProvider');
   return ctx;
 }
+
+

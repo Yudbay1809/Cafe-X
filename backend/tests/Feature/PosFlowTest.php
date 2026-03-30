@@ -103,8 +103,8 @@ class PosFlowTest extends TestCase
                     'payload' => ['source' => 'POS'],
                 ],
                 [
-                    'type' => 'add_item',
-                    'payload' => ['order_id' => 0, 'product_id' => 1, 'qty' => 1],
+                    'type' => 'unsupported_event',
+                    'payload' => ['foo' => 'bar'],
                 ],
             ],
         ]);
@@ -213,4 +213,58 @@ class PosFlowTest extends TestCase
         $this->withHeaders($headers)->postJson('/api/v1/orders/receipt', ['order_id' => $o1])->assertOk();
         $this->withHeaders($headers)->postJson('/api/v1/orders/reprint', ['order_id' => $o1])->assertOk();
     }
+    public function test_idempotency_replay_on_pay(): void
+    {
+        $headers = $this->authHeaders();
+
+        $create = $this->withHeaders($headers)->postJson('/api/v1/orders/create', [
+            'source' => 'POS',
+        ]);
+        $create->assertOk();
+        $orderId = (int) $create->json('data.order_id');
+
+        $this->withHeaders($headers)->postJson('/api/v1/orders/add-item', [
+            'order_id' => $orderId,
+            'product_id' => 1,
+            'qty' => 1,
+        ])->assertOk();
+
+        $payPayload = [
+            'order_id' => $orderId,
+            'method' => 'cash',
+            'amount' => 20000,
+        ];
+
+        $headers['Idempotency-Key'] = 'pay-replay';
+        $first = $this->withHeaders($headers)->postJson('/api/v1/orders/pay', $payPayload);
+        $first->assertOk();
+
+        $second = $this->withHeaders($headers)->postJson('/api/v1/orders/pay', $payPayload);
+        $second->assertOk();
+
+        $this->assertSame($first->json('data.order_id'), $second->json('data.order_id'));
+    }
+
+    public function test_stock_guard_across_orders(): void
+    {
+        $headers = $this->authHeaders();
+        DB::table('produk')->where('id_menu', 1)->update(['stok' => 1]);
+
+        $o1 = $this->withHeaders($headers)->postJson('/api/v1/orders/create', ['source' => 'POS'])->json('data.order_id');
+        $o2 = $this->withHeaders($headers)->postJson('/api/v1/orders/create', ['source' => 'POS'])->json('data.order_id');
+
+        $this->withHeaders($headers)->postJson('/api/v1/orders/add-item', [
+            'order_id' => $o1,
+            'product_id' => 1,
+            'qty' => 1,
+        ])->assertOk();
+
+        $this->withHeaders($headers)->postJson('/api/v1/orders/add-item', [
+            'order_id' => $o2,
+            'product_id' => 1,
+            'qty' => 1,
+        ])->assertStatus(409);
+    }
 }
+
+

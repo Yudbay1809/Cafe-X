@@ -11,6 +11,77 @@ class ReceiptService {
 
   final AuditService _auditService;
 
+  Future<void> enqueueFailedPrint({
+    required String orderLocalId,
+    required String receiptText,
+    required String action,
+    String? error,
+  }) async {
+    final db = await LocalDb.open();
+    final now = DateTime.now().toIso8601String();
+    await db.insert('receipt_queue', {
+      'order_local_id': orderLocalId,
+      'receipt_text': receiptText,
+      'action': action,
+      'status': 'pending',
+      'attempts': 0,
+      'last_error': error,
+      'created_at': now,
+      'updated_at': now,
+    });
+  }
+
+  Future<int> pendingQueueCount() async {
+    final db = await LocalDb.open();
+    final rows = await db.rawQuery("SELECT COUNT(*) as c FROM receipt_queue WHERE status = 'pending'");
+    return (rows.first['c'] as int?) ?? 0;
+  }
+
+  Future<int> processQueue({required ReceiptPrinter printer, int limit = 10}) async {
+    final db = await LocalDb.open();
+    final rows = await db.query(
+      'receipt_queue',
+      where: "status = 'pending'",
+      orderBy: 'id ASC',
+      limit: limit,
+    );
+    var success = 0;
+    for (final row in rows) {
+      final id = row['id'] as int;
+      final text = row['receipt_text'] as String;
+      final attempts = (row['attempts'] as int?) ?? 0;
+      final now = DateTime.now().toIso8601String();
+      try {
+        await printer.printText(text);
+        await db.update(
+          'receipt_queue',
+          {
+            'status': 'done',
+            'attempts': attempts + 1,
+            'updated_at': now,
+          },
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+        success += 1;
+      } catch (e) {
+        final nextStatus = attempts + 1 >= 3 ? 'failed' : 'pending';
+        await db.update(
+          'receipt_queue',
+          {
+            'status': nextStatus,
+            'attempts': attempts + 1,
+            'last_error': e.toString(),
+            'updated_at': now,
+          },
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      }
+    }
+    return success;
+  }
+
   Future<String> buildReceiptText(String orderLocalId) async {
     final db = await LocalDb.open();
     final orderRows = await db.query(
@@ -64,12 +135,23 @@ class ReceiptService {
     required String actor,
     required String roleName,
     String? saveDir,
+    String? receiptText,
   }) async {
     if (saveDir != null && saveDir.isNotEmpty) {
       await saveToFile(orderLocalId, saveDir);
     }
-    final text = await buildReceiptText(orderLocalId);
-    await printer.printText(text);
+    final text = receiptText ?? await buildReceiptText(orderLocalId);
+    try {
+      await printer.printText(text);
+    } catch (e) {
+      await enqueueFailedPrint(
+        orderLocalId: orderLocalId,
+        receiptText: text,
+        action: 'receipt.print',
+        error: e.toString(),
+      );
+      rethrow;
+    }
     await _auditService.log(
       action: 'receipt.print',
       actor: actor,
@@ -84,12 +166,23 @@ class ReceiptService {
     required String actor,
     required String roleName,
     String? saveDir,
+    String? receiptText,
   }) async {
     if (saveDir != null && saveDir.isNotEmpty) {
       await saveToFile(orderLocalId, saveDir);
     }
-    final text = await buildReceiptText(orderLocalId);
-    await printer.printText(text);
+    final text = receiptText ?? await buildReceiptText(orderLocalId);
+    try {
+      await printer.printText(text);
+    } catch (e) {
+      await enqueueFailedPrint(
+        orderLocalId: orderLocalId,
+        receiptText: text,
+        action: 'receipt.reprint',
+        error: e.toString(),
+      );
+      rethrow;
+    }
     await _auditService.log(
       action: 'receipt.reprint',
       actor: actor,
@@ -115,3 +208,6 @@ class ReceiptService {
     return file.path;
   }
 }
+
+
+

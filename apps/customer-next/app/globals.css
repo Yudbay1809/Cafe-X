@@ -247,11 +247,35 @@ input:focus, select:focus, textarea:focus, button:focus {
 }
 
 @media (max-width: 640px) {
-  main { padding: 16px; }
-  .toolbar { flex-direction: column; align-items: stretch; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-  .header-card { align-items: stretch; gap: 10px; }
+  main { padding: 12px; }
+  .card { padding: 14px; border-radius: 14px; }
+  .hero { padding: 14px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .header-card { align-items: stretch; gap: 8px; padding: 12px; }
   .cart-drawer { right: 12px; left: 12px; width: auto; }
   .status-steps { grid-template-columns: repeat(2, 1fr); }
+  .menu-meta { padding: 12px; }
+  .category-title { font-size: 18px; }
+  button { padding: 10px 14px; }
 }
 
+
+
+.fav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #9ca3af;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fav-btn.active {
+  color: #ef4444;
+  border-color: #fecaca;
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.18);
+}

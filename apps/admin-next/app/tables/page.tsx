@@ -14,6 +14,8 @@ export default function TablesPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [density, setDensity] = useState<'compact' | 'normal' | 'large'>('normal');
+  const densityScale = { compact: 0.8, normal: 1, large: 1.2 } as const;
   const { t } = useI18n();
   const customerBase = process.env.NEXT_PUBLIC_CUSTOMER_BASE || 'http://127.0.0.1:3001';
   const logoUrl = process.env.NEXT_PUBLIC_QR_LOGO_URL || '/logo-cafex.png';
@@ -24,7 +26,7 @@ export default function TablesPage() {
     A4: { cols: 3, rows: 4, qrMm: 24 },
   } as const;
 
-  function buildPrintHtml(cards: string, size: 'A6' | 'A5' | 'A4', cols: number, rows: number, qrMm: number) {
+  function buildPrintHtml(cards: string, size: 'A6' | 'A5' | 'A4', cols: number, rows: number, qrMm: number, gapMm: number) {
     return `
       <html>
         <head>
@@ -37,7 +39,7 @@ export default function TablesPage() {
               display: grid;
               grid-template-columns: repeat(${cols}, min-content);
               grid-auto-rows: min-content;
-              gap: 3mm;
+              gap: ${gapMm}mm;
               justify-content: center;
               align-content: start;
             }
@@ -74,7 +76,10 @@ export default function TablesPage() {
   async function printQr(row: any, size: 'A6' | 'A5') {
     try {
       const { toDataURL } = await import('qrcode');
-      const qrSize = size === 'A5' ? 320 : 240;
+      const scale = densityScale[density];
+      const qrMm = Math.round(LAYOUT[size].qrMm * scale);
+      const gapMm = Math.max(2, Math.round(3 * scale));
+      const qrSize = Math.round((size === 'A5' ? 320 : 240) * scale);
       const url = `${customerBase}/menu?tableToken=${encodeURIComponent(row.qr_token)}`;
       const dataUrl = await toDataURL(url, { margin: 1, width: qrSize });
       const w = window.open('', '_blank', `width=520,height=720`);
@@ -96,7 +101,7 @@ export default function TablesPage() {
           </div>
         </div>
       `;
-      w.document.write(buildPrintHtml(card, size, 1, 1, LAYOUT[size].qrMm));
+      w.document.write(buildPrintHtml(card, size, 1, 1, qrMm, gapMm));
       w.document.close();
     } catch (e: any) {
       setError(e.message || 'Gagal generate QR');
@@ -106,10 +111,13 @@ export default function TablesPage() {
   async function bulkPrint(size: 'A6' | 'A5') {
     try {
       const { toDataURL } = await import('qrcode');
+      const scale = densityScale[density];
+      const qrMm = Math.round(LAYOUT[size].qrMm * scale);
+      const gapMm = Math.max(2, Math.round(3 * scale));
       const cards: string[] = [];
       for (const row of items) {
         const url = `${customerBase}/menu?tableToken=${encodeURIComponent(row.qr_token)}`;
-        const dataUrl = await toDataURL(url, { margin: 1, width: 240 });
+        const dataUrl = await toDataURL(url, { margin: 1, width: Math.round(240 * scale) });
         const brand = row.brand_color || process.env.NEXT_PUBLIC_BRAND_COLOR || '#0f766e';
         const footer = `${row.brand_name || 'Cafe-X'} - ${row.contact_phone || '-'}`;
         cards.push(`
@@ -130,7 +138,7 @@ export default function TablesPage() {
       }
       const w = window.open('', '_blank', `width=520,height=720`);
       if (!w) return;
-      w.document.write(buildPrintHtml(cards.join(''), size, 1, 1, LAYOUT[size].qrMm));
+      w.document.write(buildPrintHtml(cards.join(''), size, 1, 1, qrMm, gapMm));
       w.document.close();
     } catch (e: any) {
       setError(e.message || 'Gagal bulk print');
@@ -165,7 +173,10 @@ export default function TablesPage() {
           </div>
         `);
       }
-      const { cols, rows, qrMm } = LAYOUT[size];
+      const { cols, rows, qrMm: baseQrMm } = LAYOUT[size];
+      const scale = densityScale[density];
+      const qrMm = Math.round(baseQrMm * scale);
+      const gapMm = Math.max(2, Math.round(3 * scale));
       const perPage = cols * rows;
       const pages: string[] = [];
       for (let i = 0; i < cards.length; i += perPage) {
@@ -180,7 +191,7 @@ export default function TablesPage() {
       }
       const w = window.open('', '_blank', `width=720,height=960`);
       if (!w) return;
-      w.document.write(buildPrintHtml(pages.join(''), size, cols, rows, qrMm));
+      w.document.write(buildPrintHtml(pages.join(''), size, cols, rows, qrMm, gapMm));
       w.document.close();
     } catch (e: any) {
       setError(e.message || 'Gagal batch print A4');
@@ -210,7 +221,12 @@ export default function TablesPage() {
         title={t('tables')}
         subtitle={t('tablesSubtitle')}
         actions={
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="table-actions">
+            <select className="density-select" value={density} onChange={(e) => setDensity(e.target.value as any)}>
+              <option value="compact">Density: compact</option>
+              <option value="normal">Density: normal</option>
+              <option value="large">Density: large</option>
+            </select>
             <button className="btn outline" onClick={() => bulkPrint('A6')}>{t('bulkPrintA6')}</button>
             <button className="btn outline" onClick={() => bulkPrint('A5')}>{t('bulkPrintA5')}</button>
             <button className="btn outline" onClick={() => batchPrint('A6')}>{t('batchPrintA6')}</button>
@@ -321,16 +337,10 @@ export default function TablesPage() {
                       >
                         {t('copyToken')}
                       </button>
-                      <button
-                        className="btn"
-                        onClick={() => printQr(row, 'A6')}
-                      >
+                      <button className="btn" onClick={() => printQr(row, 'A6')}>
                         {t('printQrA6')}
                       </button>
-                      <button
-                        className="btn outline"
-                        onClick={() => printQr(row, 'A5')}
-                      >
+                      <button className="btn outline" onClick={() => printQr(row, 'A5')}>
                         {t('printQrA5')}
                       </button>
                     </div>
@@ -344,3 +354,4 @@ export default function TablesPage() {
     </RequireAuth>
   );
 }
+

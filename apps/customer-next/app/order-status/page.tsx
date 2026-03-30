@@ -44,6 +44,16 @@ export default function OrderStatusPage() {
   const statusIndex = steps.indexOf(status);
   const isPaid = status === 'paid';
   const isCanceled = status === 'canceled';
+  const etaMap: Record<string, string> = {
+    new: 'Estimasi 10-15 menit',
+    preparing: 'Estimasi 5-10 menit',
+    ready: 'Siap diambil',
+    served: 'Sudah diantar',
+    paid: 'Transaksi selesai',
+    canceled: 'Order dibatalkan',
+    error: 'Mengambil status...',
+  };
+  const etaText = etaMap[status] || '-';
 
   return (
     <main>
@@ -64,6 +74,7 @@ export default function OrderStatusPage() {
           {isCanceled ? <div className="status-step canceled">canceled</div> : null}
         </div>
         <p>Status: <b>{status}</b></p>
+        <p>Estimasi: {etaText}</p>
         <p>Total: {formatRupiah(total)}</p>
         {session?.tableToken ? (
           <p className="small">Meja: {session.table?.table_name || session.tableToken}</p>
@@ -77,3 +88,5 @@ export default function OrderStatusPage() {
     </main>
   );
 }
+
+

@@ -7,6 +7,7 @@ export type CustomerSession = {
   table?: TableInfo;
   lastOrderId?: number;
   lastOrderNo?: string;
+  lastOrderItems?: Array<{ product_id: number; name: string; price: number; qty: number; notes?: string }>;
 };
 
 export function getSession(): CustomerSession | null {
@@ -27,3 +28,4 @@ export function clearSession() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(KEY);
 }
+

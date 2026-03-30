@@ -5,7 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class LocalDb {
   static const _dbName = 'cafex_pos.db';
-  static const _dbVersion = 2;
+  static const _dbVersion = 3;
 
   static Future<Database> open() async {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -22,6 +22,9 @@ class LocalDb {
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createV2Tables(db);
+        }
+        if (oldVersion < 3) {
+          await _createV3Tables(db);
         }
       },
     );
@@ -195,6 +198,23 @@ class LocalDb {
     ''');
 
     await db.execute('''
+      CREATE TABLE receipt_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_local_id TEXT NOT NULL,
+        receipt_text TEXT NOT NULL,
+        action TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      "CREATE INDEX idx_receipt_queue_status ON receipt_queue(status, attempts)"
+    );
+
+    await db.execute('''
       CREATE TABLE app_config (
         config_key TEXT PRIMARY KEY,
         value_json TEXT NOT NULL,
@@ -342,4 +362,27 @@ class LocalDb {
       )
     ''');
   }
+
+  static Future<void> _createV3Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS receipt_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_local_id TEXT NOT NULL,
+        receipt_text TEXT NOT NULL,
+        action TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      "CREATE INDEX IF NOT EXISTS idx_receipt_queue_status ON receipt_queue(status, attempts)"
+    );
+  }
 }
+
+
+
+

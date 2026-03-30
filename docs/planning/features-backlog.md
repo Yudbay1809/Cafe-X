@@ -31,44 +31,48 @@ Dokumen acuan untuk:
 - [x] Offline cache menu (fallback when no network)
 - [x] Status visual stepper (new -> preparing -> ready -> served)
 - [x] Last order history
-- [ ] Mobile polish (small screen spacing)
+- [x] Mobile polish (small screen spacing)
 
 2. Admin app:
 - [x] Dashboard data real (kartu KPI masih kosong)
-- [ ] Produk CRUD bulk (import/export)
+- [x] Produk CRUD bulk (import/export)
 - [x] Orders list filter lengkap + pagination
-- [ ] Kitchen board polling backoff + status update
-- [ ] Tables: batch print selection + layout density tuning
+- [x] Kitchen board polling backoff + status update
+- [x] Tables: batch print selection + layout density tuning
 
 3. POS Flutter:
 - [x] Offline status flapping (stability tuning)
 - [x] Menu fetch reliability + cache refresh indicator
-- [ ] Quick pay cash/QRIS shortcuts validation
-- [ ] Printer ESC/POS integration test matrix
-- [ ] Sync conflict resolution UI
+- [x] Quick pay cash/QRIS shortcuts validation
+- [x] Printer ESC/POS integration test matrix
+- [x] Sync conflict resolution UI
 
 4. Backend:
-- [ ] Coverage tambahan untuk edge cases (double payment, concurrency)
+- [x] Coverage tambahan untuk edge cases (double payment, concurrency)
 - [x] PHPStan baseline + stricter level
-- [ ] OpenAPI examples consistency check
+- [x] OpenAPI examples consistency check
 
 ## C. Saran Fitur Tambahan
 1. Customer:
-- Favorite menu / reorder
-- Promo banner & voucher
-- Estimasi waktu tunggu
+- [x] Favorite menu / reorder
+- [x] Promo banner & voucher
+- [x] Estimasi waktu tunggu
 
 2. Admin:
-- Role-based audit log viewer
-- Low-stock alerts
-- Shift reconciliation export (CSV)
+- [x] Role-based audit log viewer
+- [x] Low-stock alerts
+- [x] Shift reconciliation export (CSV)
 
 3. POS:
-- PIN override untuk cancel/void high-value
-- Offline receipt queue
-- Device health page (printer, storage, sync)
+- [x] PIN override untuk cancel/void high-value
+- [x] Offline receipt queue
+- [x] Device health page (printer, storage, sync)
 
 4. Ops:
-- Auto-backup scheduler UI
-- Incident quick report form
+- [x] Auto-backup scheduler UI
+- [x] Incident quick report form
+
+
+
+
 

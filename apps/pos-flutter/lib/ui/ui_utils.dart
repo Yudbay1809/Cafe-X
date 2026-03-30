@@ -15,6 +15,7 @@ Future<String?> promptText(
   String hint = '',
   String initial = '',
   bool isNumber = false,
+  bool obscure = false,
 }) async {
   final controller = TextEditingController(text: initial);
   final result = await showDialog<String>(
@@ -25,6 +26,7 @@ Future<String?> promptText(
         content: TextField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+          obscureText: obscure,
           decoration: InputDecoration(hintText: hint),
         ),
         actions: [

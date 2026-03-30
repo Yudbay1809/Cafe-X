@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
 import '../../core/app_config_service.dart';
+import '../../core/security_utils.dart';
 import '../../features/sync/sync_worker.dart';
 import '../../pos_app_service.dart';
 import '../ui_utils.dart';
 import '../widgets/section_card.dart';
-import 'package:dio/dio.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key, required this.services, required this.onChanged});
@@ -22,8 +23,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _deviceName = TextEditingController();
   final _printerIp = TextEditingController();
   final _printerPort = TextEditingController(text: '9100');
+  final _cancelThreshold = TextEditingController(text: '500000');
+  final _pin = TextEditingController();
   final _config = AppConfigService();
   String _status = '';
+  String _pinHint = '';
 
   @override
   void initState() {
@@ -36,6 +40,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _deviceName.text = await _config.getString('device_name', fallback: 'pos-device');
     _printerIp.text = await _config.getString('printer_ip', fallback: '');
     _printerPort.text = await _config.getString('printer_port', fallback: '9100');
+    _cancelThreshold.text = await _config.getString('cancel_high_threshold', fallback: '500000');
+    final pinHash = await _config.getString('manager_pin_hash', fallback: '');
+    _pinHint = pinHash.isNotEmpty ? 'PIN terset' : 'Belum ada PIN';
     if (!mounted) return;
     setState(() {});
   }
@@ -46,6 +53,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _config.setString('receipt_dir', 'd:\\Cafe-X-laravel\\storage\\pos-receipts');
     await _config.setString('printer_ip', _printerIp.text.trim());
     await _config.setString('printer_port', _printerPort.text.trim());
+    await _config.setString('cancel_high_threshold', _cancelThreshold.text.trim());
+    if (_pin.text.trim().isNotEmpty) {
+      await _config.setString('manager_pin_hash', hashPin(_pin.text.trim()));
+      _pinHint = 'PIN terset';
+      _pin.text = '';
+    }
     setState(() => _status = 'Saved');
     widget.onChanged();
   }
@@ -118,6 +131,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 TextField(controller: _printerIp, decoration: const InputDecoration(labelText: 'Printer IP')),
                 TextField(controller: _printerPort, decoration: const InputDecoration(labelText: 'Printer Port')),
+              ],
+            ),
+          ),
+          SectionCard(
+            title: 'Security',
+            child: Column(
+              children: [
+                TextField(controller: _cancelThreshold, decoration: const InputDecoration(labelText: 'Cancel High Threshold (Rp)')),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _pin,
+                  decoration: InputDecoration(labelText: 'PIN Override (kosongkan jika tidak ubah)', helperText: _pinHint),
+                  obscureText: true,
+                ),
               ],
             ),
           ),

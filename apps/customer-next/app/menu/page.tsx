@@ -2,6 +2,7 @@
 
 import { ApiError, API_ORIGIN, customerApi } from '@/lib/api';
 import { addToCart, getCart } from '@/lib/cart';
+import { getFavorites, toggleFavorite } from '@/lib/favorites';
 import type { Product } from '@/lib/types';
 import type { TableInfo } from '@/lib/types';
 import { getSession, setSession, clearSession } from '@/lib/session';
@@ -25,6 +26,7 @@ export default function MenuPage() {
   const [cartTotal, setCartTotal] = useState(0);
   const [cartPreview, setCartPreview] = useState<Array<{ name: string; qty: number }>>([]);
   const [animateCount, setAnimateCount] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const router = useRouter();
   const session = getSession();
 
@@ -86,20 +88,27 @@ export default function MenuPage() {
     setCartPreview(cart.slice(0, 3).map((x) => ({ name: x.name, qty: x.qty })));
   }, [cartKey, products]);
 
+  useEffect(() => {
+    setFavoriteIds(getFavorites());
+  }, []);
+
   const categories = useMemo(() => {
     const set = new Set<string>(['All']);
+    if (favoriteIds.length > 0) set.add('Favorites');
     products.forEach((p) => set.add(p.jenis_menu));
     return Array.from(set);
-  }, [products]);
+  }, [products, favoriteIds]);
 
   const filtered = useMemo(() => {
     const k = q.toLowerCase();
     return products.filter((p) => {
       const matchQ = p.nama_menu.toLowerCase().includes(k);
-      const matchCat = category === 'All' || p.jenis_menu === category;
+      const isFav = favoriteIds.includes(p.id_menu);
+      const matchCat = category === 'All'
+        || (category === 'Favorites' ? isFav : p.jenis_menu === category);
       return matchQ && matchCat;
     });
-  }, [products, q, category]);
+  }, [products, q, category, favoriteIds]);
 
   function formatCategory(label: string) {
     return label
@@ -135,6 +144,16 @@ export default function MenuPage() {
     setTimeout(() => setAnimateCount(false), 350);
   }
 
+  function handleReorder() {
+    if (!session?.lastOrderItems || session.lastOrderItems.length === 0) return;
+    session.lastOrderItems.forEach((item) => addToCart(cartKey, item));
+    const cart = getCart(cartKey);
+    setCartCount(cart.reduce((a, b) => a + b.qty, 0));
+    setCartTotal(cart.reduce((a, b) => a + b.qty * b.price, 0));
+    setCartPreview(cart.slice(0, 3).map((x) => ({ name: x.name, qty: x.qty })));
+    router.push(`/cart?tableToken=${encodeURIComponent(tableToken)}`);
+  }
+
   const lastOrderToken = session?.tableToken || tableToken;
 
   return (
@@ -166,7 +185,7 @@ export default function MenuPage() {
             ))}
           </div>
           {session?.lastOrderId && lastOrderToken ? (
-            <div style={{ width: '100%' }}>
+            <div style={{ width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 className="ghost"
                 onClick={() =>
@@ -175,6 +194,9 @@ export default function MenuPage() {
               >
                 Lihat Order Terakhir #{session.lastOrderId}
               </button>
+              {session?.lastOrderItems?.length ? (
+                <button className="secondary" onClick={handleReorder}>Pesan Ulang</button>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -196,6 +218,11 @@ export default function MenuPage() {
                   <p className="small">{formatRupiah(Number(p.harga))}</p>
                   <div className="toolbar">
                     <span className="pill">{p.jenis_menu}</span>
+                    <button
+                      className={`fav-btn ${favoriteIds.includes(p.id_menu) ? 'active' : ''}`}
+                      onClick={() => setFavoriteIds(toggleFavorite(p.id_menu))}
+                      aria-label="favorite"
+                    >Fav</button>
                     <button disabled={p.stok < 1} onClick={() => handleAddToCart(p)}>
                       Tambah
                     </button>
@@ -235,3 +262,15 @@ export default function MenuPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
