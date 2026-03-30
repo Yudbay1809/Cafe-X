@@ -6,13 +6,20 @@
 - Offline recovery simulation: required
 
 ## Validation Matrix
-- [ ] Peak hour order burst.
-- [ ] Payment concurrency.
-- [ ] Device reconnect sync recovery.
-- [ ] Shift open/close stability.
-- [ ] End-of-day reporting consistency.
+- [ ] Peak hour order burst (min 3x normal volume)
+- [ ] Payment concurrency (min 10 transaksi paralel)
+- [ ] Device reconnect sync recovery
+- [ ] Shift open/close stability
+- [ ] End-of-day reporting consistency
+
+## KPI Target
+- Error rate <= 0.5%
+- Payment success >= 99.5%
+- Sync failure <= 1%
+- Median API latency <= 300ms
 
 ## Exit Criteria
-- Error rate within agreed SLO.
-- No data loss in offline-recovery scenario.
-- Query latency stable during peak.
+- Error rate dalam SLO
+- Tidak ada data loss di skenario offline
+- Query latency stabil di peak hour
+- Cutover batch 1 siap
