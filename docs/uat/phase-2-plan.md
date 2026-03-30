@@ -1,5 +1,12 @@
 # UAT Phase 2 Plan (3-5 Outlet)
 
+## Target Date
+- Start: 2026-04-08 (dummy)
+- End: 2026-04-21 (dummy)
+- Outlet: Outlet-1..Outlet-5 (dummy)
+- Kasir/Device: 2 kasir per outlet (dummy)
+- Jam operasional: 24 jam
+
 ## Scope
 - Outlet count: 3-5
 - Peak hour load test: required
