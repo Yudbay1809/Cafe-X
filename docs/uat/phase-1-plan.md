@@ -1,9 +1,9 @@
 # UAT Phase 1 Plan (1 Outlet, 1 Week)
 
 ## Target Date
-- Start: ____
-- End: ____
-- Outlet: 1 outlet (pilot)
+- Start: 2026-03-31 (dummy)
+- End: 2026-04-06 (dummy)
+- Outlet: Outlet-1 (dummy)
 - Kasir/Device: 2 kasir
 - Jam operasional: 24 jam
 
