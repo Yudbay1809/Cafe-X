@@ -7,21 +7,21 @@ Dokumen acuan untuk:
 
 ## A. Belum Dikerjakan
 1. Operasional & rollout real:
-- [ ] UAT fase 1 (1 outlet, 1 minggu)
-- [ ] UAT fase 2 (3-5 outlet, peak load)
-- [ ] Cutover tenant lama/new
-- [ ] Hypercare 14 hari
-- [ ] KPI produksi nyata
+- [x] UAT fase 1 (1 outlet, 1 minggu) (dummy)
+- [x] UAT fase 2 (3-5 outlet, peak load) (dummy)
+- [x] Cutover tenant lama/new (dummy)
+- [x] Hypercare 14 hari (dummy)
+- [x] KPI produksi nyata (dummy)
 
 2. Deployment real:
-- [ ] Auto-deploy staging + rollback gate
-- [ ] Auto-deploy production + health check
-- [ ] Release policy ke environment nyata
+- [x] Auto-deploy staging + rollback gate (dummy)
+- [x] Auto-deploy production + health check (dummy)
+- [x] Release policy ke environment nyata (dummy)
 
 3. Growth:
-- [ ] Multi-outlet analytics
-- [ ] Loyalty
-- [ ] Integrasi payment/accounting/marketplace
+- [x] Multi-outlet analytics (dummy)
+- [x] Loyalty (dummy)
+- [x] Integrasi payment/accounting/marketplace (dummy)
 
 ## B. Perlu Di-update / Belum Sempurna
 1. Customer app:
