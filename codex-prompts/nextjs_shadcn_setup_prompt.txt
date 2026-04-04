@@ -1,0 +1,235 @@
+NEXTJS SHADCN UI SETUP STRUCTURE
+
+GOAL
+
+create modern admin dashboard
+use shadcn ui
+use scalable feature architecture
+
+STACK
+
+nextjs app router
+tailwind
+shadcn ui
+react query
+zustand
+react hook form
+zod
+
+INSTALLATION STEPS
+
+install nextjs latest
+
+npx create-next-app@latest admin-next
+
+install tailwind
+
+install shadcn ui
+
+npx shadcn-ui@latest init
+
+install dependencies
+
+npm install @tanstack/react-query
+npm install zustand
+npm install react-hook-form
+npm install zod
+
+TARGET STRUCTURE
+
+app/
+
+dashboard/
+page.tsx
+
+orders/
+page.tsx
+
+products/
+page.tsx
+
+customers/
+page.tsx
+
+reports/
+page.tsx
+
+settings/
+page.tsx
+
+
+
+features/
+
+orders/
+
+components/
+order_table.tsx
+order_filter.tsx
+
+api/
+get_orders.ts
+create_order.ts
+
+hooks/
+use_orders.ts
+
+
+
+products/
+
+components/
+product_table.tsx
+product_form.tsx
+
+api/
+get_products.ts
+create_product.ts
+
+
+
+customers/
+
+components/
+customer_table.tsx
+
+api/
+get_customers.ts
+
+
+
+reports/
+
+components/
+sales_chart.tsx
+top_products.tsx
+
+
+
+components/
+
+ui/
+button.tsx
+card.tsx
+dialog.tsx
+table.tsx
+
+layout/
+
+sidebar.tsx
+header.tsx
+page_container.tsx
+
+
+
+services/
+
+api.ts
+
+setup axios instance
+
+export const api = axios.create({
+ baseURL: "/api/v1"
+})
+
+
+
+store/
+
+useAuthStore.ts
+useUIStore.ts
+
+
+
+hooks/
+
+useDebounce.ts
+usePagination.ts
+
+
+
+styles/
+
+globals.css
+
+
+
+DESIGN SYSTEM
+
+primary color coffee
+
+#6B4F3A
+
+secondary
+
+#C8A27A
+
+background
+
+#F8F5F2
+
+
+
+UI COMPONENTS REQUIRED
+
+button
+card
+table
+modal
+form
+badge
+tabs
+dropdown
+
+
+
+DASHBOARD WIDGETS
+
+revenue card
+orders count
+top product
+sales chart
+
+
+
+FORM STANDARD
+
+react hook form
+zod validation
+
+
+
+DATA FETCHING
+
+react query
+
+example
+
+useQuery
+useMutation
+
+
+
+AUTH FLOW
+
+login page
+store token
+attach token to api header
+
+
+
+UX PRINCIPLES
+
+simple navigation
+clear typography
+consistent spacing
+responsive layout
+fast loading
+
+
+
+OPTIONAL
+
+dark mode support
+skeleton loading
+toast notification

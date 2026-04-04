@@ -1,0 +1,66 @@
+PRODUCTION CHECKLIST
+
+SECURITY:
+
+sanctum auth
+rate limit login
+hash password
+validate all request
+prevent SQL injection
+hide debug mode
+
+DATABASE:
+
+foreign key constraints
+index frequently queried columns
+soft delete critical data
+
+LOGGING:
+
+activity logs
+error logs
+failed job logs
+
+QUEUE:
+
+enable queue worker
+retry failed jobs
+
+CACHE:
+
+redis cache
+config cache
+route cache
+
+POS:
+
+offline mode
+retry sync queue
+local database backup
+
+ADMIN:
+
+role permission
+audit log
+pagination
+filterable tables
+
+DEVOPS:
+
+.env.example exists
+separate staging env
+docker support
+
+MONITORING:
+
+uptime monitoring
+error tracking
+slow query monitoring
+
+MINIMUM REQUIREMENTS BEFORE GO LIVE:
+
+stable transactions
+secure authentication
+accurate reports
+database backup enabled
+role permission working

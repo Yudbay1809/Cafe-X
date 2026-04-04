@@ -1,0 +1,51 @@
+API DESIGN STANDARD
+
+BASE URL:
+
+/api/v1
+
+RESPONSE FORMAT:
+
+{
+ success: true,
+ message: "optional",
+ data: {}
+}
+
+ERROR FORMAT:
+
+{
+ success: false,
+ message: "validation error",
+ errors: {}
+}
+
+STATUS CODES:
+
+200 success
+201 created
+400 validation error
+401 unauthorized
+403 forbidden
+404 not found
+500 server error
+
+ENDPOINT GROUPING:
+
+/auth
+/products
+/orders
+/payments
+/reports
+/customers
+/inventory
+
+REQUIREMENTS:
+
+use pagination
+use filtering
+use sorting
+
+example:
+
+GET /api/v1/orders?date=2026-01-01

@@ -1,0 +1,41 @@
+IMPLEMENTATION TASK LIST FOR CODEX
+
+STEP 1:
+create modular folder structure inside backend/app/Modules
+
+STEP 2:
+move controllers into module folders
+
+STEP 3:
+create service layer for:
+
+OrderService
+ProductService
+PaymentService
+InventoryService
+
+STEP 4:
+standardize naming conventions
+
+STEP 5:
+create DTO classes
+
+STEP 6:
+add repository pattern if needed
+
+STEP 7:
+add base response formatter
+
+STEP 8:
+prepare API versioning structure
+
+STEP 9:
+refactor Next.js folders using feature structure
+
+STEP 10:
+refactor flutter folders
+
+IMPORTANT:
+
+do not break existing API endpoints
+maintain compatibility with database schema

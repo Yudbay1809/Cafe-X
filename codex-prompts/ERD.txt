@@ -1,0 +1,219 @@
+SYSTEM ERD FOR CAFE-X POS SAAS
+
+MULTI TENANT STRUCTURE
+
+tenants
+ id PK
+ name
+ code UNIQUE
+ is_active
+ created_at
+
+outlets
+ id PK
+ tenant_id FK -> tenants.id
+ name
+ code
+ timezone
+ is_active
+
+users
+ id PK
+ tenant_id FK
+ name
+ email
+ password
+ role
+
+roles
+ id PK
+ tenant_id FK
+ name
+
+permissions
+ id PK
+ name
+
+role_permissions
+ role_id FK
+ permission_id FK
+
+user_roles
+ user_id FK
+ role_id FK
+ tenant_id FK
+ outlet_id FK
+
+CUSTOMERS
+
+customers
+ id PK
+ tenant_id FK
+ name
+ phone
+ email
+ created_at
+
+customer_points
+ id PK
+ customer_id FK
+ points
+ created_at
+
+PRODUCT
+
+product_categories
+ id PK
+ tenant_id FK
+ name
+ is_active
+
+products
+ id PK
+ tenant_id FK
+ category_id FK
+ name
+ price
+ cost
+ sku
+ image
+ is_active
+
+product_variants
+ id PK
+ product_id FK
+ name
+
+product_variant_options
+ id PK
+ variant_id FK
+ name
+ price_adjustment
+
+ORDER
+
+orders
+ id PK
+ tenant_id FK
+ outlet_id FK
+ order_no
+ status
+ subtotal
+ tax
+ total
+ created_at
+
+order_items
+ id PK
+ order_id FK
+ product_id FK
+ price
+ qty
+ subtotal
+
+order_item_modifiers
+ id PK
+ order_item_id FK
+ variant_option_id FK
+ price_adjustment
+
+PAYMENT
+
+payments
+ id PK
+ order_id FK
+ method
+ amount
+ reference_no
+ paid_at
+
+POS
+
+pos_shifts
+ id PK
+ tenant_id FK
+ outlet_id FK
+ opened_by
+ closed_by
+ opening_cash
+ closing_cash
+
+pos_tables
+ id PK
+ tenant_id FK
+ outlet_id FK
+ table_code
+
+table_qr_tokens
+ id PK
+ table_id FK
+ token
+
+INVENTORY
+
+ingredients
+ id PK
+ tenant_id FK
+ name
+ unit
+
+recipes
+ id PK
+ product_id FK
+ ingredient_id FK
+ qty_required
+
+inventory_movements
+ id PK
+ ingredient_id FK
+ qty
+ movement_type
+ created_at
+
+suppliers
+ id PK
+ tenant_id FK
+ name
+
+purchase_orders
+ id PK
+ supplier_id FK
+ status
+ total
+
+purchase_order_items
+ id PK
+ purchase_order_id FK
+ ingredient_id FK
+ qty
+ cost
+
+DEVICES
+
+devices
+ id PK
+ tenant_id FK
+ outlet_id FK
+ device_uid
+
+audit_logs
+ id PK
+ tenant_id FK
+ actor
+ event_type
+ entity_type
+ entity_id
+ payload_json
+
+RELATIONSHIP NOTES
+
+tenant has many outlets
+outlet has many orders
+order has many order_items
+order has many payments
+product belongs to category
+product has many variants
+variant has many options
+product has recipe ingredients
+ingredient tracked by inventory_movements
+customer has many orders

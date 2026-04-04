@@ -1,0 +1,79 @@
+UI DESIGN PROMPT FOR CAFE POS
+
+STYLE
+
+modern coffee brand
+clean minimal
+rounded corners
+soft shadows
+
+COLOR
+
+primary #6B4F3A
+secondary #C8A27A
+background #F8F5F2
+
+TYPOGRAPHY
+
+heading font inter bold
+body font inter regular
+
+ADMIN DASHBOARD
+
+widgets
+
+revenue today
+orders today
+top products
+sales chart
+
+layout
+
+sidebar left
+content right
+
+POS SCREEN
+
+layout
+
+left category panel
+center product grid
+right cart
+
+large buttons
+touch friendly
+
+PRODUCT CARD
+
+image
+name
+price
+badge best seller
+
+CUSTOMER APP
+
+mobile first
+
+menu list
+product detail
+add to cart button
+checkout screen
+
+COMPONENTS
+
+button primary
+card product
+modal confirmation
+toast notification
+
+ANIMATION
+
+fast transitions
+micro interaction
+
+UX PRINCIPLES
+
+reduce clicks
+large tap area
+clear hierarchy
+fast loading

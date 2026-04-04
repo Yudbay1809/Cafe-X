@@ -21,14 +21,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->appendToGroup('api', \App\Http\Middleware\CorsMiddleware::class);
         $middleware->appendToGroup('api', \App\Http\Middleware\ApiRequestContext::class);
+        $middleware->appendToGroup('api', \App\Http\Middleware\ApiResponseMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (ValidationException $e, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'ok' => false,
+                    'success' => false,
                     'message' => 'Validation failed',
-                    'meta' => $e->errors(),
+                    'errors' => $e->errors(),
                     'server_time' => now()->format('Y-m-d H:i:s'),
                 ], 422);
             }
@@ -44,9 +45,9 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => $e->getMessage(),
                 ]);
                 return response()->json([
-                    'ok' => false,
+                    'success' => false,
                     'message' => 'Internal server error',
-                    'meta' => [
+                    'errors' => [
                         'request_id' => $request->attributes->get('request_id'),
                     ],
                     'server_time' => now()->format('Y-m-d H:i:s'),
@@ -55,3 +56,5 @@ return Application::configure(basePath: dirname(__DIR__))
             return null;
         });
     })->create();
+
+

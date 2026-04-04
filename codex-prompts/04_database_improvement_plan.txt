@@ -1,0 +1,59 @@
+DATABASE IMPROVEMENT PLAN
+
+STANDARDIZE TABLE NAMING:
+
+produk -> products
+user -> users
+
+ADD TABLES:
+
+customers
+customer_points
+customer_transactions
+
+product_variants
+product_variant_options
+
+ingredients
+recipes
+inventory_movements
+
+suppliers
+purchase_orders
+
+REQUIRED RELATIONS:
+
+products
+ category_id FK
+
+order_items
+ order_id FK
+
+payments
+ order_id FK
+
+inventory_movements
+ product_id FK
+
+ADD INDEXES:
+
+orders:
+ tenant_id
+ outlet_id
+ created_at
+ status
+
+payments:
+ paid_at
+ tenant_id
+
+products:
+ tenant_id
+ category_id
+
+GOAL:
+
+improve performance
+support loyalty system
+support variant products
+support inventory tracking

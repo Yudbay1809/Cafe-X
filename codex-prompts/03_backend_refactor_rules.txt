@@ -1,0 +1,53 @@
+REFACTOR RULES:
+
+MODELS:
+
+singular PascalCase
+
+Product
+Order
+OrderItem
+Payment
+Customer
+
+TABLES:
+
+snake_case plural
+
+products
+orders
+order_items
+payments
+customers
+
+SERVICES:
+
+CreateOrderService
+UpdateStockService
+SyncOrderService
+GenerateReportService
+
+CONTROLLERS:
+
+OrderController
+ProductController
+AuthController
+
+DTO:
+
+CreateOrderDTO
+UpdateProductDTO
+
+VALIDATION:
+
+move validation logic into DTO or FormRequest
+
+BUSINESS LOGIC:
+
+must exist only in service layer
+
+CONTROLLERS:
+
+only call service
+
+NO BUSINESS LOGIC INSIDE CONTROLLER

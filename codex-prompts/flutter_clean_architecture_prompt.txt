@@ -1,0 +1,245 @@
+FLUTTER CLEAN ARCHITECTURE STRUCTURE FOR POS APP
+
+GOAL
+
+create scalable flutter POS app
+support offline sync
+support modular feature structure
+maintainable for long term development
+
+ARCHITECTURE STYLE
+
+clean architecture
+
+layers
+
+presentation
+domain
+data
+
+TARGET FOLDER STRUCTURE
+
+lib/
+
+core/
+
+api/
+api_client.dart
+api_routes.dart
+
+db/
+local_database.dart
+
+sync/
+sync_manager.dart
+sync_queue.dart
+
+utils/
+date_helper.dart
+currency_formatter.dart
+
+constants/
+app_constants.dart
+
+errors/
+exceptions.dart
+
+network/
+network_info.dart
+
+theme/
+app_theme.dart
+colors.dart
+typography.dart
+
+
+features/
+
+auth/
+
+presentation/
+
+pages/
+login_page.dart
+
+widgets/
+login_form.dart
+
+domain/
+
+entities/
+user.dart
+
+repositories/
+auth_repository.dart
+
+usecases/
+login_usecase.dart
+
+data/
+
+models/
+user_model.dart
+
+datasources/
+auth_remote_datasource.dart
+
+repositories/
+auth_repository_impl.dart
+
+
+
+menu/
+
+presentation/
+
+pages/
+menu_page.dart
+
+widgets/
+menu_grid.dart
+menu_item_card.dart
+
+domain/
+
+entities/
+product.dart
+
+repositories/
+product_repository.dart
+
+usecases/
+get_products.dart
+
+data/
+
+models/
+product_model.dart
+
+datasources/
+product_remote_datasource.dart
+product_local_datasource.dart
+
+repositories/
+product_repository_impl.dart
+
+
+
+cart/
+
+presentation/
+
+pages/
+cart_page.dart
+
+widgets/
+cart_item.dart
+cart_summary.dart
+
+domain/
+
+entities/
+cart_item.dart
+
+usecases/
+add_to_cart.dart
+remove_from_cart.dart
+
+
+
+order/
+
+presentation/
+
+pages/
+order_history_page.dart
+
+domain/
+
+entities/
+order.dart
+
+usecases/
+create_order.dart
+sync_order.dart
+
+
+
+shift/
+
+presentation/
+
+pages/
+shift_page.dart
+
+domain/
+
+entities/
+shift.dart
+
+usecases/
+open_shift.dart
+close_shift.dart
+
+
+
+settings/
+
+presentation/
+
+pages/
+settings_page.dart
+
+
+
+shared/
+
+widgets/
+primary_button.dart
+loading_indicator.dart
+error_widget.dart
+
+
+
+STATE MANAGEMENT
+
+riverpod
+
+DEPENDENCIES
+
+flutter_riverpod
+dio
+isar
+freezed
+json_serializable
+
+SYNC STRATEGY
+
+offline first
+
+store transactions locally
+queue unsynced orders
+sync when connection available
+
+IDEMPOTENCY
+
+use unique transaction id
+
+EXAMPLE FLOW
+
+create order
+store local db
+add to sync queue
+sync background
+
+UI PRINCIPLES
+
+large tap targets
+minimal typing
+fast navigation
+
+POS OPTIMIZED UI
+
+grid layout menu
+large add to cart button
+visible cart summary

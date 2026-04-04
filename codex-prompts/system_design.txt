@@ -1,0 +1,99 @@
+SYSTEM DESIGN FOR CAFE-X
+
+ARCHITECTURE STYLE
+
+modular monolith
+
+SERVICES
+
+backend api
+admin dashboard
+customer ordering app
+pos application
+
+HIGH LEVEL FLOW
+
+customer app -> api
+admin app -> api
+pos app -> api sync
+
+DATABASE
+
+mysql
+
+CACHE
+
+redis
+
+QUEUE
+
+redis queue
+
+AUTH
+
+laravel sanctum token
+
+SYNC FLOW POS
+
+pos local database
+queue unsynced transactions
+sync to api when online
+
+IDEMPOTENCY
+
+prevent duplicate transactions
+
+API LAYER
+
+controller
+service
+repository
+model
+
+SERVICE RESPONSIBILITY
+
+OrderService
+ create order
+ calculate totals
+ apply tax
+
+InventoryService
+ deduct stock
+ track movement
+
+PaymentService
+ record payment
+ validate amount
+
+ReportService
+ generate sales summary
+
+EVENT FLOW
+
+order created
+ -> deduct inventory
+ -> create audit log
+ -> send receipt
+
+SECURITY
+
+hash password
+token auth
+rate limit login
+
+SCALABILITY PLAN
+
+add queue worker
+add read replica database
+add load balancer
+
+DEPLOYMENT
+
+nginx
+php-fpm
+mysql
+redis
+
+FOLDER PRINCIPLE
+
+feature based modular structure

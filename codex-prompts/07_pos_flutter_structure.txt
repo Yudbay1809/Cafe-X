@@ -1,0 +1,41 @@
+TASK:
+organize flutter POS app for maintainability and offline sync
+
+TARGET STRUCTURE:
+
+lib/
+
+core/
+
+api/
+db/
+sync/
+utils/
+
+features/
+
+cart/
+checkout/
+orders/
+shift/
+menu/
+settings/
+
+shared/
+
+widgets/
+theme/
+
+STATE MANAGEMENT:
+
+riverpod
+
+LOCAL DATABASE:
+
+isar
+
+SYNC STRATEGY:
+
+queue based sync
+retry failed requests
+idempotency key

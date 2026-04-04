@@ -1,0 +1,43 @@
+PROJECT: Cafe-X POS System
+
+GOAL:
+Refactor monorepo structure into scalable, production-ready architecture for SaaS POS system supporting:
+
+- multi tenant
+- multi outlet
+- POS offline sync
+- admin dashboard
+- customer ordering app
+- inventory management
+- analytics reporting
+
+STACK:
+
+backend:
+Laravel 11
+MySQL
+Redis
+Sanctum auth
+
+frontend:
+Next.js (admin)
+Next.js (customer)
+
+POS:
+Flutter desktop/tablet
+
+REPO STRUCTURE CURRENT:
+
+backend/
+apps/
+ admin-next/
+ customer-next/
+ pos-flutter/
+
+OBJECTIVE FOR CODEX:
+
+1. refactor backend into modular domain structure
+2. standardize naming conventions
+3. improve folder organization
+4. prepare system for SaaS scaling
+5. maintain compatibility with current database schema

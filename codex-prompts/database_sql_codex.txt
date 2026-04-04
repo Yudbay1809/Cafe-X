@@ -1,0 +1,79 @@
+GENERATE SQL MIGRATIONS FOR MYSQL
+
+CREATE TABLE tenants
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+name VARCHAR(120)
+code VARCHAR(60) UNIQUE
+is_active BOOLEAN
+created_at TIMESTAMP
+
+CREATE TABLE outlets
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+tenant_id BIGINT
+name VARCHAR(120)
+code VARCHAR(60)
+FOREIGN KEY tenant_id REFERENCES tenants(id)
+
+CREATE TABLE product_categories
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+tenant_id BIGINT
+name VARCHAR(120)
+
+CREATE TABLE products
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+tenant_id BIGINT
+category_id BIGINT
+name VARCHAR(120)
+price DECIMAL
+cost DECIMAL
+image VARCHAR(255)
+
+CREATE TABLE orders
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+tenant_id BIGINT
+outlet_id BIGINT
+order_no VARCHAR(60)
+status VARCHAR(20)
+subtotal DECIMAL
+tax DECIMAL
+total DECIMAL
+
+CREATE TABLE order_items
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+order_id BIGINT
+product_id BIGINT
+price DECIMAL
+qty INT
+
+CREATE TABLE payments
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+order_id BIGINT
+method VARCHAR(20)
+amount DECIMAL
+
+CREATE TABLE customers
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+tenant_id BIGINT
+name VARCHAR(120)
+phone VARCHAR(40)
+
+CREATE TABLE inventory_movements
+
+id BIGINT PRIMARY KEY AUTO_INCREMENT
+ingredient_id BIGINT
+qty DECIMAL
+movement_type VARCHAR(40)
+
+REQUIREMENTS
+
+use foreign keys
+use indexes
+use timestamps

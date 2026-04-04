@@ -1,0 +1,70 @@
+TASK:
+Refactor Laravel backend into modular domain-based architecture.
+
+TARGET STRUCTURE:
+
+backend/app/Modules/
+
+Auth/
+ Controllers/
+ Services/
+ DTO/
+ routes.php
+
+Tenant/
+ Models/
+ Services/
+
+Outlet/
+ Models/
+ Services/
+
+Product/
+ Models/
+ Controllers/
+ Services/
+ DTO/
+
+Inventory/
+ Models/
+ Services/
+ Jobs/
+
+Order/
+ Models/
+ Services/
+ Events/
+ Listeners/
+
+Payment/
+ Services/
+ Gateways/
+ DTO/
+
+POS/
+ Controllers/
+ Services/
+ Sync/
+ routes.php
+
+Customer/
+ Models/
+ Services/
+
+Report/
+ Queries/
+ Services/
+
+Shared/
+ Exceptions/
+ Traits/
+ Helpers/
+ Middleware/
+
+REQUIREMENTS:
+
+1. move related logic into domain modules
+2. avoid fat controllers
+3. implement service layer pattern
+4. separate DTO validation logic
+5. ensure routes separated per module

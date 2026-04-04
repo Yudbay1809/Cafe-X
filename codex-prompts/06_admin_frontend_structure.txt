@@ -1,0 +1,41 @@
+TASK:
+organize Next.js admin app using feature-based architecture
+
+TARGET STRUCTURE:
+
+features/
+
+dashboard/
+orders/
+products/
+inventory/
+customers/
+reports/
+settings/
+
+components/
+
+ui/
+forms/
+layout/
+
+services/
+
+api.ts
+query-client.ts
+
+hooks/
+
+store/
+
+REQUIREMENTS:
+
+use react-query
+use feature separation
+avoid large pages
+use reusable components
+
+UI LIBRARY:
+
+tailwind
+shadcn/ui
