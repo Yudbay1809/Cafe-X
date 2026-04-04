@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\ProductController;
+use App\Modules\Product\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/products', [ProductController::class, 'index'])->middleware('perm:product.manage');

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\QrController;
+use App\Modules\Customer\Controllers\QrController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/qr/create-order', [QrController::class, 'createOrder'])->middleware('throttle:20,1');

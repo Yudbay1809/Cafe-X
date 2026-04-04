@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:google_fonts/google_fonts.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_config_service.dart';
 import 'pos_app_service.dart';
 import 'ui/home_shell.dart';
 
 void main() {
-  runApp(const PosApp());
+  runApp(const ProviderScope(child: PosApp()));
 }
 
 class PosApp extends StatelessWidget {
@@ -67,3 +67,4 @@ class _BootstrapState extends State<_Bootstrap> {
     return HomeShell(services: services);
   }
 }
+

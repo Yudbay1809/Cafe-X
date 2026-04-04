@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
   color-scheme: light;
@@ -268,3 +268,4 @@ input, select, textarea {
 
 .table-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .density-select { min-width: 160px; }
+

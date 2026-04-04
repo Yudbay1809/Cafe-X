@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\ReportController;
-use App\Http\Controllers\Api\AuditLogController;
+use App\Modules\Report\Controllers\ReportController;
+use App\Modules\Report\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/reports/summary', [ReportController::class, 'summary'])->middleware(['perm:report.view', 'feature:reports.basic']);

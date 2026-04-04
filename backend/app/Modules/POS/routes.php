@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\MasterController;
-use App\Http\Controllers\Api\ShiftController;
+use App\Modules\POS\Controllers\MasterController;
+use App\Modules\POS\Controllers\ShiftController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/master/products', [MasterController::class, 'products'])->middleware('perm:order.create');

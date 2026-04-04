@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\OrderController;
+use App\Modules\Order\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/orders/create', [OrderController::class, 'create'])->middleware('perm:order.create');

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\OutletController;
+use App\Modules\Outlet\Controllers\OutletController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/outlets', [OutletController::class, 'index'])->middleware('perm:table.manage');

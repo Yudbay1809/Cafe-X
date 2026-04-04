@@ -1,0 +1,1 @@
+// Auto-generated placeholder\nclass  productremotedatasource.Groups[2].Value.ToUpper() roduct productremotedatasource.Groups[2].Value.ToUpper() emote productremotedatasource.Groups[2].Value.ToUpper() atasource {}
