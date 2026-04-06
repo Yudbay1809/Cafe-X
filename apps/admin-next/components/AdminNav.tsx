@@ -15,7 +15,6 @@ export function AdminNav() {
     { href: '/orders', label: t('orders') },
     { href: '/reports', label: t('reports') },
     { href: '/audit-logs', label: t('auditLogs') },
-    { href: '/kitchen', label: t('kitchen') },
     { href: '/settings/outlets', label: t('outlets') },
     { href: '/ops/backup', label: t('backupScheduler') },
     { href: '/ops/incidents', label: t('incidentReport') },
@@ -33,3 +32,4 @@ export function AdminNav() {
     </nav>
   );
 }
+

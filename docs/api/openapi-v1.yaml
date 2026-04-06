@@ -584,25 +584,26 @@ components:
     OkResponse:
       type: object
       properties:
-        ok: { type: boolean, const: true }
+        success: { type: boolean, const: true }
         message: { type: string }
         data: { type: object, additionalProperties: true }
         server_time: { type: string }
       example:
-        ok: true
+        success: true
         message: OK
         data: {}
         server_time: "2026-03-30 10:00:00"
     ErrorResponse:
       type: object
       properties:
-        ok: { type: boolean, const: false }
+        success: { type: boolean, const: false }
         message: { type: string }
-        meta: { type: object, additionalProperties: true }
+        errors: { type: object, additionalProperties: true }
         server_time: { type: string }
       example:
-        ok: false
+        success: false
         message: "Validation error"
-        meta: {}
+        errors: {}
         server_time: "2026-03-30 10:00:00"
+
 

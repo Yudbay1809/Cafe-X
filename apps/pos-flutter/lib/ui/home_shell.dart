@@ -9,7 +9,6 @@ import '../features/ops/sop_content.dart';
 import '../pos_app_service.dart';
 import '../features/sync/sync_worker.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/kitchen_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/order_screen.dart';
 import 'screens/payment_screen.dart';
@@ -203,8 +202,6 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
         return PaymentScreen(services: widget.services, onChanged: _refreshPending);
       case 'Receipt':
         return ReceiptScreen(services: widget.services);
-      case 'Kitchen':
-        return KitchenScreen(services: widget.services);
       case 'Reports':
         return ReportsScreen(services: widget.services);
       case 'Settings':
@@ -239,7 +236,6 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
         LogicalKeySet(LogicalKeyboardKey.f1): const _NavIntent('Order'),
         LogicalKeySet(LogicalKeyboardKey.f2): const _NavIntent('Payment'),
         LogicalKeySet(LogicalKeyboardKey.f3): const _NavIntent('Receipt'),
-        LogicalKeySet(LogicalKeyboardKey.f4): const _NavIntent('Kitchen'),
         LogicalKeySet(LogicalKeyboardKey.f5): const _NavIntent('Reports'),
         LogicalKeySet(LogicalKeyboardKey.f6): const _NavIntent('Settings'),
         LogicalKeySet(LogicalKeyboardKey.f7): const _ActionIntent('new_order'),
@@ -364,7 +360,6 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                           _drawerItem('Order'),
                           _drawerItem('Payment'),
                           _drawerItem('Receipt'),
-                          _drawerItem('Kitchen'),
                           _drawerItem('Reports'),
                           _drawerItem('Settings'),
                           _drawerItem('SOP'),
@@ -420,7 +415,6 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                               NavigationRailDestination(icon: Icon(Icons.shopping_bag), label: Text('Order')),
                               NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Payment')),
                               NavigationRailDestination(icon: Icon(Icons.receipt), label: Text('Receipt')),
-                              NavigationRailDestination(icon: Icon(Icons.kitchen), label: Text('Kitchen')),
                               NavigationRailDestination(icon: Icon(Icons.bar_chart), label: Text('Reports')),
                               NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
                               NavigationRailDestination(icon: Icon(Icons.monitor_heart), label: Text('Device Health')),
@@ -452,12 +446,12 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   }
 
   int _navIndex() {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'Device Health', 'SOP'];
+    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Reports', 'Settings', 'Device Health', 'SOP'];
     return labels.indexOf(_current).clamp(0, labels.length - 1);
   }
 
   void _setNavByIndex(int index) {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Kitchen', 'Reports', 'Settings', 'Device Health', 'SOP'];
+    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Reports', 'Settings', 'Device Health', 'SOP'];
     setState(() => _current = labels[index]);
   }
 }
@@ -473,6 +467,14 @@ class _ActionIntent extends Intent {
 
   final String action;
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -14,9 +14,13 @@ import { useEffect, useMemo, useState } from 'react';
 export default function MenuPage() {
   const search = useSearchParams();
   const tableToken = search.get('tableToken') || '';
+  const errorParam = search.get('error') || '';
   const cartKey = tableToken || 'public';
   const [products, setProducts] = useState<Product[]>([]);
   const [table, setTable] = useState<TableInfo | null>(null);
+  const [tableCode, setTableCode] = useState('');
+  const [tableLookupError, setTableLookupError] = useState('');
+  const [tableLoading, setTableLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [offlineNotice, setOfflineNotice] = useState('');
@@ -27,6 +31,8 @@ export default function MenuPage() {
   const [cartPreview, setCartPreview] = useState<Array<{ name: string; qty: number }>>([]);
   const [animateCount, setAnimateCount] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const [voucher, setVoucher] = useState('');
+  const [voucherMsg, setVoucherMsg] = useState('');
   const router = useRouter();
   const session = getSession();
 
@@ -38,6 +44,7 @@ export default function MenuPage() {
           setProducts(r.data.products || []);
           if (tableToken) {
             setTable(r.data.table);
+            setTableCode(r.data.table?.table_code || '');
             const currentSession = getSession();
             setSession({ ...(currentSession || { tableToken: '' }), tableToken, table: r.data.table });
             if (r.data.table?.is_active === false) {
@@ -45,6 +52,7 @@ export default function MenuPage() {
             }
           } else {
             setTable(null);
+            setTableCode('');
           }
           setMenuCache({
             tableToken: cartKey,
@@ -56,7 +64,7 @@ export default function MenuPage() {
         .catch((e) => {
           if (tableToken && e instanceof ApiError && (e.status === 404 || e.status === 410)) {
             clearSession();
-            router.replace('/?error=token');
+            router.replace('/menu?error=token');
             return;
           }
           const cache = getMenuCache(cartKey);
@@ -154,16 +162,57 @@ export default function MenuPage() {
     router.push(`/cart?tableToken=${encodeURIComponent(tableToken)}`);
   }
 
+  const tableCodePattern = /^[A-Z]{1,2}\\d{1,3}$/;
+
+  async function handleSetTable() {
+    const code = tableCode.trim().toUpperCase();
+    setTableLookupError('');
+    if (!code) {
+      setTableLookupError('Masukkan nomor meja terlebih dahulu');
+      return;
+    }
+    if (!tableCodePattern.test(code)) {
+      setTableLookupError('Format nomor meja harus seperti A1 atau B12');
+      return;
+    }
+    try {
+      setTableLoading(true);
+      const r = await customerApi.tableTokenByCode(code);
+      router.replace(`/menu?tableToken=${encodeURIComponent(r.data.table_token)}`);
+    } catch (e: any) {
+      setTableLookupError(e?.message || 'Nomor meja tidak ditemukan');
+    } finally {
+      setTableLoading(false);
+    }
+  }
+
+  function handleClearTable() {
+    clearSession();
+    setTable(null);
+    setTableCode('');
+    router.replace('/menu');
+  }
+
   const lastOrderToken = session?.tableToken || tableToken;
 
   return (
     <main>
       <div className="sticky-header">
         <div className="header-card">
+          <div className="promo-banner">
+            <div>Promo Hari Ini: Diskon 10% untuk minuman kopi</div>
+            <div className="promo-input">
+              <input value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="Kode voucher" />
+              <button onClick={() => setVoucherMsg(voucher ? `Voucher ${voucher} diterapkan (demo)` : 'Masukkan kode voucher')}>
+                Gunakan
+              </button>
+            </div>
+            {voucherMsg ? <div className="small">{voucherMsg}</div> : null}
+          </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>Menu Meja</div>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>Menu</div>
             <div className="small">
-              {table ? `Meja: ${table.table_name} (${table.table_code})` : 'Mode: tanpa meja'}
+              {table ? `Meja: ${table.table_name} (${table.table_code})` : 'Belum pilih meja'}
             </div>
           </div>
           <div className="toolbar">
@@ -172,6 +221,23 @@ export default function MenuPage() {
               Lihat Cart
               {cartCount > 0 ? <span className={`cart-badge ${animateCount ? 'pulse' : ''}`}>{cartCount}</span> : null}
             </button>
+          </div>
+          <div className="toolbar" style={{ width: '100%' }}>
+            <input
+              value={tableCode}
+              onChange={(e) => setTableCode(e.target.value.toUpperCase())}
+              placeholder="No meja (contoh: A1)"
+              style={{ maxWidth: 220 }}
+            />
+            <button onClick={handleSetTable} disabled={tableLoading}>
+              {tableLoading ? 'Memproses...' : 'Set Meja'}
+            </button>
+            {table ? (
+              <button className="ghost" onClick={handleClearTable}>
+                Hapus Meja
+              </button>
+            ) : null}
+            {tableLookupError ? <span className="small">{tableLookupError}</span> : null}
           </div>
           <div className="category-chips">
             {categories.map((c) => (
@@ -201,6 +267,7 @@ export default function MenuPage() {
           ) : null}
         </div>
       </div>
+      {errorParam === 'token' ? <div className="card">Token meja tidak valid atau sudah expired. Silakan masukkan nomor meja.</div> : null}
       {loading ? <div className="card">Loading menu...</div> : null}
       {offlineNotice ? <div className="card">{offlineNotice}</div> : null}
       {error ? <div className="card">{error}</div> : null}
@@ -262,15 +329,3 @@ export default function MenuPage() {
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-

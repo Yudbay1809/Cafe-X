@@ -25,8 +25,13 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     cache: 'no-store',
   });
   const json = await res.json();
-  if (!res.ok || json.ok === false) throw new ApiError(res.status, json.message || 'Request gagal');
-  return json.data as T;
+  const successFlag = typeof json.success === 'boolean' ? json.success : (typeof json.ok === 'boolean' ? json.ok : undefined);
+  if (!res.ok || successFlag === false) throw new ApiError(res.status, json.message || 'Request gagal');
+  let payload: any = json.data ?? json;
+  if (payload && typeof payload === 'object' && typeof payload.ok === 'boolean' && payload.data !== undefined) {
+    payload = payload.data;
+  }
+  return payload as T;
 }
 
 export const adminApi = {
@@ -66,6 +71,27 @@ export const adminApi = {
   orderDetail: (id: number) => api<{ order: any; items: any[] }>(`/orders/${id}`),
   orderStatus: (order_id: number, status: string) => api('/orders/status', { method: 'POST', body: JSON.stringify({ order_id, status }) }),
   reportSummary: () => api('/reports/summary'),
+  reportSales: (params?: { from?: string; to?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    const query = qs.toString();
+    return api(`/reports/sales${query ? `?${query}` : ''}`);
+  },
+  reportProducts: (params?: { from?: string; to?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    const query = qs.toString();
+    return api(`/reports/products${query ? `?${query}` : ''}`);
+  },
+  reportDaily: (params?: { from?: string; to?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    const query = qs.toString();
+    return api(`/reports/daily${query ? `?${query}` : ''}`);
+  },
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
   auditLogs: (params?: { event?: string; actor?: string; entity?: string; from?: string; to?: string; page?: number; limit?: number }) => {
     const qs = new URLSearchParams();
@@ -80,5 +106,9 @@ export const adminApi = {
     return api<{ items: any[]; page: number; limit: number; total: number }>(`/audit-logs${query ? `?${query}` : ''}`);
   },
 };
+
+
+
+
 
 

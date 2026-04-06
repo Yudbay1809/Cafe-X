@@ -17,3 +17,5 @@ Route::prefix('v1')->group(function (): void {
         require base_path('app/Modules/Report/routes.php');
     });
 });
+
+

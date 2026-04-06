@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ProductUpsertRequest;
 use App\Services\AuditService;
 use App\Support\ApiResponse;
+use App\Repositories\ProductRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(private readonly ProductRepository $repo)
+    {
+    }
 
     public function index(Request $request)
     {
@@ -20,17 +24,36 @@ class ProductController extends Controller
         $q = trim((string) $request->query('q', ''));
         $category = trim((string) $request->query('category', ''));
         $active = $request->query('active', null);
+        $sort = (string) $request->query('sort', 'id_menu');
+        $dir = strtolower((string) $request->query('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['id_menu','nama_menu','jenis_menu','harga','stok','created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'id_menu';
+        }
 
-        $query = DB::table('produk')
+        $query = $this->repo->query()
             ->select(['id_menu', 'nama_menu', 'jenis_menu', 'stok', 'harga', 'gambar', 'is_active'])
             ->when($tenantId > 0, fn ($qb) => $qb->where('tenant_id', $tenantId))
             ->when($q !== '', fn ($qb) => $qb->where('nama_menu', 'like', "%{$q}%"))
             ->when($category !== '', fn ($qb) => $qb->where('jenis_menu', $category))
             ->when($active !== null, fn ($qb) => $qb->where('is_active', (int) ((bool) $active)))
-            ->orderByDesc('id_menu');
+            ->orderBy($sort, $dir);
 
-        $items = $query->get();
-        return $this->ok(['items' => $items->all()]);
+        $limit = (int) ($request->query('limit') ?? 100);
+        $limit = $limit > 0 && $limit <= 200 ? $limit : 100;
+        $page = (int) ($request->query('page') ?? 1);
+        $page = $page > 0 ? $page : 1;
+        $offset = ($page - 1) * $limit;
+
+        $total = (int) (clone $query)->count('id_menu');
+        $items = (clone $query)->offset($offset)->limit($limit)->get();
+
+        return $this->ok([
+            'items' => $items->all(),
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+        ]);
     }
 
     public function store(ProductUpsertRequest $request)
@@ -39,7 +62,7 @@ class ProductController extends Controller
         $auth = (array) $request->attributes->get('auth_user', []);
         $tenantId = (int) ($auth['tenant_id'] ?? 0);
 
-        $id = DB::table('produk')->insertGetId([
+        $id = $this->repo->insert([
             'tenant_id' => $tenantId ?: null,
             'nama_menu' => $data['nama_menu'],
             'jenis_menu' => $data['jenis_menu'] ?? null,
@@ -70,7 +93,7 @@ class ProductController extends Controller
         $auth = (array) $request->attributes->get('auth_user', []);
         $tenantId = (int) ($auth['tenant_id'] ?? 0);
 
-        $product = DB::table('produk')
+        $product = $this->repo->query()
             ->when($tenantId > 0, fn ($qb) => $qb->where('tenant_id', $tenantId))
             ->where('id_menu', $id)
             ->first();
@@ -78,17 +101,15 @@ class ProductController extends Controller
             return $this->fail('Product not found', 404);
         }
 
-        DB::table('produk')
-            ->where('id_menu', $id)
-            ->update([
-                'nama_menu' => $data['nama_menu'],
-                'jenis_menu' => $data['jenis_menu'] ?? null,
-                'stok' => (int) ($data['stok'] ?? 0),
-                'harga' => (float) $data['harga'],
-                'gambar' => $data['gambar'] ?? null,
-                'is_active' => array_key_exists('is_active', $data) ? (int) ((bool) $data['is_active']) : (int) ($product->is_active ?? 1),
-                'updated_at' => now(),
-            ]);
+        $this->repo->update($id, [
+            'nama_menu' => $data['nama_menu'],
+            'jenis_menu' => $data['jenis_menu'] ?? null,
+            'stok' => (int) ($data['stok'] ?? 0),
+            'harga' => (float) $data['harga'],
+            'gambar' => $data['gambar'] ?? null,
+            'is_active' => array_key_exists('is_active', $data) ? (int) ((bool) $data['is_active']) : (int) ($product->is_active ?? 1),
+            'updated_at' => now(),
+        ]);
 
         app(AuditService::class)->log(
             tenantId: $auth['tenant_id'] ?? null,
@@ -108,7 +129,7 @@ class ProductController extends Controller
         $auth = (array) $request->attributes->get('auth_user', []);
         $tenantId = (int) ($auth['tenant_id'] ?? 0);
 
-        $product = DB::table('produk')
+        $product = $this->repo->query()
             ->when($tenantId > 0, fn ($qb) => $qb->where('tenant_id', $tenantId))
             ->where('id_menu', $id)
             ->first();
@@ -116,7 +137,7 @@ class ProductController extends Controller
             return $this->fail('Product not found', 404);
         }
 
-        DB::table('produk')->where('id_menu', $id)->update([
+        $this->repo->update($id, [
             'is_active' => 0,
             'updated_at' => now(),
         ]);

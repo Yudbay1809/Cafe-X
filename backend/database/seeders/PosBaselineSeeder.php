@@ -50,7 +50,8 @@ class PosBaselineSeeder extends Seeder
             'table.manage' => 'Manage tables',
             'product.manage' => 'Manage products',
             'report.view' => 'View reports',
-            'report.shift' => 'View shift report',\n            'audit.view' => 'View audit logs',
+            'report.shift' => 'View shift report',
+            'audit.view' => 'View audit logs',
             'sync.use' => 'Use sync endpoints',
             'user.manage' => 'Manage users',
         ];
@@ -65,7 +66,6 @@ class PosBaselineSeeder extends Seeder
             'owner' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use', 'user.manage'],
             'admin' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use'],
             'kasir' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.reprint', 'shift.open', 'shift.close', 'report.shift', 'sync.use'],
-            'kitchen' => ['order.create'],
         ];
 
         foreach ($roles as $roleName => $permNames) {
@@ -108,15 +108,15 @@ class PosBaselineSeeder extends Seeder
 
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'tax_pct'],
-            ['setting_value' => '0', 'updated_at' => now()]
+            ['setting_value' => '0', 'updated_at' => now(), 'created_at' => now()]
         );
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'service_pct'],
-            ['setting_value' => '0', 'updated_at' => now()]
+            ['setting_value' => '0', 'updated_at' => now(), 'created_at' => now()]
         );
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'cancel_high_threshold'],
-            ['setting_value' => '500000', 'updated_at' => now()]
+            ['setting_value' => '500000', 'updated_at' => now(), 'created_at' => now()]
         );
 
         DB::table('produk')->updateOrInsert(
@@ -169,5 +169,3 @@ class PosBaselineSeeder extends Seeder
         );
     }
 }
-
-

@@ -1,6 +1,19 @@
-import { test, expect } from '@playwright/test';
+﻿import { test, expect } from '@playwright/test';
 
 test('customer qr flow: menu -> cart -> place order -> status', async ({ page }) => {
+  await page.route('**/api/v1/qr/table-token/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: 'OK',
+        data: { table_token: 'token-a1', table: { table_code: 'A1', table_name: 'Table A1' } },
+        server_time: '2026-03-06 00:00:00',
+      }),
+    });
+  });
+
   await page.route('**/api/v1/qr/menu/**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -10,7 +23,7 @@ test('customer qr flow: menu -> cart -> place order -> status', async ({ page })
         message: 'OK',
         data: {
           table: { table_code: 'A1', table_name: 'Table A1' },
-          products: [{ id_menu: 1, nama_menu: 'Espresso', stok: 10, harga: 18000 }],
+          products: [{ id_menu: 1, nama_menu: 'Espresso', stok: 10, harga: 18000, jenis_menu: 'coffee' }],
         },
         server_time: '2026-03-06 00:00:00',
       }),
@@ -44,16 +57,17 @@ test('customer qr flow: menu -> cart -> place order -> status', async ({ page })
   });
 
   await page.goto('/');
-  await page.getByPlaceholder('table_token').fill('token-a1');
-  await page.getByRole('button', { name: 'Lihat Menu' }).click();
+  await page.getByPlaceholder('No meja (contoh: A1)').fill('A1');
+  await page.getByRole('button', { name: 'Cari Meja' }).click();
 
   await expect(page.getByText('Menu Meja')).toBeVisible();
   await page.getByRole('button', { name: 'Tambah' }).click();
   await page.getByRole('button', { name: 'Lihat Cart' }).click();
 
-  await expect(page.getByText('Cart')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cart' })).toBeVisible();
   await page.getByRole('button', { name: 'Place Order' }).click();
 
   await expect(page.getByText('Status Order')).toBeVisible();
   await expect(page.getByText('Order #123')).toBeVisible();
 });
+

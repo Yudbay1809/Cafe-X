@@ -3,6 +3,7 @@
 import { ApiError, customerApi } from '@/lib/api';
 import { clearCart, getCart, setCart, moveCart } from '@/lib/cart';
 import { getSession, setSession } from '@/lib/session';
+import type { TableInfo } from '@/lib/types';
 import { formatRupiah } from '@/lib/money';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -11,6 +12,7 @@ export default function CartPage() {
   const search = useSearchParams();
   const searchToken = search.get('tableToken') || '';
   const [activeToken, setActiveToken] = useState(() => searchToken || getSession()?.tableToken || '');
+  const [tableInfo, setTableInfo] = useState<TableInfo | null>(getSession()?.table ?? null);
   const cartKey = activeToken || 'public';
   const [items, setItems] = useState(getCart(cartKey));
   const [notes, setNotes] = useState('');
@@ -30,6 +32,7 @@ export default function CartPage() {
     const session = getSession();
     if (session?.tableToken) {
       setActiveToken(session.tableToken);
+      setTableInfo(session.table ?? null);
     }
   }, [searchToken]);
 
@@ -76,6 +79,7 @@ export default function CartPage() {
         const currentSession = getSession();
         setSession({ ...(currentSession || { tableToken: '' }), tableToken: token, table: lookup.data.table });
         setActiveToken(token);
+        setTableInfo(lookup.data.table);
       }
 
       const payload = {
@@ -110,6 +114,7 @@ export default function CartPage() {
             setSession({ tableToken: '' });
           }
           setActiveToken('');
+          setTableInfo(null);
           if (searchToken) {
             router.replace('/cart');
           }
@@ -128,7 +133,7 @@ export default function CartPage() {
     <main>
       <div className="card">
         <h1>Cart</h1>
-        <p className="small">Token: {activeToken || '-'}</p>
+        <p className="small">Meja: {tableInfo ? `${tableInfo.table_name} (${tableInfo.table_code})` : '-'}</p>
         {!activeToken ? <p className="small">Masukkan nomor meja sebelum place order.</p> : null}
       </div>
       {items.map((i) => (
@@ -196,6 +201,3 @@ export default function CartPage() {
     </main>
   );
 }
-
-
-

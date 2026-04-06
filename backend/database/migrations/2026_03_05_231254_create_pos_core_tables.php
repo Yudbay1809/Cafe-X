@@ -123,6 +123,7 @@ return new class extends Migration
                 $table->id();
                 $table->string('setting_key', 80)->unique();
                 $table->string('setting_value', 255)->nullable();
+                $table->timestamp('created_at')->nullable();
                 $table->timestamp('updated_at')->nullable();
             });
         }
@@ -417,3 +418,7 @@ return new class extends Migration
         Schema::dropIfExists('tenants');
     }
 };
+
+
+
+

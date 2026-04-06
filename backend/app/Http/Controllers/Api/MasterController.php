@@ -132,4 +132,23 @@ class MasterController extends Controller
             'qr_token' => $qrToken,
         ], 'Table saved');
     }
+
+    public function config(Request $request)
+    {
+        $auth = (array) $request->attributes->get('auth_user', []);
+        $tenantId = (int) ($auth['tenant_id'] ?? 0);
+        $outletId = (int) ($auth['outlet_id'] ?? 0);
+        $settings = DB::table('pos_settings')->pluck('setting_value', 'setting_key');
+        $outlet = $outletId > 0 ? DB::table('outlets')->where('id', $outletId)->first() : null;
+
+        return $this->ok([
+            'settings' => $settings,
+            'outlet' => $outlet,
+            'tenant_id' => $tenantId ?: null,
+            'outlet_id' => $outletId ?: null,
+        ]);
+    }
 }
+
+
+

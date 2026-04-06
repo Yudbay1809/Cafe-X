@@ -197,7 +197,7 @@ class OrderController extends Controller
                 payload: $result
             );
             $response = [
-                'ok' => true,
+                'success' => true,
                 'message' => 'Pembayaran berhasil',
                 'data' => $result,
                 'server_time' => now()->format('Y-m-d H:i:s'),
@@ -241,7 +241,7 @@ class OrderController extends Controller
                 payload: $result
             );
             $response = [
-                'ok' => true,
+                'success' => true,
                 'message' => 'Order dibatalkan',
                 'data' => $result,
                 'server_time' => now()->format('Y-m-d H:i:s'),
@@ -388,5 +388,51 @@ class OrderController extends Controller
             return $this->fail($e->getMessage(), 404);
         }
     }
+
+    public function cancelById(Request $request, int $orderId)
+    {
+        $data = $request->validate([
+            'reason' => 'nullable|string|max:200',
+        ]);
+        $auth = $request->attributes->get('auth_user', []);
+        $actor = (string) ($auth['username'] ?? 'system');
+        $order = DB::table('pos_orders')->where('id', $orderId)->first();
+        $cancelHighThreshold = (float) (DB::table('pos_settings')->where('setting_key', 'cancel_high_threshold')->value('setting_value') ?? 500000);
+        $permissions = is_array($auth['permissions'] ?? null) ? $auth['permissions'] : [];
+        if ($order && (float) $order->total_amount >= $cancelHighThreshold && !in_array('order.cancel.high', $permissions, true)) {
+            return $this->fail('Order bernilai besar butuh otorisasi supervisor', 403);
+        }
+        $replay = $this->idempotency->getReplay($request, 'orders/cancel', $actor);
+        if ($replay !== null) {
+            return response()->json($replay);
+        }
+        try {
+            $result = $this->service->cancelOrder(
+                actor: $actor,
+                orderId: $orderId,
+                reason: (string) ($data['reason'] ?? 'Canceled by user')
+            );
+            app(AuditService::class)->log(
+                tenantId: $auth['tenant_id'] ?? null,
+                outletId: $auth['outlet_id'] ?? null,
+                actor: $actor,
+                eventType: 'order.cancel',
+                entityType: 'order',
+                entityId: (string) $result['order_id'],
+                payload: $result
+            );
+            $response = [
+                'success' => true,
+                'message' => 'Order dibatalkan',
+                'data' => $result,
+                'server_time' => now()->format('Y-m-d H:i:s'),
+            ];
+            $this->idempotency->store($request, 'orders/cancel', $actor, $response);
+            return response()->json($response);
+        } catch (Throwable $e) {
+            return $this->fail($e->getMessage(), 409);
+        }
+    }
 }
+
 

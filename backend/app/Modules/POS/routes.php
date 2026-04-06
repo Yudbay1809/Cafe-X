@@ -9,3 +9,4 @@ Route::get('/master/tables', [MasterController::class, 'tables'])->middleware('p
 Route::post('/tables/upsert', [MasterController::class, 'upsertTable'])->middleware('perm:table.manage');
 Route::post('/shift/open', [ShiftController::class, 'open'])->middleware('perm:shift.open');
 Route::post('/shift/close', [ShiftController::class, 'close'])->middleware('perm:shift.close');
+Route::get('/pos/config', [MasterController::class, 'config'])->middleware('perm:sync.use');

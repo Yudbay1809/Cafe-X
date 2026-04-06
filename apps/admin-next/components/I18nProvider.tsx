@@ -27,9 +27,7 @@ const DICT: Dict = {
   backupNotes: { id: 'Catatan Backup', en: 'Backup Notes' },
   incidentReport: { id: 'Incident Report', en: 'Incident Report' },
   incidentReportSubtitle: { id: 'Laporan insiden cepat', en: 'Quick incident reporting' },
-  submitIncident: { id: 'Kirim Laporan', en: 'Submit Report' },
-  kitchen: { id: 'Dapur', en: 'Kitchen' },
-  loginAdmin: { id: 'Login Admin', en: 'Admin Login' },
+  submitIncident: { id: 'Kirim Laporan', en: 'Submit Report' },  loginAdmin: { id: 'Login Admin', en: 'Admin Login' },
   username: { id: 'Username', en: 'Username' },
   password: { id: 'Password', en: 'Password' },
   login: { id: 'Masuk', en: 'Login' },
@@ -75,16 +73,12 @@ const DICT: Dict = {
   preparing: { id: 'Siapkan', en: 'Preparing' },
   ready: { id: 'Siap', en: 'Ready' },
   start: { id: 'Mulai', en: 'Start' },
-  new: { id: 'Baru', en: 'New' },
-  kitchenBoard: { id: 'Board Dapur', en: 'Kitchen Board' },
-  dashboardSubtitle: { id: 'Ringkasan operasional outlet', en: 'Outlet operational summary' },
+  new: { id: 'Baru', en: 'New' },  dashboardSubtitle: { id: 'Ringkasan operasional outlet', en: 'Outlet operational summary' },
   productsSubtitle: { id: 'Kelola katalog menu, stok, dan harga', en: 'Manage menu catalog, stock, and pricing' },
   tablesSubtitle: { id: 'Kelola meja dan QR order', en: 'Manage tables and QR order' },
   shiftsSubtitle: { id: 'Buka/tutup shift dan variance kas', en: 'Open/close shift and cash variance' },
   reportsSubtitle: { id: 'Ringkasan transaksi dan shift', en: 'Transaction and shift summary' },
-  ordersSubtitle: { id: 'Monitor dan update status order', en: 'Monitor and update order status' },
-  kitchenSubtitle: { id: 'Board status dapur', en: 'Kitchen status board' },
-  totalTables: { id: 'Total meja', en: 'Total tables' },
+  ordersSubtitle: { id: 'Monitor dan update status order', en: 'Monitor and update order status' },  totalTables: { id: 'Total meja', en: 'Total tables' },
   searchTable: { id: 'Cari meja', en: 'Search table' },
   searchProduct: { id: 'Cari menu...', en: 'Search menu...' },
   searchOrder: { id: 'Cari order / meja', en: 'Search order / table' },
@@ -159,3 +153,4 @@ export function useI18n() {
   if (!ctx) throw new Error('useI18n must be used within I18nProvider');
   return ctx;
 }
+

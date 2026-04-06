@@ -1,4 +1,8 @@
-@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   color-scheme: light;
@@ -14,7 +18,7 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: inherit;
   background: linear-gradient(180deg, #f4efe7 0%, #f9fafb 70%);
   color: var(--ink);
 }
@@ -259,13 +263,7 @@ input, select, textarea {
   50% { transform: translateY(-6px); opacity: 1; }
 }
 
-.kitchen-board { align-items: start; }
-.kitchen-column { background: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.3); }
-.kitchen-column h3 { margin-top: 0; }
-.kitchen-column .small { color: #64748b; }
-.kitchen-item { padding: 12px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.25); box-shadow: none; background: #fff; }
-.kitchen-column .kitchen-item + .kitchen-item { margin-top: 8px; }
-
 .table-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .density-select { min-width: 160px; }
+
 

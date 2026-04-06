@@ -6,10 +6,12 @@ import { adminApi } from '@/lib/api';
 import { formatRupiah } from '@/lib/money';
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/components/I18nProvider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function OrdersPage() {
   const [orderId, setOrderId] = useState(0);
   const [detail, setDetail] = useState<any>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const [status, setStatus] = useState('all');
@@ -104,7 +106,7 @@ export default function OrdersPage() {
                   <td className="small">{o.created_at}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <button className="btn outline" onClick={async () => { setOrderId(o.id); setDetail(await adminApi.orderDetail(o.id)); }}>{t('detail')}</button>
+                      <button className="btn outline" onClick={async () => { setOrderId(o.id); setDetail(await adminApi.orderDetail(o.id)); setDetailOpen(true); }}>{t('detail')}</button>
                       <button className="btn ghost" onClick={async () => { await adminApi.orderStatus(o.id, 'preparing'); setMsg(`Order ${o.id} -> preparing`); await load(); }}>{t('preparing')}</button>
                       <button className="btn ghost" onClick={async () => { await adminApi.orderStatus(o.id, 'ready'); setMsg(`Order ${o.id} -> ready`); await load(); }}>{t('ready')}</button>
                     </div>
@@ -119,32 +121,39 @@ export default function OrdersPage() {
             <button className="btn outline" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         </div>
-        {detail ? (
-          <div className="card">
-            <h3>{t('detail')} #{detail.order?.id}</h3>
-            <div className="small">{t('status')}: {detail.order?.status}</div>
-            <div className="small">{t('total')}: {formatRupiah(detail.order?.total_amount || 0)}</div>
-            <div style={{ height: 8 }} />
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Qty</th>
-                  <th>Harga</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(detail.items || []).map((it: any) => (
-                  <tr key={it.id}>
-                    <td>{it.product_name_snapshot}</td>
-                    <td>{it.qty}</td>
-                    <td>{formatRupiah(it.unit_price || 0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
+
+        <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('detail')} #{detail?.order?.id || orderId}</DialogTitle>
+            </DialogHeader>
+            {detail ? (
+              <div>
+                <div className="small">{t('status')}: {detail.order?.status}</div>
+                <div className="small">{t('total')}: {formatRupiah(detail.order?.total_amount || 0)}</div>
+                <div style={{ height: 8 }} />
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Qty</th>
+                      <th>Harga</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detail.items || []).map((it: any) => (
+                      <tr key={it.id}>
+                        <td>{it.product_name_snapshot}</td>
+                        <td>{it.qty}</td>
+                        <td>{formatRupiah(it.unit_price || 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </AdminShell>
     </RequireAuth>
   );

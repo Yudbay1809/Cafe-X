@@ -86,4 +86,20 @@ class AuthController extends Controller
 
         return $this->ok([], 'Logout berhasil');
     }
+
+    public function me(Request $request)
+    {
+        $auth = (array) $request->attributes->get('auth_user', []);
+        if (empty($auth)) {
+            return $this->fail('Unauthorized', 401);
+        }
+        return $this->ok([
+            'user' => [
+                'username' => $auth['username'] ?? null,
+                'role' => $auth['role'] ?? null,
+            ],
+            'tenant_id' => $auth['tenant_id'] ?? null,
+            'outlet_id' => $auth['outlet_id'] ?? null,
+        ]);
+    }
 }

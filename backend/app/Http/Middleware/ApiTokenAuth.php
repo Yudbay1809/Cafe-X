@@ -19,9 +19,9 @@ class ApiTokenAuth
         $auth = (string) $request->header('Authorization', '');
         if (!str_starts_with($auth, 'Bearer ')) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
@@ -29,9 +29,9 @@ class ApiTokenAuth
         $token = trim(substr($auth, 7));
         if ($token === '') {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
@@ -45,35 +45,35 @@ class ApiTokenAuth
         $row = DB::table('api_tokens')->where('token_hash', $hash)->first();
         if (!$row) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
         if (!empty($row->revoked_at)) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
         if (!empty($row->expires_at) && strtotime((string) $row->expires_at) <= time()) {
             DB::table('api_tokens')->where('id', $row->id)->delete();
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
 
         if (!empty($roles) && !in_array($row->role_name, $roles, true)) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Forbidden',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 403);
         }
@@ -106,3 +106,4 @@ class ApiTokenAuth
         return $next($request);
     }
 }
+

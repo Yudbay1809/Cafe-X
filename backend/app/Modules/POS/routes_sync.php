@@ -1,7 +1,8 @@
 <?php
 
-use App\Modules\POS\Controllers\SyncController;
+use App\Http\Controllers\Api\SyncController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/sync/pull', [SyncController::class, 'pull'])->middleware('perm:sync.use');
 Route::post('/sync/push', [SyncController::class, 'push'])->middleware(['perm:sync.use', 'throttle:40,1']);
+Route::post('/pos/sync', [SyncController::class, 'posSync'])->middleware(['perm:sync.use', 'throttle:40,1']);

@@ -32,7 +32,7 @@ export default function ProductsPage() {
         q: query || undefined,
         category: category === 'all' ? undefined : category,
       });
-      setItems(r.items);
+      setItems(r.items || []);
     } catch (e: any) {
       setError(e.message || 'Gagal load products');
     }
@@ -270,4 +270,5 @@ export default function ProductsPage() {
     </RequireAuth>
   );
 }
+
 

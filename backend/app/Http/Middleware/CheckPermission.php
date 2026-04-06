@@ -16,9 +16,9 @@ class CheckPermission
         $tenantId = (int) ($auth['tenant_id'] ?? 0);
         if ($username === '' || $tenantId < 1) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
@@ -38,7 +38,7 @@ class CheckPermission
 
         if (!$allowed) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Forbidden',
                 'meta' => ['required_permission' => $permission],
                 'server_time' => now()->format('Y-m-d H:i:s'),
@@ -48,3 +48,4 @@ class CheckPermission
         return $next($request);
     }
 }
+

@@ -201,7 +201,7 @@ export default function TablesPage() {
   async function load() {
     try {
       const r = await adminApi.tables();
-      setItems(r.items);
+      setItems(r.items || []);
     } catch (e: any) {
       setError(e.message || 'Gagal load tables');
     }
@@ -354,4 +354,5 @@ export default function TablesPage() {
     </RequireAuth>
   );
 }
+
 

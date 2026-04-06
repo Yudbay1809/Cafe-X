@@ -15,9 +15,9 @@ class CheckFeature
         $tenantId = (int) ($auth['tenant_id'] ?? 0);
         if ($tenantId < 1) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Unauthorized',
-                'meta' => [],
+                'errors' => [],
                 'server_time' => now()->format('Y-m-d H:i:s'),
             ], 401);
         }
@@ -32,7 +32,7 @@ class CheckFeature
 
         if (!$allowed) {
             return response()->json([
-                'ok' => false,
+                'success' => false,
                 'message' => 'Feature not available for current plan',
                 'meta' => ['required_feature' => $feature, 'plan' => $plan],
                 'server_time' => now()->format('Y-m-d H:i:s'),
@@ -42,3 +42,4 @@ class CheckFeature
         return $next($request);
     }
 }
+

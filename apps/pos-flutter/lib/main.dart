@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_config_service.dart';
 import 'pos_app_service.dart';
@@ -67,4 +68,9 @@ class _BootstrapState extends State<_Bootstrap> {
     return HomeShell(services: services);
   }
 }
+
+
+
+
+
 

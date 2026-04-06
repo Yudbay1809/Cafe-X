@@ -11,21 +11,23 @@ return new class extends Migration
         if (!Schema::hasTable('products')) {
             Schema::create('products', function (Blueprint $table): void {
                 $table->id();
-                $table\->unsignedBigInteger('tenant_id')->nullable();
-                $table\->unsignedBigInteger('category_id')->nullable();
+                $table->unsignedBigInteger('tenant_id')->nullable();
+                $table->unsignedBigInteger('category_id')->nullable();
                 $table->string('name', 120);
                 $table->decimal('price', 14, 2)->default(0);
                 $table->decimal('cost', 14, 2)->default(0);
                 $table->string('image', 255)->nullable();
                 $table->timestamps();
-                $table\->index(['tenant_id', 'category_id']);\n                \->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete()->cascadeOnUpdate();\n                \->foreign('category_id')->references('id')->on('product_categories')->nullOnDelete()->cascadeOnUpdate();
+                $table->index(['tenant_id', 'category_id']);
+                $table->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete()->cascadeOnUpdate();
+                $table->foreign('category_id')->references('id')->on('product_categories')->nullOnDelete()->cascadeOnUpdate();
             });
         }
 
         if (!Schema::hasTable('orders')) {
             Schema::create('orders', function (Blueprint $table): void {
                 $table->id();
-                $table\->unsignedBigInteger('tenant_id')->nullable();
+                $table->unsignedBigInteger('tenant_id')->nullable();
                 $table->unsignedBigInteger('outlet_id')->nullable();
                 $table->string('order_no', 60)->unique();
                 $table->string('status', 20)->default('new');
@@ -33,7 +35,9 @@ return new class extends Migration
                 $table->decimal('tax', 14, 2)->default(0);
                 $table->decimal('total', 14, 2)->default(0);
                 $table->timestamps();
-                $table\->index(['tenant_id', 'outlet_id', 'status']);\n                \->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete()->cascadeOnUpdate();\n                \->foreign('outlet_id')->references('id')->on('outlets')->nullOnDelete()->cascadeOnUpdate();
+                $table->index(['tenant_id', 'outlet_id', 'status']);
+                $table->foreign('tenant_id')->references('id')->on('tenants')->nullOnDelete()->cascadeOnUpdate();
+                $table->foreign('outlet_id')->references('id')->on('outlets')->nullOnDelete()->cascadeOnUpdate();
             });
         }
 
@@ -45,7 +49,9 @@ return new class extends Migration
                 $table->decimal('price', 14, 2)->default(0);
                 $table->integer('qty')->default(0);
                 $table->timestamps();
-                $table\->index(['order_id', 'product_id']);\n                \->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete()->cascadeOnUpdate();\n                \->foreign('product_id')->references('id')->on('products')->cascadeOnDelete()->cascadeOnUpdate();
+                $table->index(['order_id', 'product_id']);
+                $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete()->cascadeOnUpdate();
+                $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete()->cascadeOnUpdate();
             });
         }
 
@@ -56,7 +62,8 @@ return new class extends Migration
                 $table->string('method', 20);
                 $table->decimal('amount', 14, 2)->default(0);
                 $table->timestamps();
-                $table\->index(['order_id']);\n                \->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete()->cascadeOnUpdate();
+                $table->index(['order_id']);
+                $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete()->cascadeOnUpdate();
             });
         }
     }
@@ -69,4 +76,3 @@ return new class extends Migration
         Schema::dropIfExists('products');
     }
 };
-

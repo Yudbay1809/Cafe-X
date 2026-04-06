@@ -25,4 +25,5 @@ enum PaymentMethod {
   final String value;
 }
 
-const Set<String> supportedRoles = {'owner', 'admin', 'kasir', 'kitchen'};
+const Set<String> supportedRoles = {'owner', 'admin', 'kasir'};
+

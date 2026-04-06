@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\\Support\\Facades\\Schema;\nuse Throwable;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -186,7 +186,6 @@ return new class extends Migration
             return;
         }
 
-        $column = $columns[0];
         $exists = DB::selectOne(
             "SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ? LIMIT 1",
             [$table, $indexName]
