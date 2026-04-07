@@ -24,11 +24,11 @@ class ApiClient {
     String? token,
     Map<String, dynamic>? queryParameters,
   }) async {
-    return _wrap(path, () {
+    return _wrap(path, (requestId) {
       return _dio.get(
         path,
         queryParameters: queryParameters,
-        options: Options(headers: _headers(token)),
+        options: Options(headers: _headers(token, requestId: requestId)),
       );
     });
   }
@@ -39,12 +39,16 @@ class ApiClient {
     Map<String, dynamic>? data,
     String? idempotencyKey,
   }) async {
-    return _wrap(path, () {
+    return _wrap(path, (requestId) {
       return _dio.post(
         path,
         data: data ?? const <String, dynamic>{},
         options: Options(
-          headers: _headers(token, idempotencyKey: idempotencyKey),
+          headers: _headers(
+            token,
+            requestId: requestId,
+            idempotencyKey: idempotencyKey,
+          ),
         ),
       );
     });
@@ -52,12 +56,12 @@ class ApiClient {
 
   Future<Response<dynamic>> _wrap(
     String endpoint,
-    Future<Response<dynamic>> Function() call,
+    Future<Response<dynamic>> Function(String requestId) call,
   ) async {
     final requestId = _requestId();
     final sw = Stopwatch()..start();
     try {
-      final res = await call();
+      final res = await call(requestId);
       sw.stop();
       await _observability.recordRequest(
         requestId: requestId,
@@ -84,10 +88,14 @@ class ApiClient {
     }
   }
 
-  Map<String, String> _headers(String? token, {String? idempotencyKey}) {
+  Map<String, String> _headers(
+    String? token, {
+    required String requestId,
+    String? idempotencyKey,
+  }) {
     final map = <String, String>{
       'Accept': 'application/json',
-      'X-Request-Id': _requestId(),
+      'X-Request-Id': requestId,
     };
     if (token != null && token.isNotEmpty) {
       map['Authorization'] = 'Bearer $token';
