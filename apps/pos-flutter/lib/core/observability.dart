@@ -22,6 +22,22 @@ class DeviceObservability {
     });
   }
 
+  Future<void> recordError({
+    required String requestId,
+    required String endpoint,
+    required int statusCode,
+    required String message,
+  }) async {
+    final db = await LocalDb.open();
+    await db.insert('device_errors', {
+      'request_id': requestId,
+      'endpoint': endpoint,
+      'status_code': statusCode,
+      'message': message,
+      'created_at': nowIso(),
+    });
+  }
+
   Future<int> _failedSyncCount(Database db) async {
     final row = await db.rawQuery(
       "SELECT COUNT(*) AS total FROM pending_events WHERE retries > 0",
@@ -40,8 +56,12 @@ class DeviceObservability {
     final failures = await db.rawQuery(
       "SELECT COUNT(*) AS total FROM pending_events WHERE retries > 0",
     );
+    final errors = await db.rawQuery(
+      "SELECT COUNT(*) AS total FROM device_errors",
+    );
     return {
       'failed_sync_count': ((failures.first['total'] as int?) ?? 0),
+      'error_count': ((errors.first['total'] as int?) ?? 0),
       'latest_requests': latest,
     };
   }

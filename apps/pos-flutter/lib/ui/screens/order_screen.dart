@@ -88,6 +88,7 @@ class _OrderScreenState extends State<OrderScreen> {
       if (mounted) setState(() => _refreshingMenu = false);
     }
   }
+
   Future<void> _loadProducts() async {
     _allProducts = await widget.services.cacheService.allProducts();
     _applyFilters();
@@ -214,6 +215,7 @@ class _OrderScreenState extends State<OrderScreen> {
     }
     return true;
   }
+
   Future<void> _cancelItem(PosOrderItem item) async {
     final allowed = await _ensureSensitiveAllowed(action: 'void_large', amount: item.lineSubtotal);
     if (!allowed) return;
@@ -342,6 +344,7 @@ class _OrderScreenState extends State<OrderScreen> {
     }
     final width = MediaQuery.of(context).size.width;
     final crossAxis = width > 1200 ? 4 : width > 900 ? 3 : 2;
+    final quickAdd = _products.take(8).toList();
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -501,6 +504,25 @@ class _OrderScreenState extends State<OrderScreen> {
                                 ))
                             .toList(),
                       ),
+                      const SizedBox(height: 8),
+                      if (quickAdd.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Quick Add'),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: quickAdd
+                                  .map((p) => ActionChip(
+                                        label: Text('${p['name']}'),
+                                        onPressed: _loading ? null : () => _addItem(p),
+                                      ))
+                                  .toList(),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -544,24 +566,3 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

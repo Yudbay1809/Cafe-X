@@ -5,7 +5,10 @@ import 'package:dio/dio.dart';
 
 import '../core/local_db.dart';
 import '../core/app_config_service.dart';
+import '../core/theme/colors.dart';
+import '../features/device/printer_service.dart';
 import '../features/ops/sop_content.dart';
+import '../features/receipt/receipt_service.dart';
 import '../pos_app_service.dart';
 import '../features/sync/sync_worker.dart';
 import 'screens/dashboard_screen.dart';
@@ -17,6 +20,7 @@ import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/shift_screen.dart';
 import 'screens/sop_screen.dart';
+import 'screens/device_health_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.services});
@@ -38,13 +42,15 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   late final AnimationController _syncController;
   Timer? _sessionTimer;
   Timer? _autoSyncTimer;
+  Timer? _netTimer;
+  Timer? _printRetryTimer;
   bool _syncing = false;
+  bool _printing = false;
   String _lastSync = '-';
   bool _isOnline = true;
   bool _syncConflict = false;
   int _netFailCount = 0;
   int _netOkCount = 0;
-  Timer? _netTimer;
 
   @override
   void initState() {
@@ -60,6 +66,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
     _checkNetwork();
     _netTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
+    _printRetryTimer = Timer.periodic(const Duration(minutes: 1), (_) => _runPrintRetry());
   }
 
   Future<void> _refreshPending() async {
@@ -111,9 +118,19 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     setState(() => _lastSync = value);
   }
 
+  Future<String?> _baseUrl() async {
+    final baseUrl = await _config.getString('base_url', fallback: '');
+    if (baseUrl.trim().isEmpty) return null;
+    return baseUrl;
+  }
+
   Future<void> _checkNetwork() async {
     try {
-      final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+      final baseUrl = await _baseUrl();
+      if (baseUrl == null) {
+        if (mounted) setState(() => _isOnline = false);
+        return;
+      }
       final dio = Dio(BaseOptions(
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 3),
@@ -137,6 +154,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       }
     }
   }
+
   Future<void> _runAutoSync() async {
     if (_syncing || !_isLoggedIn) return;
     _syncing = true;
@@ -147,14 +165,17 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     try {
       final session = await widget.services.authService.currentSession();
       if (session == null) return;
-      final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+      final baseUrl = await _baseUrl();
+      if (baseUrl == null) return;
       final dio = Dio(BaseOptions(baseUrl: baseUrl));
       final worker = SyncWorker(dio);
       final result = await worker.pushPull(session.accessToken);
-      final hasConflict = result["has_conflict"] == true;
+      final hasConflict = result['has_conflict'] == true;
       if (mounted) setState(() => _syncConflict = hasConflict);
       final now = DateTime.now().toIso8601String();
       await _config.setString('last_sync', now);
+      final pending = await _config.getPendingEventCount();
+      await _config.setString('sync_health', '{"pending":$pending,"failed":${result['failed']},"conflict":${hasConflict ? 1 : 0}}');
       if (!mounted) return;
       setState(() => _lastSync = now);
       await _refreshPending();
@@ -164,6 +185,29 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       if (mounted) setState(() => _lastSync = 'failed@$now');
     } finally {
       _syncing = false;
+    }
+  }
+
+  Future<void> _runPrintRetry() async {
+    if (_printing || !_isLoggedIn) return;
+    _printing = true;
+    try {
+      final printerIp = await _config.getString('printer_ip', fallback: '');
+      if (printerIp.isEmpty) return;
+      final printerPort = int.tryParse(await _config.getString('printer_port', fallback: '9100')) ?? 9100;
+      final paperWidth = await _config.getString('printer_paper_width', fallback: '80');
+      final printer = _QueuePrinter(
+        printerService: widget.services.printerService,
+        ip: printerIp,
+        port: printerPort,
+        paperWidth: paperWidth,
+      );
+      final pending = await widget.services.receiptService.pendingQueueCount();
+      if (pending > 0) {
+        await widget.services.receiptService.processQueue(printer: printer, limit: 10);
+      }
+    } finally {
+      _printing = false;
     }
   }
 
@@ -211,6 +255,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
           if (!mounted) return;
           setState(() {});
         });
+      case 'Device Health':
+        return DeviceHealthScreen(services: widget.services);
       case 'SOP':
         return SopScreen(steps: posSopSteps);
       default:
@@ -224,6 +270,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     _sessionTimer?.cancel();
     _autoSyncTimer?.cancel();
     _netTimer?.cancel();
+    _printRetryTimer?.cancel();
     super.dispose();
   }
 
@@ -337,17 +384,13 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFFF6F5F2),
+            backgroundColor: AppColors.surface,
             drawer: (!_isLoggedIn || !isWide)
                 ? Drawer(
                     child: ListView(
                       children: [
                         DrawerHeader(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF0F766E), Color(0xFF0EA5E9)],
-                            ),
-                          ),
+                          decoration: const BoxDecoration(gradient: AppColors.gradientBrand),
                           child: const Align(
                             alignment: Alignment.bottomLeft,
                             child: Text('Cafe-X POS', style: TextStyle(color: Colors.white, fontSize: 20)),
@@ -362,6 +405,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                           _drawerItem('Receipt'),
                           _drawerItem('Reports'),
                           _drawerItem('Settings'),
+                          _drawerItem('Device Health'),
                           _drawerItem('SOP'),
                         ],
                       ],
@@ -369,13 +413,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                   )
                 : null,
             body: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFF6F5F2), Color(0xFFE9F5F3)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+              decoration: const BoxDecoration(gradient: AppColors.gradientBackground),
               child: Column(
                 children: [
                   if (_syncConflict)
@@ -468,27 +506,26 @@ class _ActionIntent extends Intent {
   final String action;
 }
 
+class _QueuePrinter implements ReceiptPrinter {
+  _QueuePrinter({
+    required this.printerService,
+    required this.ip,
+    required this.port,
+    required this.paperWidth,
+  });
 
+  final PrinterService printerService;
+  final String ip;
+  final int port;
+  final String paperWidth;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  @override
+  Future<void> printText(String text) async {
+    await printerService.printText(
+      ip: ip,
+      port: port,
+      text: text,
+      paperWidth: paperWidth,
+    );
+  }
+}

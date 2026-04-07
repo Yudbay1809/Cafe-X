@@ -20,6 +20,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
   final _notes = TextEditingController();
   String _status = '';
   bool _loading = false;
+  Map<String, dynamic>? _lastClose;
 
   Future<void> _open() async {
     setState(() {
@@ -60,7 +61,12 @@ class _ShiftScreenState extends State<ShiftScreen> {
         closingCash: double.parse(_closing.text),
         notes: _notes.text.trim(),
       );
-      setState(() => _status = 'Shift closed. Variance: ${result['cash_variance']}');
+      final variance = (result['cash_variance'] as num?)?.toDouble() ?? 0;
+      final alert = variance.abs() >= 10000 ? ' (Perlu review)' : '';
+      setState(() {
+        _status = 'Shift closed. Variance: $variance$alert';
+        _lastClose = result;
+      });
       widget.onChanged();
     } catch (e) {
       if (!mounted) return;
@@ -108,6 +114,18 @@ class _ShiftScreenState extends State<ShiftScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(_status, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  if (_lastClose != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Expected Cash: ${_lastClose!['expected_cash']}'),
+                          Text('Closing Cash: ${_lastClose!['closing_cash']}'),
+                          Text('Variance: ${_lastClose!['cash_variance']}'),
+                        ],
+                      ),
                     ),
                 ],
               ),

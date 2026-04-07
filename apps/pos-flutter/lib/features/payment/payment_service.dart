@@ -31,6 +31,14 @@ class PaymentService {
   final AuditService _auditService;
   final OrderStateMachine _stateMachine;
 
+  Future<void> _requireOpenShift() async {
+    final db = await LocalDb.open();
+    final rows = await db.query('shifts', where: "status = 'open'", limit: 1);
+    if (rows.isEmpty) {
+      throw StateError('Shift belum dibuka');
+    }
+  }
+
   Future<Map<String, dynamic>> payOrder({
     required String token,
     required String actor,
@@ -39,6 +47,7 @@ class PaymentService {
     required List<PaymentPart> payments,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     if (payments.isEmpty) {
       throw ArgumentError('Pembayaran minimal 1 metode');
     }

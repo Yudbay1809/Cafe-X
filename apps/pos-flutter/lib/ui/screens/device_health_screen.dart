@@ -35,7 +35,7 @@ class _DeviceHealthScreenState extends State<DeviceHealthScreen> {
     setState(() => _loading = true);
     try {
       final deviceName = await _config.getString('device_name', fallback: 'pos-device');
-      final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+      final baseUrl = await _config.getString('base_url', fallback: '');
       final printerIp = await _config.getString('printer_ip', fallback: '-');
       final printerPort = await _config.getString('printer_port', fallback: '9100');
       final lastSync = await _config.getString('last_sync', fallback: '-');
@@ -46,7 +46,7 @@ class _DeviceHealthScreenState extends State<DeviceHealthScreen> {
       if (!mounted) return;
       setState(() {
         _deviceName = deviceName;
-        _baseUrl = baseUrl;
+        _baseUrl = baseUrl.isEmpty ? '-' : baseUrl;
         _printerIp = printerIp.isEmpty ? '-' : printerIp;
         _printerPort = printerPort;
         _lastSync = lastSync;

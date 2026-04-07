@@ -92,6 +92,7 @@ class SyncWorker {
     String token, {
     int batchSize = 50,
   }) async {
+    hasConflict = false;
     final db = await LocalDb.open();
     final nowIsoValue = DateTime.now().toIso8601String();
     final events = await db.query(

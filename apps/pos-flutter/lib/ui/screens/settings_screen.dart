@@ -23,6 +23,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _deviceName = TextEditingController();
   final _printerIp = TextEditingController();
   final _printerPort = TextEditingController(text: '9100');
+  final _printerProfile = TextEditingController();
+  String _paperWidth = '80';
   final _cancelThreshold = TextEditingController(text: '500000');
   final _pin = TextEditingController();
   final _config = AppConfigService();
@@ -36,10 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _load() async {
-    _baseUrl.text = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+    _baseUrl.text = await _config.getString('base_url', fallback: '');
     _deviceName.text = await _config.getString('device_name', fallback: 'pos-device');
     _printerIp.text = await _config.getString('printer_ip', fallback: '');
     _printerPort.text = await _config.getString('printer_port', fallback: '9100');
+    _printerProfile.text = await _config.getString('printer_profile', fallback: 'default');
+    _paperWidth = await _config.getString('printer_paper_width', fallback: '80');
     _cancelThreshold.text = await _config.getString('cancel_high_threshold', fallback: '500000');
     final pinHash = await _config.getString('manager_pin_hash', fallback: '');
     _pinHint = pinHash.isNotEmpty ? 'PIN terset' : 'Belum ada PIN';
@@ -53,6 +57,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _config.setString('receipt_dir', 'd:\\Cafe-X-laravel\\storage\\pos-receipts');
     await _config.setString('printer_ip', _printerIp.text.trim());
     await _config.setString('printer_port', _printerPort.text.trim());
+    await _config.setString('printer_profile', _printerProfile.text.trim().isEmpty ? 'default' : _printerProfile.text.trim());
+    await _config.setString('printer_paper_width', _paperWidth);
     await _config.setString('cancel_high_threshold', _cancelThreshold.text.trim());
     if (_pin.text.trim().isNotEmpty) {
       await _config.setString('manager_pin_hash', hashPin(_pin.text.trim()));
@@ -85,7 +91,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final session = await widget.services.authService.currentSession();
       if (session == null) throw StateError('Belum login');
-      final dio = Dio(BaseOptions(baseUrl: _baseUrl.text.trim()));
+      final baseUrl = _baseUrl.text.trim();
+      if (baseUrl.isEmpty) throw StateError('Base URL belum diisi');
+      final dio = Dio(BaseOptions(baseUrl: baseUrl));
       final worker = SyncWorker(dio);
       final result = await worker.pushPull(session.accessToken);
       setState(() => _status = 'Sync OK: pushed=${result['pushed']} failed=${result['failed']}');
@@ -129,8 +137,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Printer (ESC/POS)',
             child: Column(
               children: [
+                TextField(controller: _printerProfile, decoration: const InputDecoration(labelText: 'Profile Name')),
+                const SizedBox(height: 8),
                 TextField(controller: _printerIp, decoration: const InputDecoration(labelText: 'Printer IP')),
                 TextField(controller: _printerPort, decoration: const InputDecoration(labelText: 'Printer Port')),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _paperWidth,
+                  decoration: const InputDecoration(labelText: 'Paper Width (mm)'),
+                  items: const [
+                    DropdownMenuItem(value: '58', child: Text('58 mm')),
+                    DropdownMenuItem(value: '80', child: Text('80 mm')),
+                  ],
+                  onChanged: (v) => setState(() => _paperWidth = v ?? '80'),
+                ),
               ],
             ),
           ),

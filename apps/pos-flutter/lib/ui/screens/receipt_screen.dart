@@ -65,6 +65,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> implements ReceiptPrinter
       if (session == null) throw StateError('Belum login');
       final printerIp = await _config.getString('printer_ip', fallback: '');
       final printerPort = int.tryParse(await _config.getString('printer_port', fallback: '9100')) ?? 9100;
+      final paperWidth = await _config.getString('printer_paper_width', fallback: '80');
       final orderLocalId = _orderId.text.trim();
       final text = await widget.services.receiptService.buildReceiptText(orderLocalId);
       if (reprint) {
@@ -88,7 +89,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> implements ReceiptPrinter
       }
       if (printerIp.isNotEmpty) {
         try {
-          await widget.services.printerService.printText(ip: printerIp, port: printerPort, text: text);
+          await widget.services.printerService.printText(ip: printerIp, port: printerPort, text: text, paperWidth: paperWidth);
         } catch (e) {
           await widget.services.receiptService.enqueueFailedPrint(
             orderLocalId: orderLocalId,

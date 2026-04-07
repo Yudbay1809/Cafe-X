@@ -6,9 +6,11 @@ class PrinterService {
     required String ip,
     required int port,
     required String text,
+    String paperWidth = '80',
   }) async {
     final profile = await CapabilityProfile.load();
-    final printer = NetworkPrinter(PaperSize.mm80, profile);
+    final size = paperWidth == '58' ? PaperSize.mm58 : PaperSize.mm80;
+    final printer = NetworkPrinter(size, profile);
     final res = await printer.connect(ip, port: port);
     if (res != PosPrintResult.success) {
       throw StateError('Printer connect failed: ${res.msg}');

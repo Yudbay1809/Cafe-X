@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:uuid/uuid.dart';
+
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/idempotency.dart';
@@ -30,6 +32,14 @@ class OrderService {
   final AuditService _auditService;
   final OrderStateMachine _stateMachine;
 
+  Future<void> _requireOpenShift() async {
+    final db = await LocalDb.open();
+    final rows = await db.query('shifts', where: "status = 'open'", limit: 1);
+    if (rows.isEmpty) {
+      throw StateError('Shift belum dibuka');
+    }
+  }
+
   Future<String> createOrder({
     required String token,
     required String actor,
@@ -39,6 +49,7 @@ class OrderService {
     String? note,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     final localId = _newLocalOrderId();
     final now = nowIso();
@@ -120,6 +131,7 @@ class OrderService {
     String? note,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     if (qty <= 0) throw ArgumentError('Qty harus > 0');
     final db = await LocalDb.open();
 
@@ -209,6 +221,7 @@ class OrderService {
     required int newQty,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     if (newQty <= 0) {
       throw ArgumentError('Qty baru harus > 0');
     }
@@ -291,6 +304,7 @@ class OrderService {
     required int itemId,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     final rows = await db.query(
       'local_order_items',
@@ -355,6 +369,7 @@ class OrderService {
     required String reason,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     final order = await _orderByLocalId(orderLocalId);
     if (order == null) throw StateError('Order tidak ditemukan');
@@ -427,6 +442,7 @@ class OrderService {
     required OrderStatus nextStatus,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     final order = await _orderByLocalId(orderLocalId);
     if (order == null) throw StateError('Order tidak ditemukan');
@@ -486,6 +502,7 @@ class OrderService {
     required String toTableCode,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     await db.update(
       'local_orders',
@@ -538,6 +555,7 @@ class OrderService {
     required String sourceOrderLocalId,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     await db.update(
       'local_order_items',
@@ -606,6 +624,7 @@ class OrderService {
     required List<int> itemIds,
     bool offlineAllowed = true,
   }) async {
+    await _requireOpenShift();
     final db = await LocalDb.open();
     final sourceOrder = await _orderByLocalId(sourceOrderLocalId);
     if (sourceOrder == null) throw StateError('Order sumber tidak ditemukan');
@@ -785,7 +804,6 @@ class OrderService {
   }
 
   String _newLocalOrderId() {
-    final ms = DateTime.now().millisecondsSinceEpoch;
-    return 'L$ms';
+    return 'L_' + const Uuid().v4();
   }
 }

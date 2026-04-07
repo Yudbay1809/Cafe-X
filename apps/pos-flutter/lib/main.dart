@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_config_service.dart';
+import 'core/theme/app_theme.dart';
 import 'pos_app_service.dart';
 import 'ui/home_shell.dart';
+import 'ui/screens/device_setup_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: PosApp()));
@@ -17,20 +18,7 @@ class PosApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Cafe-X POS',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF0F766E),
-          secondary: Color(0xFF0EA5E9),
-          surface: Color(0xFFF6F5F2),
-        ),
-        textTheme: GoogleFonts.spaceGroteskTextTheme(),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F766E),
-          foregroundColor: Colors.white,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF6F5F2),
-      ),
+      theme: AppTheme.light(),
       home: const _Bootstrap(),
     );
   }
@@ -46,6 +34,7 @@ class _Bootstrap extends StatefulWidget {
 class _BootstrapState extends State<_Bootstrap> {
   final _config = AppConfigService();
   PosAppService? _services;
+  bool _needsSetup = false;
 
   @override
   void initState() {
@@ -54,13 +43,26 @@ class _BootstrapState extends State<_Bootstrap> {
   }
 
   Future<void> _init() async {
-    final baseUrl = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
+    final baseUrl = await _config.getString('base_url', fallback: '');
     if (!mounted) return;
-    setState(() => _services = PosAppService(baseUrl));
+    if (baseUrl.trim().isEmpty) {
+      setState(() {
+        _needsSetup = true;
+        _services = null;
+      });
+      return;
+    }
+    setState(() {
+      _needsSetup = false;
+      _services = PosAppService(baseUrl);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_needsSetup) {
+      return DeviceSetupScreen(onSaved: _init);
+    }
     final services = _services;
     if (services == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -68,9 +70,3 @@ class _BootstrapState extends State<_Bootstrap> {
     return HomeShell(services: services);
   }
 }
-
-
-
-
-
-

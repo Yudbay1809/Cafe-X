@@ -74,6 +74,12 @@ class ApiClient {
         latencyMs: sw.elapsedMilliseconds,
         statusCode: e.response?.statusCode ?? 0,
       );
+      await _observability.recordError(
+        requestId: requestId,
+        endpoint: endpoint,
+        statusCode: e.response?.statusCode ?? 0,
+        message: e.message ?? e.toString(),
+      );
       rethrow;
     }
   }
