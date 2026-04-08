@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:uuid/uuid.dart';
-
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/idempotency.dart';
@@ -804,6 +802,6 @@ class OrderService {
   }
 
   String _newLocalOrderId() {
-    return 'L_' + const Uuid().v4();
+    return 'L_';
   }
 }

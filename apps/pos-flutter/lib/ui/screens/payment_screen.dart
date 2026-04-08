@@ -215,7 +215,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextFormField(
-                            key: ValueKey('amount-' + idx.toString() + '-' + row.amount),
+                            key: ValueKey('amount--'),
                             initialValue: row.amount,
                             decoration: const InputDecoration(labelText: 'Amount'),
                             keyboardType: TextInputType.number,

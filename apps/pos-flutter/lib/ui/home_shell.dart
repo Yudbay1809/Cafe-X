@@ -21,6 +21,7 @@ import 'screens/settings_screen.dart';
 import 'screens/shift_screen.dart';
 import 'screens/sop_screen.dart';
 import 'screens/device_health_screen.dart';
+import 'screens/sync_conflicts_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.services});
@@ -31,7 +32,8 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMixin {
+class _HomeShellState extends State<HomeShell>
+    with SingleTickerProviderStateMixin {
   final _config = AppConfigService();
   String _current = 'Login';
   bool _isLoggedIn = false;
@@ -55,18 +57,23 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _syncController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _syncController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _refreshPending();
     _loadDeviceName();
     _loadShiftStatus();
     _checkSession();
     _loadUser();
-    _sessionTimer = Timer.periodic(const Duration(seconds: 30), (_) => _checkSession());
+    _sessionTimer =
+        Timer.periodic(const Duration(seconds: 30), (_) => _checkSession());
     _loadLastSync();
-    _autoSyncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
+    _autoSyncTimer =
+        Timer.periodic(const Duration(seconds: 30), (_) => _runAutoSync());
     _checkNetwork();
-    _netTimer = Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
-    _printRetryTimer = Timer.periodic(const Duration(minutes: 1), (_) => _runPrintRetry());
+    _netTimer =
+        Timer.periodic(const Duration(seconds: 15), (_) => _checkNetwork());
+    _printRetryTimer =
+        Timer.periodic(const Duration(minutes: 1), (_) => _runPrintRetry());
   }
 
   Future<void> _refreshPending() async {
@@ -90,7 +97,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     final db = await LocalDb.open();
     final rows = await db.query('shifts', where: "status = 'open'", limit: 1);
     if (!mounted) return;
-    setState(() => _shiftStatus = rows.isEmpty ? 'Shift: closed' : 'Shift: open');
+    setState(
+        () => _shiftStatus = rows.isEmpty ? 'Shift: closed' : 'Shift: open');
   }
 
   Future<void> _loadUser() async {
@@ -175,7 +183,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       final now = DateTime.now().toIso8601String();
       await _config.setString('last_sync', now);
       final pending = await _config.getPendingEventCount();
-      await _config.setString('sync_health', '{"pending":$pending,"failed":${result['failed']},"conflict":${hasConflict ? 1 : 0}}');
+      await _config.setString('sync_health',
+          '{"pending":$pending,"failed":${result['failed']},"conflict":${hasConflict ? 1 : 0}}');
       if (!mounted) return;
       setState(() => _lastSync = now);
       await _refreshPending();
@@ -194,8 +203,11 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
     try {
       final printerIp = await _config.getString('printer_ip', fallback: '');
       if (printerIp.isEmpty) return;
-      final printerPort = int.tryParse(await _config.getString('printer_port', fallback: '9100')) ?? 9100;
-      final paperWidth = await _config.getString('printer_paper_width', fallback: '80');
+      final printerPort = int.tryParse(
+              await _config.getString('printer_port', fallback: '9100')) ??
+          9100;
+      final paperWidth =
+          await _config.getString('printer_paper_width', fallback: '80');
       final printer = _QueuePrinter(
         printerService: widget.services.printerService,
         ip: printerIp,
@@ -204,7 +216,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       );
       final pending = await widget.services.receiptService.pendingQueueCount();
       if (pending > 0) {
-        await widget.services.receiptService.processQueue(printer: printer, limit: 10);
+        await widget.services.receiptService
+            .processQueue(printer: printer, limit: 10);
       }
     } finally {
       _printing = false;
@@ -239,24 +252,31 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
       case 'Dashboard':
         return DashboardScreen(services: widget.services);
       case 'Shift':
-        return ShiftScreen(services: widget.services, onChanged: _refreshPending);
+        return ShiftScreen(
+            services: widget.services, onChanged: _refreshPending);
       case 'Order':
-        return OrderScreen(services: widget.services, onChanged: _refreshPending);
+        return OrderScreen(
+            services: widget.services, onChanged: _refreshPending);
       case 'Payment':
-        return PaymentScreen(services: widget.services, onChanged: _refreshPending);
+        return PaymentScreen(
+            services: widget.services, onChanged: _refreshPending);
       case 'Receipt':
         return ReceiptScreen(services: widget.services);
       case 'Reports':
         return ReportsScreen(services: widget.services);
       case 'Settings':
-        return SettingsScreen(services: widget.services, onChanged: () async {
-          await _loadDeviceName();
-          await _refreshPending();
-          if (!mounted) return;
-          setState(() {});
-        });
+        return SettingsScreen(
+            services: widget.services,
+            onChanged: () async {
+              await _loadDeviceName();
+              await _refreshPending();
+              if (!mounted) return;
+              setState(() {});
+            });
       case 'Device Health':
         return DeviceHealthScreen(services: widget.services);
+      case 'Sync Conflicts':
+        return SyncConflictsScreen(onChanged: _refreshPending);
       case 'SOP':
         return SopScreen(steps: posSopSteps);
       default:
@@ -286,8 +306,10 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
         LogicalKeySet(LogicalKeyboardKey.f5): const _NavIntent('Reports'),
         LogicalKeySet(LogicalKeyboardKey.f6): const _NavIntent('Settings'),
         LogicalKeySet(LogicalKeyboardKey.f7): const _ActionIntent('new_order'),
-        LogicalKeySet(LogicalKeyboardKey.f8): const _ActionIntent('quick_pay_cash'),
-        LogicalKeySet(LogicalKeyboardKey.f9): const _ActionIntent('quick_pay_qris'),
+        LogicalKeySet(LogicalKeyboardKey.f8):
+            const _ActionIntent('quick_pay_cash'),
+        LogicalKeySet(LogicalKeyboardKey.f9):
+            const _ActionIntent('quick_pay_qris'),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -312,20 +334,27 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
               actions: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(child: Text(_shiftStatus, style: const TextStyle(color: Colors.white70))),
+                  child: Center(
+                      child: Text(_shiftStatus,
+                          style: const TextStyle(color: Colors.white70))),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(child: Text('Kasir: $_userName', style: const TextStyle(color: Colors.white70))),
+                  child: Center(
+                      child: Text('Kasir: $_userName',
+                          style: const TextStyle(color: Colors.white70))),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(child: Text('Last sync: $_lastSync', style: const TextStyle(color: Colors.white70))),
+                  child: Center(
+                      child: Text('Last sync: $_lastSync',
+                          style: const TextStyle(color: Colors.white70))),
                 ),
                 TextButton.icon(
                   onPressed: _isLoggedIn && !_syncing ? _syncNow : null,
                   icon: const Icon(Icons.sync, color: Colors.white),
-                  label: const Text('Sync Now', style: TextStyle(color: Colors.white)),
+                  label: const Text('Sync Now',
+                      style: TextStyle(color: Colors.white)),
                 ),
                 TextButton(
                   onPressed: _isLoggedIn
@@ -339,22 +368,28 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                           });
                         }
                       : null,
-                  child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                  child: const Text('Logout',
+                      style: TextStyle(color: Colors.white)),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Center(
                     child: Row(
                       children: [
                         Icon(
                           _isOnline ? Icons.wifi : Icons.wifi_off,
-                          color: _isOnline ? Colors.green.shade200 : Colors.red.shade200,
+                          color: _isOnline
+                              ? Colors.green.shade200
+                              : Colors.red.shade200,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           _isOnline ? 'Online' : 'Offline',
                           style: TextStyle(
-                            color: _isOnline ? Colors.green.shade200 : Colors.red.shade200,
+                            color: _isOnline
+                                ? Colors.green.shade200
+                                : Colors.red.shade200,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -362,21 +397,30 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                           turns: _syncController,
                           child: Icon(
                             Icons.sync,
-                            color: _pendingEvents > 0 ? Colors.amber.shade200 : Colors.green.shade200,
+                            color: _pendingEvents > 0
+                                ? Colors.amber.shade200
+                                : Colors.green.shade200,
                           ),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Queue: $_pendingEvents',
                           style: TextStyle(
-                            color: _pendingEvents > 0 ? Colors.amber.shade200 : Colors.green.shade200,
+                            color: _pendingEvents > 0
+                                ? Colors.amber.shade200
+                                : Colors.green.shade200,
                           ),
                         ),
                         if (_syncConflict) ...[
                           const SizedBox(width: 12),
                           Icon(Icons.warning, color: Colors.red.shade200),
                           const SizedBox(width: 6),
-                          Text('Conflict', style: TextStyle(color: Colors.red.shade200)),
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _current = 'Sync Conflicts'),
+                            child: Text('Conflict',
+                                style: TextStyle(color: Colors.red.shade200)),
+                          ),
                         ],
                       ],
                     ),
@@ -390,10 +434,13 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                     child: ListView(
                       children: [
                         DrawerHeader(
-                          decoration: const BoxDecoration(gradient: AppColors.gradientBrand),
+                          decoration: const BoxDecoration(
+                              gradient: AppColors.gradientBrand),
                           child: const Align(
                             alignment: Alignment.bottomLeft,
-                            child: Text('Cafe-X POS', style: TextStyle(color: Colors.white, fontSize: 20)),
+                            child: Text('Cafe-X POS',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20)),
                           ),
                         ),
                         if (!_isLoggedIn) _drawerItem('Login'),
@@ -406,6 +453,7 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                           _drawerItem('Reports'),
                           _drawerItem('Settings'),
                           _drawerItem('Device Health'),
+                          _drawerItem('Sync Conflicts'),
                           _drawerItem('SOP'),
                         ],
                       ],
@@ -413,7 +461,8 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                   )
                 : null,
             body: Container(
-              decoration: const BoxDecoration(gradient: AppColors.gradientBackground),
+              decoration:
+                  const BoxDecoration(gradient: AppColors.gradientBackground),
               child: Column(
                 children: [
                   if (_syncConflict)
@@ -448,15 +497,35 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
                             onDestinationSelected: (i) => _setNavByIndex(i),
                             labelType: NavigationRailLabelType.all,
                             destinations: const [
-                              NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Dashboard')),
-                              NavigationRailDestination(icon: Icon(Icons.schedule), label: Text('Shift')),
-                              NavigationRailDestination(icon: Icon(Icons.shopping_bag), label: Text('Order')),
-                              NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Payment')),
-                              NavigationRailDestination(icon: Icon(Icons.receipt), label: Text('Receipt')),
-                              NavigationRailDestination(icon: Icon(Icons.bar_chart), label: Text('Reports')),
-                              NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings')),
-                              NavigationRailDestination(icon: Icon(Icons.monitor_heart), label: Text('Device Health')),
-                              NavigationRailDestination(icon: Icon(Icons.help), label: Text('SOP')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.dashboard),
+                                  label: Text('Dashboard')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.schedule),
+                                  label: Text('Shift')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.shopping_bag),
+                                  label: Text('Order')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.payments),
+                                  label: Text('Payment')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.receipt),
+                                  label: Text('Receipt')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.bar_chart),
+                                  label: Text('Reports')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.settings),
+                                  label: Text('Settings')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.monitor_heart),
+                                  label: Text('Device Health')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.warning_amber),
+                                  label: Text('Conflicts')),
+                              NavigationRailDestination(
+                                  icon: Icon(Icons.help), label: Text('SOP')),
                             ],
                           ),
                         Expanded(child: _screen()),
@@ -484,12 +553,34 @@ class _HomeShellState extends State<HomeShell> with SingleTickerProviderStateMix
   }
 
   int _navIndex() {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Reports', 'Settings', 'Device Health', 'SOP'];
+    const labels = [
+      'Dashboard',
+      'Shift',
+      'Order',
+      'Payment',
+      'Receipt',
+      'Reports',
+      'Settings',
+      'Device Health',
+      'Sync Conflicts',
+      'SOP'
+    ];
     return labels.indexOf(_current).clamp(0, labels.length - 1);
   }
 
   void _setNavByIndex(int index) {
-    const labels = ['Dashboard', 'Shift', 'Order', 'Payment', 'Receipt', 'Reports', 'Settings', 'Device Health', 'SOP'];
+    const labels = [
+      'Dashboard',
+      'Shift',
+      'Order',
+      'Payment',
+      'Receipt',
+      'Reports',
+      'Settings',
+      'Device Health',
+      'Sync Conflicts',
+      'SOP'
+    ];
     setState(() => _current = labels[index]);
   }
 }

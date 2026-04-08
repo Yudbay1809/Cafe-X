@@ -200,9 +200,7 @@ class SyncWorker {
           final localId = payload['local_order_id']?.toString() ?? payload['local_id']?.toString();
           if (localId != null) {
             var serverId = await _serverOrderIdForLocal(db, localId);
-            if (serverId == null) {
-              serverId = await _createServerOrderFromLocal(db, localId, token);
-            }
+            serverId ??= await _createServerOrderFromLocal(db, localId, token);
             if (serverId != null) {
               payload['order_id'] = serverId;
               await db.update(

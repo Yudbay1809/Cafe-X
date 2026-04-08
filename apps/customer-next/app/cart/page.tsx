@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { ApiError, customerApi } from '@/lib/api';
 import { clearCart, getCart, setCart, moveCart } from '@/lib/cart';
@@ -131,22 +131,34 @@ export default function CartPage() {
 
   return (
     <main>
-      <div className="card">
-        <h1>Cart</h1>
-        <p className="small">Meja: {tableInfo ? `${tableInfo.table_name} (${tableInfo.table_code})` : '-'}</p>
-        {!activeToken ? <p className="small">Masukkan nomor meja sebelum place order.</p> : null}
+      <div className="hero">
+        <div className="hero-top">
+          <div>
+            <div className="small">Cafe-X</div>
+            <h1 className="hero-title">Checkout</h1>
+            <div className="hero-sub">Meja: {tableInfo ? `${tableInfo.table_name} (${tableInfo.table_code})` : '-'}</div>
+          </div>
+          <button className="ghost" onClick={() => router.push(`/menu?tableToken=${encodeURIComponent(activeToken)}`)}>Kembali ke Menu</button>
+        </div>
+        {!activeToken ? <div className="small">Masukkan nomor meja sebelum place order.</div> : null}
       </div>
+
       {items.map((i) => (
         <div className="card" key={i.product_id}>
-          <div>{i.name}</div>
-          <div className="small">{formatRupiah(i.price)} x {i.qty}</div>
-          <textarea value={i.notes || ''} onChange={(e) => updateItemNotes(i.product_id, e.target.value)} placeholder="Catatan item" />
-          <div className="row" style={{ marginTop: 8 }}>
-            <button onClick={() => updateQty(i.product_id, i.qty - 1)}>-</button>
-            <button onClick={() => updateQty(i.product_id, i.qty + 1)}>+</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontWeight: 700 }}>{i.name}</div>
+              <div className="small">{formatRupiah(i.price)} x {i.qty}</div>
+            </div>
+            <div className="toolbar">
+              <button className="ghost" onClick={() => updateQty(i.product_id, i.qty - 1)}>-</button>
+              <button className="ghost" onClick={() => updateQty(i.product_id, i.qty + 1)}>+</button>
+            </div>
           </div>
+          <textarea value={i.notes || ''} onChange={(e) => updateItemNotes(i.product_id, e.target.value)} placeholder="Catatan item" />
         </div>
       ))}
+
       <div className="card">
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Catatan order" />
         {!activeToken ? (
@@ -177,6 +189,7 @@ export default function CartPage() {
         </div>
         {error ? <p className="small">{error}</p> : null}
       </div>
+
       <div className="sticky-footer">
         <div className="cart-item">
           <span>Subtotal</span>

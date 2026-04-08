@@ -1,13 +1,13 @@
-# Roadmap Lengkap Dari Posisi Sekarang
+﻿# Roadmap Lengkap Dari Posisi Sekarang
 
 ## Phase 0 - Baseline & Hardening
 - [ ] 1. Kunci baseline backend Laravel di `d:\Cafe-X-laravel` (jangan tambah fitur baru sebelum stabil).
 - [ ] 2. Pastikan `.env` production-like sudah benar (`APP_ENV`, `APP_KEY`, `DB_*`, `CACHE_STORE`, `QUEUE_CONNECTION`).
-- [ ] 3. Pastikan API jalan di port paralel tetap (`9000`) untuk fase transisi.
-- [ ] 4. Dokumentasikan endpoint final `/api/v1` sebagai satu-satunya kontrak resmi.
-- [ ] 5. Lock enum bisnis.
-- [ ] 6. `order status`: `new/preparing/ready/served/paid/canceled`.
-- [ ] 7. `payment method`: `cash/qris/transfer/card/other`.
+- [x] 3. Pastikan API jalan di port paralel tetap (`9000`) untuk fase transisi.
+- [x] 4. Dokumentasikan endpoint final `/api/v1` sebagai satu-satunya kontrak resmi.
+- [x] 5. Lock enum bisnis.
+- [x] 6. `order status`: `new/preparing/ready/served/paid/canceled`.
+- [x] 7. `payment method`: `cash/qris/transfer/card/other`.
 - [ ] 8. Audit ulang schema agar semua FK/index query panas sudah ada.
 - [ ] 9. Audit ulang unique/composite index untuk tabel `orders`, `payments`, `stock_movements`, `sync_logs`, `idempotency`.
 - [ ] 10. Jalankan migrasi dari DB kosong untuk verifikasi greenfield.
@@ -17,18 +17,18 @@
 - [ ] 14. Verifikasi permission map granular dipakai middleware endpoint.
 
 ## Phase 1 - Security, Auth, Permission
-- [ ] 15. Verifikasi token auth.
-- [ ] 16. bearer parsing valid.
-- [ ] 17. token expiry valid.
-- [ ] 18. revoke/logout valid.
-- [ ] 19. context `auth_user`, `tenant_id`, `outlet_id` selalu attach.
-- [ ] 20. Verifikasi permission middleware.
-- [ ] 21. `order.create`
-- [ ] 22. `order.pay`
-- [ ] 23. `order.cancel`
-- [ ] 24. `shift.close`
-- [ ] 25. `table.manage`
-- [ ] 26. `report.view`
+- [x] 15. Verifikasi token auth.
+- [x] 16. bearer parsing valid.
+- [x] 17. token expiry valid.
+- [x] 18. revoke/logout valid.
+- [x] 19. context `auth_user`, `tenant_id`, `outlet_id` selalu attach.
+- [x] 20. Verifikasi permission middleware.
+- [x] 21. `order.create`
+- [x] 22. `order.pay`
+- [x] 23. `order.cancel`
+- [x] 24. `shift.close`
+- [x] 25. `table.manage`
+- [x] 26. `report.view`
 - [ ] 27. Verifikasi `AuthController`.
 - [ ] 28. login success/fail.
 - [ ] 29. hash migration password legacy.
@@ -36,65 +36,65 @@
 - [ ] 31. lockout sementara.
 
 ## Phase 2 - Core POS Modules
-- [ ] 32. Verifikasi `MasterController`.
-- [ ] 33. list products tenant scope.
-- [ ] 34. list tables tenant/outlet scope.
-- [ ] 35. upsert table.
-- [ ] 36. rotate QR token dan invalidate token lama.
-- [ ] 37. Verifikasi `ShiftController`.
-- [ ] 38. open shift.
-- [ ] 39. close shift.
-- [ ] 40. expected cash.
-- [ ] 41. cash variance.
-- [ ] 42. notes.
-- [ ] 43. Verifikasi `OrderController`.
-- [ ] 44. create order.
-- [ ] 45. add item dengan row lock stok.
-- [ ] 46. detail order.
-- [ ] 47. pay order.
-- [ ] 48. cancel + restore stok.
-- [ ] 49. strict state transition.
-- [ ] 50. Verifikasi `QrController`.
-- [ ] 51. create order dari `table_token`.
-- [ ] 52. validasi meja aktif/nonaktif.
-- [ ] 53. throttle per token/device.
-- [ ] 54. Verifikasi `SyncController`.
-- [ ] 55. pull by cursor.
-- [ ] 56. push batch.
-- [ ] 57. per-event success/fail.
-- [ ] 58. retry-safe via idempotency key.
-- [ ] 59. Pastikan seluruh logic transaksi berada di service layer, bukan controller.
-- [ ] 60. Pastikan idempotency engine menyimpan replay response stabil.
-- [ ] 61. Pastikan audit trail aktif untuk aksi kritikal.
+- [x] 32. Verifikasi `MasterController`.
+- [x] 33. list products tenant scope.
+- [x] 34. list tables tenant/outlet scope.
+- [x] 35. upsert table.
+- [x] 36. rotate QR token dan invalidate token lama.
+- [x] 37. Verifikasi `ShiftController`.
+- [x] 38. open shift.
+- [x] 39. close shift.
+- [x] 40. expected cash.
+- [x] 41. cash variance.
+- [x] 42. notes.
+- [x] 43. Verifikasi `OrderController`.
+- [x] 44. create order.
+- [x] 45. add item dengan row lock stok.
+- [x] 46. detail order.
+- [x] 47. pay order.
+- [x] 48. cancel + restore stok.
+- [x] 49. strict state transition.
+- [x] 50. Verifikasi `QrController`.
+- [x] 51. create order dari `table_token`.
+- [x] 52. validasi meja aktif/nonaktif.
+- [x] 53. throttle per token/device.
+- [x] 54. Verifikasi `SyncController`.
+- [x] 55. pull by cursor.
+- [x] 56. push batch.
+- [x] 57. per-event success/fail.
+- [x] 58. retry-safe via idempotency key.
+- [x] 59. Pastikan seluruh logic transaksi berada di service layer, bukan controller.
+- [x] 60. Pastikan idempotency engine menyimpan replay response stabil.
+- [x] 61. Pastikan audit trail aktif untuk aksi kritikal.
 
 ## Phase 3 - Observability, Validation, API Contract
-- [ ] 62. Pastikan structured logging memuat `request_id`, `tenant_id`, `outlet_id`, latency, status.
-- [ ] 63. Pastikan error trace di-log aman tanpa bocor data sensitif.
-- [ ] 64. Pastikan observability minimum aktif.
-- [ ] 65. `/api/v1/health`.
-- [ ] 66. queue lag metric.
-- [ ] 67. sync failure metric.
-- [ ] 68. threshold alert baseline.
-- [ ] 69. Finalisasi semua FormRequest per endpoint.
-- [ ] 70. Samakan format error response API untuk semua kasus validasi/bisnis/server.
-- [ ] 71. Finalisasi OpenAPI v1 lengkap request/response + contoh sukses/gagal.
-- [ ] 72. Sinkronkan dokumentasi auth/role/permission dengan implementasi aktual.
-- [ ] 73. Generate Postman collection + environment dev/staging.
-- [ ] 74. Tambah script smoke runtime dan jadikan bagian SOP release.
+- [x] 62. Pastikan structured logging memuat `request_id`, `tenant_id`, `outlet_id`, latency, status.
+- [x] 63. Pastikan error trace di-log aman tanpa bocor data sensitif.
+- [x] 64. Pastikan observability minimum aktif.
+- [x] 65. `/api/v1/health`.
+- [x] 66. queue lag metric.
+- [x] 67. sync failure metric.
+- [x] 68. threshold alert baseline.
+- [x] 69. Finalisasi semua FormRequest per endpoint.
+- [x] 70. Samakan format error response API untuk semua kasus validasi/bisnis/server.
+- [x] 71. Finalisasi OpenAPI v1 lengkap request/response + contoh sukses/gagal.
+- [x] 72. Sinkronkan dokumentasi auth/role/permission dengan implementasi aktual.
+- [x] 73. Generate Postman collection + environment dev/staging.
+- [x] 74. Tambah script smoke runtime dan jadikan bagian SOP release.
 
 ## Phase 4 - Testing & Regression
-- [ ] 75. Lengkapi test otomatis.
-- [ ] 76. unit test service rules.
-- [ ] 77. feature test endpoint.
-- [ ] 78. test double payment.
-- [ ] 79. test cancel restore stok.
-- [ ] 80. test sync mixed-result.
-- [ ] 81. test concurrency stok paralel (multi request).
-- [ ] 82. Port 27 regression scenario lama ke test Laravel.
+- [x] 75. Lengkapi test otomatis.
+- [x] 76. unit test service rules.
+- [x] 77. feature test endpoint.
+- [x] 78. test double payment.
+- [x] 79. test cancel restore stok.
+- [x] 80. test sync mixed-result.
+- [x] 81. test concurrency stok paralel (multi request).
+- [x] 82. Port 27 regression scenario lama ke test Laravel.
 
 ## Phase 5 - Ops & Deployment
-- [ ] 83. Setup backup harian otomatis (mysqldump + retention policy).
-- [ ] 84. Jalankan restore drill berkala dan catat RTO/RPO.
+- [x] 83. Setup backup harian otomatis (mysqldump + retention policy).
+- [x] 84. Jalankan restore drill berkala dan catat RTO/RPO.
 - [ ] 85. Siapkan pipeline deploy.
 - [ ] 86. lint.
 - [ ] 87. test.
@@ -116,7 +116,7 @@
 - [ ] 101. median latency.
 - [ ] 102. stabilitas shift close.
 - [ ] 103. Jalankan UAT fase 2.
-- [ ] 104. 3�5 outlet.
+- [ ] 104. 3–5 outlet.
 - [ ] 105. validasi peak hour load.
 - [ ] 106. validasi offline recovery.
 - [ ] 107. Siapkan cutover plan bertahap.
@@ -130,9 +130,9 @@
 - [ ] 113. tuning index/query lambat.
 - [ ] 114. tuning worker queue/sync.
 - [ ] 115. hardening retry/backoff policy.
-- [ ] 116. release packaging.
-- [ ] 117. enforce tier Basic/Pro/Premium.
-- [ ] 118. feature flag per paket.
+- [x] 116. release packaging.
+- [x] 117. enforce tier Basic/Pro/Premium.
+- [x] 118. feature flag per paket.
 - [ ] 119. go-live checklist final.
 - [ ] 120. backup valid.
 - [ ] 121. alert aktif.
@@ -148,3 +148,7 @@
 - [ ] 129. multi-outlet analytics.
 - [ ] 130. loyalty.
 - [ ] 131. integrasi payment/accounting/marketplace.
+
+## Phase 9 - UI/UX Max Remodel
+- [ ] Referensi plan: docs/planning/ui-ux-max-plan.md
+- [ ] Jalankan Phase 0-5 sesuai plan UI/UX Max

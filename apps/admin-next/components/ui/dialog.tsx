@@ -1,10 +1,37 @@
-import { ReactNode } from 'react';
+﻿import { ReactNode, useEffect } from 'react';
 
-export function Dialog({ open, children }: { open: boolean; children: ReactNode }) {
+export function Dialog({
+  open,
+  children,
+  onOpenChange,
+}: {
+  open: boolean;
+  children: ReactNode;
+  onOpenChange?: (next: boolean) => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onOpenChange?.(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onOpenChange]);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="rounded-lg bg-white p-4 shadow-xl">{children}</div>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={() => onOpenChange?.(false)}
+    >
+      <div
+        className="rounded-lg bg-white p-4 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
   );
 }

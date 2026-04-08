@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextField(controller: _printerPort, decoration: const InputDecoration(labelText: 'Printer Port')),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _paperWidth,
+                  initialValue: _paperWidth,
                   decoration: const InputDecoration(labelText: 'Paper Width (mm)'),
                   items: const [
                     DropdownMenuItem(value: '58', child: Text('58 mm')),

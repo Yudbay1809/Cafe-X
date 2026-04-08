@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { ApiError, API_ORIGIN, customerApi } from '@/lib/api';
 import { addToCart, getCart } from '@/lib/cart';
@@ -118,6 +118,8 @@ export default function MenuPage() {
     });
   }, [products, q, category, favoriteIds]);
 
+  const quickAdd = useMemo(() => products.slice(0, 6), [products]);
+
   function formatCategory(label: string) {
     return label
       .split(' ')
@@ -197,21 +199,12 @@ export default function MenuPage() {
 
   return (
     <main>
-      <div className="sticky-header">
-        <div className="header-card">
-          <div className="promo-banner">
-            <div>Promo Hari Ini: Diskon 10% untuk minuman kopi</div>
-            <div className="promo-input">
-              <input value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="Kode voucher" />
-              <button onClick={() => setVoucherMsg(voucher ? `Voucher ${voucher} diterapkan (demo)` : 'Masukkan kode voucher')}>
-                Gunakan
-              </button>
-            </div>
-            {voucherMsg ? <div className="small">{voucherMsg}</div> : null}
-          </div>
+      <div className="hero">
+        <div className="hero-top">
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>Menu</div>
-            <div className="small">
+            <div className="small">Cafe-X</div>
+            <h1 className="hero-title">Menu & Order</h1>
+            <div className="hero-sub">
               {table ? `Meja: ${table.table_name} (${table.table_code})` : 'Belum pilih meja'}
             </div>
           </div>
@@ -222,6 +215,8 @@ export default function MenuPage() {
               {cartCount > 0 ? <span className={`cart-badge ${animateCount ? 'pulse' : ''}`}>{cartCount}</span> : null}
             </button>
           </div>
+        </div>
+        <div className="panel">
           <div className="toolbar" style={{ width: '100%' }}>
             <input
               value={tableCode}
@@ -239,6 +234,36 @@ export default function MenuPage() {
             ) : null}
             {tableLookupError ? <span className="small">{tableLookupError}</span> : null}
           </div>
+        </div>
+        <div className="promo-banner">
+          <div>Promo Hari Ini: Diskon 10% untuk minuman kopi</div>
+          <div className="promo-input">
+            <input value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="Kode voucher" />
+            <button onClick={() => setVoucherMsg(voucher ? `Voucher ${voucher} diterapkan (demo)` : 'Masukkan kode voucher')}>
+              Gunakan
+            </button>
+          </div>
+          {voucherMsg ? <div className="small">{voucherMsg}</div> : null}
+        </div>
+        {session?.lastOrderId && lastOrderToken ? (
+          <div style={{ width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              className="ghost"
+              onClick={() =>
+                router.push(`/order-status?tableToken=${encodeURIComponent(lastOrderToken)}&orderId=${session.lastOrderId}`)
+              }
+            >
+              Lihat Order Terakhir #{session.lastOrderId}
+            </button>
+            {session?.lastOrderItems?.length ? (
+              <button className="secondary" onClick={handleReorder}>Pesan Ulang</button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="sticky-cats">
+        <div className="panel">
           <div className="category-chips">
             {categories.map((c) => (
               <button
@@ -250,28 +275,33 @@ export default function MenuPage() {
               </button>
             ))}
           </div>
-          {session?.lastOrderId && lastOrderToken ? (
-            <div style={{ width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                className="ghost"
-                onClick={() =>
-                  router.push(`/order-status?tableToken=${encodeURIComponent(lastOrderToken)}&orderId=${session.lastOrderId}`)
-                }
-              >
-                Lihat Order Terakhir #{session.lastOrderId}
-              </button>
-              {session?.lastOrderItems?.length ? (
-                <button className="secondary" onClick={handleReorder}>Pesan Ulang</button>
-              ) : null}
+          {quickAdd.length > 0 ? (
+            <div className="quick-add">
+              {quickAdd.map((p) => (
+                <button key={p.id_menu} className="quick-item" onClick={() => handleAddToCart(p)}>
+                  {p.nama_menu}
+                </button>
+              ))}
             </div>
           ) : null}
         </div>
       </div>
+
       {errorParam === 'token' ? <div className="card">Token meja tidak valid atau sudah expired. Silakan masukkan nomor meja.</div> : null}
-      {loading ? <div className="card">Loading menu...</div> : null}
+      {loading ? (
+        <div className="grid">
+          {[...Array(6)].map((_, i) => (
+            <div className="card" key={`sk-${i}`}>
+              <div className="loading-bar" />
+              <div className="loading-bar short" />
+              <div className="loading-bar" />
+            </div>
+          ))}
+        </div>
+      ) : null}
       {offlineNotice ? <div className="card">{offlineNotice}</div> : null}
       {error ? <div className="card">{error}</div> : null}
-      {grouped.map(([cat, items]) => (
+      {!loading && grouped.map(([cat, items]) => (
         <section key={cat} className="category-section">
           <div className="category-title">{formatCategory(cat)}</div>
           <div className="grid">
@@ -281,15 +311,15 @@ export default function MenuPage() {
                   {p.gambar ? <img src={imageUrl(p.gambar)} alt={p.nama_menu} loading="lazy" /> : null}
                 </div>
                 <div className="menu-meta">
-                  <h3>{p.nama_menu}</h3>
-                  <p className="small">{formatRupiah(Number(p.harga))}</p>
-                  <div className="toolbar">
+                  <h3 className="menu-title">{p.nama_menu}</h3>
+                  <div className="menu-price">{formatRupiah(Number(p.harga))}</div>
+                  <div className="menu-actions">
                     <span className="pill">{p.jenis_menu}</span>
                     <button
                       className={`fav-btn ${favoriteIds.includes(p.id_menu) ? 'active' : ''}`}
                       onClick={() => setFavoriteIds(toggleFavorite(p.id_menu))}
                       aria-label="favorite"
-                    >Fav</button>
+                    >❤</button>
                     <button disabled={p.stok < 1} onClick={() => handleAddToCart(p)}>
                       Tambah
                     </button>

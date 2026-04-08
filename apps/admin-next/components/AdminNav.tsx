@@ -9,16 +9,19 @@ export function AdminNav() {
   const { t } = useI18n();
   const links = [
     { href: '/', label: t('dashboard') },
+    { href: '/onboarding', label: 'Onboarding' },
     { href: '/products', label: t('products') },
     { href: '/tables', label: t('tables') },
     { href: '/shifts', label: t('shifts') },
     { href: '/orders', label: t('orders') },
     { href: '/reports', label: t('reports') },
+    { href: '/subscription', label: 'Subscription' },
     { href: '/audit-logs', label: t('auditLogs') },
     { href: '/settings/outlets', label: t('outlets') },
     { href: '/ops/backup', label: t('backupScheduler') },
     { href: '/ops/incidents', label: t('incidentReport') },
   ];
+
   return (
     <nav className="sidebar-nav">
       {links.map((link) => {
@@ -32,4 +35,3 @@ export function AdminNav() {
     </nav>
   );
 }
-

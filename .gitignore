@@ -42,3 +42,7 @@ public_old
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+.codex/
+
+apps/**/.dart_tool

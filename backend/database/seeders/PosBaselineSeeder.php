@@ -54,7 +54,10 @@ class PosBaselineSeeder extends Seeder
             'audit.view' => 'View audit logs',
             'sync.use' => 'Use sync endpoints',
             'user.manage' => 'Manage users',
+            'billing.manage' => 'Manage billing',
+            'demo.reset' => 'Reset demo tenant',
         ];
+
         foreach ($permissions as $name => $display) {
             DB::table('permissions')->updateOrInsert(
                 ['name' => $name],
@@ -63,9 +66,16 @@ class PosBaselineSeeder extends Seeder
         }
 
         $roles = [
-            'owner' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use', 'user.manage'],
-            'admin' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high', 'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage', 'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use'],
-            'kasir' => ['order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.reprint', 'shift.open', 'shift.close', 'report.shift', 'sync.use'],
+            'owner' => array_keys($permissions),
+            'admin' => [
+                'order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel', 'order.cancel.high',
+                'order.reprint', 'order.merge', 'order.split', 'shift.open', 'shift.close', 'table.manage',
+                'product.manage', 'report.view', 'report.shift', 'audit.view', 'sync.use', 'billing.manage', 'demo.reset',
+            ],
+            'kasir' => [
+                'order.create', 'order.item.edit', 'order.item.cancel', 'order.pay', 'order.cancel',
+                'order.reprint', 'shift.open', 'shift.close', 'report.shift', 'sync.use',
+            ],
         ];
 
         foreach ($roles as $roleName => $permNames) {
@@ -119,53 +129,127 @@ class PosBaselineSeeder extends Seeder
             ['setting_value' => '500000', 'updated_at' => now(), 'created_at' => now()]
         );
 
-        DB::table('produk')->updateOrInsert(
-            ['id_menu' => 1],
-            [
-                'tenant_id' => $tenantId,
-                'nama_menu' => 'Espresso',
-                'jenis_menu' => 'coffee',
-                'stok' => 100,
-                'harga' => 18000,
-                'is_active' => 1,
-                'updated_at' => now(),
-                'created_at' => now(),
-            ]
-        );
+        $catalog = [
+            ['Espresso', 'coffee', 28000], ['Americano', 'coffee', 28000], ['Cappuccino', 'coffee', 32000], ['Latte', 'coffee', 30000],
+            ['Caramel Latte', 'coffee', 34000], ['Hazelnut Latte', 'coffee', 34000], ['Flat White', 'coffee', 32000], ['Mocha', 'coffee', 35000],
+            ['Cold Brew', 'coffee', 30000], ['Affogato', 'coffee', 36000],
+            ['Chocolate', 'non coffee', 30000], ['Matcha Latte', 'non coffee', 33000], ['Lemon Tea', 'non coffee', 25000], ['Milk Tea', 'non coffee', 27000],
+            ['Red Velvet', 'non coffee', 32000], ['Thai Tea', 'non coffee', 29000], ['Taro Latte', 'non coffee', 32000], ['Mineral Water', 'non coffee', 12000],
+            ['Sparkling Lime', 'non coffee', 26000], ['Lychee Tea', 'non coffee', 28000],
+            ['Nasi Goreng', 'main course', 42000], ['Chicken Katsu', 'main course', 48000], ['Beef Teriyaki', 'main course', 52000], ['Spaghetti Bolognese', 'main course', 46000],
+            ['Creamy Carbonara', 'main course', 47000], ['Fish and Chips', 'main course', 49000], ['Chicken Rice Bowl', 'main course', 43000], ['Beef Rice Bowl', 'main course', 47000],
+            ['Sambal Matah Chicken', 'main course', 48000], ['Dori Sambal', 'main course', 46000],
+            ['French Fries', 'appetizer', 26000], ['Onion Rings', 'appetizer', 28000], ['Chicken Wings', 'appetizer', 34000], ['Spring Roll', 'appetizer', 28000],
+            ['Nachos', 'appetizer', 32000], ['Potato Wedges', 'appetizer', 29000], ['Garlic Bread', 'appetizer', 24000], ['Calamari', 'appetizer', 38000],
+            ['Cheese Stick', 'appetizer', 30000], ['Dimsum', 'appetizer', 33000],
+        ];
 
-        $qrToken = bin2hex(random_bytes(16));
-        DB::table('pos_tables')->updateOrInsert(
-            ['table_code' => 'A1'],
-            [
-                'tenant_id' => $tenantId,
-                'outlet_id' => $outletId,
-                'table_name' => 'Table A1',
-                'qr_token' => $qrToken,
-                'is_active' => 1,
-                'updated_at' => now(),
-                'created_at' => now(),
-            ]
-        );
-        $tableId = (int) DB::table('pos_tables')->where('table_code', 'A1')->value('id');
-        DB::table('table_qr_tokens')->updateOrInsert(
-            ['table_id' => $tableId, 'token' => $qrToken],
-            [
-                'is_active' => 1,
-                'expired_at' => null,
-                'updated_at' => now(),
-                'created_at' => now(),
-            ]
-        );
+        foreach ($catalog as $idx => [$name, $cat, $price]) {
+            DB::table('produk')->updateOrInsert(
+                ['id_menu' => $idx + 1],
+                [
+                    'tenant_id' => $tenantId,
+                    'nama_menu' => $name,
+                    'jenis_menu' => $cat,
+                    'stok' => 99,
+                    'harga' => $price,
+                    'is_active' => 1,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
 
+        for ($i = 1; $i <= 20; $i++) {
+            $code = 'A' . $i;
+            $token = bin2hex(random_bytes(16));
+            DB::table('pos_tables')->updateOrInsert(
+                ['table_code' => $code],
+                [
+                    'tenant_id' => $tenantId,
+                    'outlet_id' => $outletId,
+                    'table_name' => 'Table ' . $code,
+                    'qr_token' => $token,
+                    'is_active' => 1,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+            $tableId = (int) DB::table('pos_tables')->where('table_code', $code)->value('id');
+            DB::table('table_qr_tokens')->updateOrInsert(
+                ['table_id' => $tableId, 'token' => $token],
+                [
+                    'is_active' => 1,
+                    'expired_at' => null,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        $planData = [
+            ['code' => 'basic', 'name' => 'Basic', 'price_monthly' => 399000, 'feature_flags_json' => json_encode(['reports.basic' => true])],
+            ['code' => 'pro', 'name' => 'Pro', 'price_monthly' => 799000, 'feature_flags_json' => json_encode(['reports.advanced' => true, 'sync.advanced' => true])],
+            ['code' => 'premium', 'name' => 'Premium', 'price_monthly' => 1499000, 'feature_flags_json' => json_encode(['loyalty' => true, 'integrations' => true])],
+        ];
+
+        foreach ($planData as $plan) {
+            DB::table('plans')->updateOrInsert(
+                ['code' => $plan['code']],
+                [
+                    'name' => $plan['name'],
+                    'price_monthly' => $plan['price_monthly'],
+                    'feature_flags_json' => $plan['feature_flags_json'],
+                    'is_active' => 1,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        }
+
+        $proPlanId = (int) DB::table('plans')->where('code', 'pro')->value('id');
+        $subscriptionId = DB::table('subscriptions')->insertGetId([
+            'tenant_id' => $tenantId,
+            'plan_id' => $proPlanId,
+            'status' => 'active',
+            'period_start' => now(),
+            'period_end' => now()->addMonth(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('tenant_subscriptions')->where('tenant_id', $tenantId)->update(['is_active' => 0, 'updated_at' => now()]);
         DB::table('tenant_subscriptions')->updateOrInsert(
-            ['tenant_id' => $tenantId, 'is_active' => 1],
+            ['tenant_id' => $tenantId, 'subscription_id' => $subscriptionId],
             [
                 'plan_code' => 'pro',
+                'is_active' => 1,
                 'starts_at' => now(),
-                'ends_at' => null,
+                'ends_at' => now()->addMonth(),
                 'updated_at' => now(),
                 'created_at' => now(),
             ]
         );
+
+        $invoiceId = DB::table('invoices')->insertGetId([
+            'tenant_id' => $tenantId,
+            'invoice_no' => 'INV-' . now()->format('Ymd') . '-0001',
+            'amount' => 799000,
+            'due_date' => now()->addDays(7)->toDateString(),
+            'status' => 'sent',
+            'notes' => 'Invoice langganan awal Pro',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('invoice_items')->insert([
+            'invoice_id' => $invoiceId,
+            'description' => 'Subscription Pro 1 bulan',
+            'qty' => 1,
+            'price' => 799000,
+            'line_total' => 799000,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

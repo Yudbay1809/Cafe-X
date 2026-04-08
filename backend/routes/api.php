@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
 
@@ -15,7 +15,9 @@ Route::prefix('v1')->group(function (): void {
         require base_path('app/Modules/Product/routes.php');
         require base_path('app/Modules/Order/routes.php');
         require base_path('app/Modules/Report/routes.php');
+        require base_path('app/Modules/Billing/routes.php');
     });
 });
+
 
 

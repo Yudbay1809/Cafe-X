@@ -1,18 +1,22 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Sora } from 'next/font/google';
+﻿import './globals.css';
+import CustomerFonts from './CustomerFonts';
 
-const sora = Sora({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
-
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Cafe-X Customer',
-  description: 'QR ordering app',
+  description: 'Order from your table',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={sora.className}>{children}</body>
+      <body>
+        <CustomerFonts />
+        {children}
+      </body>
     </html>
   );
 }

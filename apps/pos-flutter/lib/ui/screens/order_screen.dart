@@ -147,7 +147,7 @@ class _OrderScreenState extends State<OrderScreen> {
       if (session == null) throw StateError('Belum login');
       await _createOrderIfNeeded();
       final productId = (p['id_menu'] as num).toInt();
-      // ignore: use_build_context_synchronously
+      if (!mounted) return;
       final note = await promptText(context, title: 'Catatan Item', hint: 'Optional');
       if (!mounted) return;
       await widget.services.orderService.addItem(
@@ -203,9 +203,11 @@ class _OrderScreenState extends State<OrderScreen> {
     if (guard.canSensitiveAction(action)) return true;
     final pinHash = await _config.getString('manager_pin_hash', fallback: '');
     if (pinHash.isEmpty) {
+      if (!mounted) return false;
       showError(context, StateError('PIN override belum diset di Settings'));
       return false;
     }
+    if (!mounted) return false;
     final pin = await promptText(context, title: 'Masukkan PIN Override', hint: 'PIN', isNumber: true, obscure: true);
     if (!mounted) return false;
     if (pin == null || pin.isEmpty) return false;
@@ -243,7 +245,7 @@ class _OrderScreenState extends State<OrderScreen> {
     final session = await widget.services.authService.currentSession();
     if (session == null) throw StateError('Belum login');
     if (_currentOrderLocalId == null) return;
-    // ignore: use_build_context_synchronously
+    if (!mounted) return;
     final to = await promptText(context, title: 'Pindah meja ke', hint: 'Kode meja');
     if (!mounted) return;
     if (to == null || to.isEmpty) return;

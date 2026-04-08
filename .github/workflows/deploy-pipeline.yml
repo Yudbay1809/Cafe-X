@@ -1,0 +1,167 @@
+﻿name: deploy-pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Target environment
+        required: true
+        type: choice
+        options: [staging, production]
+      release_name:
+        description: Release identifier (default github.sha)
+        required: false
+        type: string
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: dbpemesanan
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          cache: composer
+      - name: Backend install
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+      - name: Backend prepare env
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=dbpemesanan" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=" >> .env
+      - name: Backend lint + test
+        working-directory: backend
+        run: |
+          ./vendor/bin/pint --test
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon
+          php artisan test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Build customer-next
+        working-directory: apps/customer-next
+        run: |
+          npm ci
+          npm run build
+      - name: Build admin-next
+        working-directory: apps/admin-next
+        run: |
+          npm ci
+          npm run build
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Analyze POS Flutter
+        working-directory: apps/pos-flutter
+        run: |
+          flutter pub get
+          flutter analyze
+
+  package:
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare release folder
+        run: |
+          RELEASE_NAME="${{ github.event.inputs.release_name }}"
+          if [ -z "$RELEASE_NAME" ]; then RELEASE_NAME="${{ github.sha }}"; fi
+          mkdir -p release/$RELEASE_NAME
+          rsync -a --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='build' ./ release/$RELEASE_NAME/
+          tar -czf release-${RELEASE_NAME}.tar.gz -C release $RELEASE_NAME
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: release-*.tar.gz
+
+  deploy-staging:
+    if: ${{ github.event.inputs.target == 'staging' }}
+    runs-on: ubuntu-latest
+    needs: package
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: .
+      - name: Upload release to staging
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          source: "release-*.tar.gz,scripts/deploy/remote-release.sh,scripts/deploy/remote-rollback.sh"
+          target: "${{ secrets.STAGING_DEPLOY_PATH }}/incoming"
+      - name: Deploy staging with health gate
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            RELEASE_NAME="${{ github.event.inputs.release_name }}"
+            if [ -z "$RELEASE_NAME" ]; then RELEASE_NAME="${{ github.sha }}"; fi
+            mkdir -p ${{ secrets.STAGING_DEPLOY_PATH }}/releases/$RELEASE_NAME
+            tar -xzf ${{ secrets.STAGING_DEPLOY_PATH }}/incoming/release-*.tar.gz -C ${{ secrets.STAGING_DEPLOY_PATH }}/releases
+            chmod +x ${{ secrets.STAGING_DEPLOY_PATH }}/incoming/scripts/deploy/remote-release.sh
+            ${{ secrets.STAGING_DEPLOY_PATH }}/incoming/scripts/deploy/remote-release.sh "${{ secrets.STAGING_DEPLOY_PATH }}" "$RELEASE_NAME" "${{ secrets.STAGING_HEALTHCHECK_URL }}"
+
+  deploy-production:
+    if: ${{ github.event.inputs.target == 'production' }}
+    runs-on: ubuntu-latest
+    needs: package
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+          path: .
+      - name: Upload release to production
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "release-*.tar.gz,scripts/deploy/remote-release.sh,scripts/deploy/remote-rollback.sh"
+          target: "${{ secrets.PROD_DEPLOY_PATH }}/incoming"
+      - name: Deploy production with health gate
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            RELEASE_NAME="${{ github.event.inputs.release_name }}"
+            if [ -z "$RELEASE_NAME" ]; then RELEASE_NAME="${{ github.sha }}"; fi
+            mkdir -p ${{ secrets.PROD_DEPLOY_PATH }}/releases/$RELEASE_NAME
+            tar -xzf ${{ secrets.PROD_DEPLOY_PATH }}/incoming/release-*.tar.gz -C ${{ secrets.PROD_DEPLOY_PATH }}/releases
+            chmod +x ${{ secrets.PROD_DEPLOY_PATH }}/incoming/scripts/deploy/remote-release.sh
+            ${{ secrets.PROD_DEPLOY_PATH }}/incoming/scripts/deploy/remote-release.sh "${{ secrets.PROD_DEPLOY_PATH }}" "$RELEASE_NAME" "${{ secrets.PROD_HEALTHCHECK_URL }}"

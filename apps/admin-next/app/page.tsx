@@ -7,27 +7,44 @@ import { adminApi } from '@/lib/api';
 import { formatRupiah } from '@/lib/money';
 import { useEffect, useState } from 'react';
 
+type SummaryPayload = {
+  orders_count?: number;
+  sales_total?: number;
+  date?: string;
+};
+
+type DailyItem = {
+  date?: string;
+  total?: number;
+};
+
+type DailyResponse = {
+  items?: DailyItem[];
+};
+
 export default function Page() {
   const { t } = useI18n();
   const [stats, setStats] = useState({ orders: 0, sales: 0, tables: 0, date: '' });
   const [loading, setLoading] = useState(true);
-  const [daily, setDaily] = useState<any[]>([]);
+  const [daily, setDaily] = useState<DailyItem[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
-        const [tables, summary, dailyResp] = await Promise.all([
+        const [tables, summaryRaw, dailyRaw] = await Promise.all([
           adminApi.tables(),
           adminApi.reportSummary().catch(() => null),
           adminApi.reportDaily().catch(() => ({ items: [] })),
         ]);
+        const summary = (summaryRaw || {}) as SummaryPayload;
+        const dailyResp = (dailyRaw || {}) as DailyResponse;
         setStats({
-          orders: summary?.orders_count ?? 0,
-          sales: summary?.sales_total ?? 0,
+          orders: summary.orders_count ?? 0,
+          sales: summary.sales_total ?? 0,
           tables: tables.items?.length ?? 0,
-          date: summary?.date ?? '',
+          date: summary.date ?? '',
         });
         setDaily(dailyResp.items || []);
         setLoading(false);
@@ -39,7 +56,7 @@ export default function Page() {
     load();
   }, []);
 
-  const max = Math.max(1, ...daily.map((x: any) => Number(x.total || 0)));
+  const max = Math.max(1, ...daily.map((x) => Number(x.total || 0)));
 
   return (
     <RequireAuth>
@@ -66,7 +83,7 @@ export default function Page() {
         <div className="card">
           <div className="small">Sales Chart</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 120, marginTop: 12 }}>
-            {(daily || []).slice(-10).map((d: any, i: number) => {
+            {(daily || []).slice(-10).map((d, i) => {
               const val = Number(d.total || 0);
               const h = Math.max(4, Math.round((val / max) * 100));
               return (

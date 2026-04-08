@@ -9,7 +9,10 @@ export class ApiError extends Error {
 }
 
 function requestId() {
-  return crypto.randomUUID();
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
@@ -34,6 +37,37 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
+export type BillingSubscription = {
+  id: number;
+  status: 'trial' | 'active' | 'past_due' | 'canceled';
+  period_start: string;
+  period_end: string | null;
+  plan_code: 'basic' | 'pro' | 'premium';
+  plan_name: string;
+  price_monthly: number;
+  feature_flags_json?: string | null;
+};
+
+export type BillingPlan = {
+  id: number;
+  code: 'basic' | 'pro' | 'premium';
+  name: string;
+  price_monthly: number;
+  feature_flags_json?: string | null;
+  is_active: number;
+};
+
+export type BillingInvoice = {
+  id: number;
+  invoice_no: string;
+  amount: number;
+  due_date: string;
+  status: 'draft' | 'sent' | 'paid' | 'void' | 'overdue';
+  notes?: string | null;
+  paid_at?: string | null;
+  created_at: string;
+};
+
 export const adminApi = {
   login: (payload: { username: string; password: string; device_name: string }) =>
     fetch(`${API_BASE}/auth/login`, {
@@ -41,7 +75,9 @@ export const adminApi = {
       headers: { 'Content-Type': 'application/json', 'X-Request-Id': requestId() },
       body: JSON.stringify(payload),
     }).then((r) => r.json()),
+
   products: () => api<{ items: any[] }>('/master/products'),
+
   productsList: (params?: { q?: string; category?: string; active?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.q) qs.set('q', params.q);
@@ -50,15 +86,20 @@ export const adminApi = {
     const query = qs.toString();
     return api<{ items: any[] }>(`/products${query ? `?${query}` : ''}`);
   },
+
   productCreate: (body: any) => api('/products', { method: 'POST', body: JSON.stringify(body) }),
   productUpdate: (id: number, body: any) => api(`/products/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   productDelete: (id: number) => api(`/products/${id}`, { method: 'DELETE' }),
+
   tables: () => api<{ items: any[] }>('/master/tables'),
   upsertTable: (body: any) => api('/tables/upsert', { method: 'POST', body: JSON.stringify(body) }),
+
   shiftOpen: (opening_cash: number, notes = '') => api('/shift/open', { method: 'POST', body: JSON.stringify({ opening_cash, notes }) }),
   shiftClose: (closing_cash: number, notes = '') => api('/shift/close', { method: 'POST', body: JSON.stringify({ closing_cash, notes }) }),
+
   ordersCreate: (source = 'POS') => api<{ order_id: number }>('/orders/create', { method: 'POST', body: JSON.stringify({ source }) }),
-    ordersList: (params?: { status?: string; q?: string; limit?: number; page?: number }) => {
+
+  ordersList: (params?: { status?: string; q?: string; limit?: number; page?: number }) => {
     const qs = new URLSearchParams();
     if (params?.status) qs.set('status', params.status);
     if (params?.q) qs.set('q', params.q);
@@ -66,10 +107,11 @@ export const adminApi = {
     if (params?.page) qs.set('page', String(params.page));
     const query = qs.toString();
     return api<{ items: any[]; page: number; limit: number; total: number }>(`/orders${query ? `?${query}` : ''}`);
-  },  outlets: () => api<{ items: any[] }>('/outlets'),
-  outletUpdateBrand: (id: number, body: any) => api(`/outlets/${id}/brand`, { method: 'PUT', body: JSON.stringify(body) }),
+  },
+
   orderDetail: (id: number) => api<{ order: any; items: any[] }>(`/orders/${id}`),
   orderStatus: (order_id: number, status: string) => api('/orders/status', { method: 'POST', body: JSON.stringify({ order_id, status }) }),
+
   reportSummary: () => api('/reports/summary'),
   reportSales: (params?: { from?: string; to?: string }) => {
     const qs = new URLSearchParams();
@@ -93,6 +135,7 @@ export const adminApi = {
     return api(`/reports/daily${query ? `?${query}` : ''}`);
   },
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
+
   auditLogs: (params?: { event?: string; actor?: string; entity?: string; from?: string; to?: string; page?: number; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.event) qs.set('event', params.event);
@@ -105,10 +148,18 @@ export const adminApi = {
     const query = qs.toString();
     return api<{ items: any[]; page: number; limit: number; total: number }>(`/audit-logs${query ? `?${query}` : ''}`);
   },
+
+  outlets: () => api<{ items: any[] }>('/outlets'),
+  outletUpdateBrand: (id: number, body: any) => api(`/outlets/${id}/brand`, { method: 'PUT', body: JSON.stringify(body) }),
+
+  billingSubscription: () => api<{ subscription: BillingSubscription | null; plans: BillingPlan[] }>('/billing/subscription'),
+  billingUpsertSubscription: (body: { plan_code: 'basic' | 'pro' | 'premium'; status?: 'trial' | 'active' | 'past_due' | 'canceled'; period_start?: string; period_end?: string }) =>
+    api('/billing/subscription', { method: 'POST', body: JSON.stringify(body) }),
+  billingInvoices: () => api<{ items: BillingInvoice[] }>('/billing/invoices'),
+  billingCreateInvoice: (body: { invoice_no?: string; due_date?: string; status?: 'draft' | 'sent' | 'paid' | 'void' | 'overdue'; notes?: string; items?: Array<{ description: string; qty: number; price: number }> }) =>
+    api('/billing/invoices', { method: 'POST', body: JSON.stringify(body) }),
+  billingUpdateInvoice: (id: number, body: { status?: 'draft' | 'sent' | 'paid' | 'void' | 'overdue'; due_date?: string; notes?: string }) =>
+    api(`/billing/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  billingMarkPaid: (id: number) => api(`/billing/invoices/${id}/mark-paid`, { method: 'POST', body: JSON.stringify({}) }),
+  billingDemoReset: () => api('/billing/demo/reset', { method: 'POST', body: JSON.stringify({}) }),
 };
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 return [
     'plans' => [
@@ -6,6 +6,9 @@ return [
             'reports.basic',
             'table.qr',
             'sync.basic',
+            'billing.basic',
+            'onboarding.basic',
+            'demo.reset',
         ],
         'pro' => [
             'reports.basic',
@@ -14,6 +17,9 @@ return [
             'sync.basic',
             'sync.advanced',
             'multi.outlet',
+            'billing.basic',
+            'onboarding.basic',
+            'demo.reset',
         ],
         'premium' => [
             'reports.basic',
@@ -24,6 +30,9 @@ return [
             'multi.outlet',
             'loyalty',
             'integrations',
+            'billing.basic',
+            'onboarding.basic',
+            'demo.reset',
         ],
     ],
 ];

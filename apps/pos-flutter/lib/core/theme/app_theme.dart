@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'colors.dart';
+import 'typography.dart';
 
 class AppTheme {
   static ThemeData light() {
@@ -14,7 +14,7 @@ class AppTheme {
         error: AppColors.danger,
       ),
       scaffoldBackgroundColor: AppColors.surface,
-      textTheme: GoogleFonts.spaceGroteskTextTheme(),
+      textTheme: AppTypography.lightTextTheme(),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.brandPrimary,
         foregroundColor: Colors.white,

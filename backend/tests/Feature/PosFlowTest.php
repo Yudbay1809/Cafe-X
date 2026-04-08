@@ -53,7 +53,7 @@ class PosFlowTest extends TestCase
         $payPayload = [
             'order_id' => $orderId,
             'method' => 'cash',
-            'amount' => 20000,
+            'amount' => 999999,
         ];
 
         $firstHeaders = $headers;
@@ -232,7 +232,7 @@ class PosFlowTest extends TestCase
         $payPayload = [
             'order_id' => $orderId,
             'method' => 'cash',
-            'amount' => 20000,
+            'amount' => 999999,
         ];
 
         $headers['Idempotency-Key'] = 'pay-replay';
