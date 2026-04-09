@@ -118,15 +118,15 @@ class PosBaselineSeeder extends Seeder
 
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'tax_pct'],
-            ['setting_value' => '0', 'updated_at' => now(), 'created_at' => now()]
+            ['setting_value' => '0']
         );
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'service_pct'],
-            ['setting_value' => '0', 'updated_at' => now(), 'created_at' => now()]
+            ['setting_value' => '0']
         );
         DB::table('pos_settings')->updateOrInsert(
             ['setting_key' => 'cancel_high_threshold'],
-            ['setting_value' => '500000', 'updated_at' => now(), 'created_at' => now()]
+            ['setting_value' => '500000']
         );
 
         $catalog = [

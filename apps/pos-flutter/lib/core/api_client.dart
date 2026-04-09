@@ -6,14 +6,14 @@ import 'observability.dart';
 
 class ApiClient {
   ApiClient({required String baseUrl, DeviceObservability? observability})
-    : _observability = observability ?? DeviceObservability(),
-      _dio = Dio(
-        BaseOptions(
-          baseUrl: baseUrl,
-          connectTimeout: const Duration(seconds: 8),
-          receiveTimeout: const Duration(seconds: 20),
-        ),
-      );
+      : _observability = observability ?? DeviceObservability(),
+        _dio = Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
+          ),
+        );
 
   final Dio _dio;
   final DeviceObservability _observability;
@@ -38,12 +38,16 @@ class ApiClient {
     String? token,
     Map<String, dynamic>? data,
     String? idempotencyKey,
+    ResponseType responseType = ResponseType.json,
+    bool allowAnyStatus = false,
   }) async {
     return _wrap(path, (requestId) {
       return _dio.post(
         path,
         data: data ?? const <String, dynamic>{},
         options: Options(
+          responseType: responseType,
+          validateStatus: allowAnyStatus ? (_) => true : null,
           headers: _headers(
             token,
             requestId: requestId,
@@ -95,6 +99,7 @@ class ApiClient {
   }) {
     final map = <String, String>{
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
       'X-Request-Id': requestId,
     };
     if (token != null && token.isNotEmpty) {

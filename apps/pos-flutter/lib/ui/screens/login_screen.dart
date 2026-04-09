@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/app_config_service.dart';
+import '../../features/errors/error_mapper.dart';
 import '../../pos_app_service.dart';
 import '../ui_utils.dart';
 import '../widgets/section_card.dart';
@@ -53,10 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _password.text.trim(),
         deviceName: _deviceName.text.trim(),
       );
-      setState(() => _status = 'Login OK: ${session.username} (${session.roleName})');
+      setState(() {
+        _status = 'Login OK: ${session.username} (${session.roleName})';
+      });
       widget.onLogin();
     } catch (e) {
       if (!mounted) return;
+      final mapped = toCashierMessage(e);
+      setState(() => _status = '$mapped\n\nDETAIL: ${e.toString()}');
       showError(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -89,23 +95,76 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Login Kasir', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Login Kasir',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 12),
-                TextField(controller: _username, decoration: const InputDecoration(labelText: 'Username')),
-                TextField(controller: _password, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
-                TextField(controller: _deviceName, decoration: const InputDecoration(labelText: 'Device Name')),
+                TextField(
+                  controller: _username,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                ),
+                TextField(
+                  controller: _password,
+                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                ),
+                TextField(
+                  controller: _deviceName,
+                  decoration: const InputDecoration(labelText: 'Device Name'),
+                ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(onPressed: _loading ? null : _login, child: const Text('Login')),
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _login,
+                    child: const Text('Login'),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(onPressed: _loading ? null : _logout, child: const Text('Logout')),
+                  child: OutlinedButton(
+                    onPressed: _loading ? null : _logout,
+                    child: const Text('Logout'),
+                  ),
                 ),
                 const SizedBox(height: 12),
-                if (_status.isNotEmpty) Chip(label: Text(_status)),
+                if (_status.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black54),
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SelectableText(
+                          _status,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: _status));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Status login disalin'),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.copy, size: 16),
+                            label: const Text('Copy'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

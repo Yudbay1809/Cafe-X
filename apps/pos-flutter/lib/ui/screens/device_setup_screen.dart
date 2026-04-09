@@ -25,7 +25,7 @@ class _DeviceSetupScreenState extends State<DeviceSetupScreen> {
   }
 
   Future<void> _load() async {
-    _baseUrl.text = await _config.getString('base_url', fallback: '');
+    _baseUrl.text = await _config.getString('base_url', fallback: 'http://127.0.0.1:9000');
     _deviceName.text = await _config.getString('device_name', fallback: 'pos-device');
     if (!mounted) return;
     setState(() {});

@@ -24,7 +24,7 @@ export function AdminShell({
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">CX</div>
+          <img src="/logo.png" alt="Cafe-X" width={40} height={40} style={{ borderRadius: '8px', objectFit: 'cover' }} />
           <div>
             <div className="brand-title">{t('appName')}</div>
             <div className="brand-sub">{t('opsConsole')}</div>

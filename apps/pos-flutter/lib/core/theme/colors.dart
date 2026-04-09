@@ -1,26 +1,37 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppColors {
-  static const brandPrimary = Color(0xFF0F766E);
-  static const brandSecondary = Color(0xFFC56A35);
-  static const surface = Color(0xFFF6F1EB);
-  static const surfaceSoft = Color(0xFFEFE7DE);
+  // Brand colors from Figma design
+  static const brandPrimary = Color(0xFFE84C3D); // Vivid Coral Red
+  static const brandSecondary = Color(0xFF2C3E50); // Deep Midnight Blue
+  
+  // Surfaces
+  static const surface = Color(0xFFF8F9FA); // Off-white app background
+  static const surfaceDark = Color(0xFF1E272E); // Dark panels/sidebars
   static const card = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF1B140F);
-  static const textMuted = Color(0xFF6F6259);
-  static const success = Color(0xFF16A34A);
-  static const warning = Color(0xFFF59E0B);
-  static const danger = Color(0xFFDC2626);
-  static const outline = Color(0xFFE5E7EB);
+  
+  // Text
+  static const textPrimary = Color(0xFF2D3436);
+  static const textMuted = Color(0xFF636E72);
+  static const textLight = Color(0xFFFFFFFF);
+  
+  // Status
+  static const success = Color(0xFF2ECC71); // Emerald Green
+  static const warning = Color(0xFFF1C40F); // Sunflower Yellow
+  static const danger = Color(0xFFE74C3C); // Alizarin Red
+  
+  // Utilities
+  static const outline = Color(0xFFDFE6E9);
+  static const divider = Color(0xFFF1F2F6);
 
   static const gradientBrand = LinearGradient(
-    colors: [brandPrimary, brandSecondary],
+    colors: [brandPrimary, Color(0xFFFF7675)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const gradientBackground = LinearGradient(
-    colors: [surface, surfaceSoft],
+    colors: [surface, surface],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

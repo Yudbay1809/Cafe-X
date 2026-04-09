@@ -359,114 +359,151 @@ class _OrderScreenState extends State<OrderScreen> {
               children: [
                 SectionCard(
                   title: 'Meja & Order',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      DropdownButton<String>(
-                        value: _selectedTable,
-                        hint: const Text('Pilih meja'),
-                        items: _tables
-                            .map((t) => DropdownMenuItem(
-                                  value: t['table_code'].toString(),
-                                  child: Text('${t['table_code']} - ${t['table_name']}'),
-                                ))
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedTable = v),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          ElevatedButton(
-                            onPressed: _refreshingMenu ? null : _refreshMaster,
-                            child: Text(_refreshingMenu ? 'Refreshing...' : 'Refresh Menu'),
-                          ),
-                          const SizedBox(width: 8),
-                          if (_menuStatus.isNotEmpty) Text(_menuStatus),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          ElevatedButton(onPressed: _loading ? null : _loadOpenOrders, child: const Text('Hold/Resume')),
-                          const SizedBox(width: 8),
-                          OutlinedButton(onPressed: _loading ? null : _moveTable, child: const Text('Pindah Meja')),
-                          const SizedBox(width: 8),
-                          OutlinedButton(onPressed: _loading ? null : _setOrderNote, child: const Text('Catatan')),
-                        ],
+                      if (_menuStatus.isNotEmpty) ...[
+                        Text(_menuStatus, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                        const SizedBox(width: 8),
+                      ],
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: _refreshingMenu ? null : _refreshMaster,
+                        tooltip: 'Refresh Menu',
                       ),
                     ],
                   ),
-                ),
-                SectionCard(
-                  title: 'Quick Actions',
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ElevatedButton(
-                        onPressed: _loading
-                            ? null
-                            : () {
-                                setState(() {
-                                  _currentOrderLocalId = null;
-                                  _items = [];
-                                  _total = 0;
-                                  _discount = 0;
-                                });
-                              },
-                        child: const Text('New Order'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(labelText: 'Pilih Meja', isDense: true),
+                              value: _selectedTable,
+                              items: _tables
+                                  .map((t) => DropdownMenuItem(
+                                        value: t['table_code'].toString(),
+                                        child: Text('${t['table_code']} - ${t['table_name']}'),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _selectedTable = v),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _loading ? null : _loadOpenOrders, 
+                            icon: const Icon(Icons.pause),
+                            label: const Text('Hold/Resume'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(onPressed: _loading ? null : _cancelOrder, child: const Text('Cancel Order')),
-                      const SizedBox(width: 8),
-                      OutlinedButton(onPressed: _loading ? null : _setOrderNote, child: const Text('Note')),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _loading ? null : _moveTable, 
+                              icon: const Icon(Icons.compare_arrows),
+                              label: const Text('Pindah Meja'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 SectionCard(
                   title: 'Keranjang',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Order: ${_currentOrderLocalId ?? '-'}'),
-                      const SizedBox(height: 8),
+                      Text('Order: ${_currentOrderLocalId ?? '-'}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: _loading || _currentOrderLocalId == null ? null : _cancelOrder,
+                        tooltip: 'Cancel Order',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.note_add),
+                        onPressed: _loading ? null : _setOrderNote,
+                        tooltip: 'Catatan Order',
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
                       SizedBox(
-                        height: 260,
-                        child: ListView.builder(
-                          itemCount: _items.length,
-                          itemBuilder: (context, idx) {
-                            final item = _items[idx];
-                            return ListTile(
-                              title: Text('${item.productName} x${item.qty}'),
-                              subtitle: Text('Rp ${item.lineSubtotal}'),
-                              trailing: Wrap(
-                                spacing: 8,
-                                children: [
-                                  IconButton(icon: const Icon(Icons.edit), onPressed: _loading ? null : () => _editQty(item)),
-                                  IconButton(icon: const Icon(Icons.delete), onPressed: _loading ? null : () => _cancelItem(item)),
-                                ],
+                        height: 300,
+                        child: _items.isEmpty 
+                            ? const Center(child: Text('Keranjang Kosong', style: TextStyle(color: Colors.grey)))
+                            : ListView.separated(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                itemCount: _items.length,
+                                separatorBuilder: (_, __) => const Divider(height: 1),
+                                itemBuilder: (context, idx) {
+                                  final item = _items[idx];
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                    title: Text(item.productName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text('Rp ${item.lineSubtotal}'),
+                                    leading: CircleAvatar(
+                                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                      child: Text('${item.qty}'),
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _loading ? null : () => _editQty(item)),
+                                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.redAccent), onPressed: _loading ? null : () => _cancelItem(item)),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: const Border(top: BorderSide(color: Colors.black12)),
                         ),
-                      ),
-                      const Divider(),
-                      Row(
-                        children: [
-                          const Text('Discount'),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 120,
-                            child: TextField(
-                              decoration: const InputDecoration(hintText: '0'),
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Discount', style: TextStyle(fontSize: 16)),
+                                SizedBox(
+                                  width: 140,
+                                  child: TextField(
+                                    decoration: const InputDecoration(
+                                      prefixText: 'Rp ',
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Total: Rp ${(_total - _discount).clamp(0, double.infinity)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Total', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Rp ${(_total - _discount).clamp(0, double.infinity)}',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).colorScheme.primary),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -482,49 +519,57 @@ class _OrderScreenState extends State<OrderScreen> {
               children: [
                 SectionCard(
                   title: 'Produk',
+                  trailing: ElevatedButton(
+                    onPressed: _loading
+                        ? null
+                        : () {
+                            setState(() {
+                              _currentOrderLocalId = null;
+                              _items = [];
+                              _total = 0;
+                              _discount = 0;
+                            });
+                          },
+                    child: const Text('+ New Order'),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextField(
-                        decoration: const InputDecoration(labelText: 'Cari produk'),
-                        onChanged: (v) {
-                          _search = v;
-                          _applyFilters();
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: categories
-                            .map((c) => ChoiceChip(
-                                  label: Text(c),
-                                  selected: _selectedCategory == c || (_selectedCategory == null && c == 'All'),
-                                  onSelected: (_) {
-                                    setState(() => _selectedCategory = c);
-                                    _applyFilters();
-                                  },
-                                ))
-                            .toList(),
-                      ),
-                      const SizedBox(height: 8),
-                      if (quickAdd.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Quick Add'),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: quickAdd
-                                  .map((p) => ActionChip(
-                                        label: Text('${p['name']}'),
-                                        onPressed: _loading ? null : () => _addItem(p),
-                                      ))
-                                  .toList(),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Cari produk',
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                              onChanged: (v) {
+                                _search = v;
+                                _applyFilters();
+                              },
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Wrap(
+                          spacing: 8,
+                          children: categories
+                              .map((c) => ChoiceChip(
+                                    label: Text(c, style: TextStyle(fontWeight: (_selectedCategory == c || (_selectedCategory == null && c == 'All')) ? FontWeight.bold : FontWeight.normal)),
+                                    selected: _selectedCategory == c || (_selectedCategory == null && c == 'All'),
+                                    onSelected: (_) {
+                                      setState(() => _selectedCategory = c);
+                                      _applyFilters();
+                                    },
+                                    selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                                    labelStyle: TextStyle(color: (_selectedCategory == c || (_selectedCategory == null && c == 'All')) ? Theme.of(context).colorScheme.primary : Colors.black87),
+                                  ))
+                              .toList(),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -540,19 +585,54 @@ class _OrderScreenState extends State<OrderScreen> {
                     itemBuilder: (context, idx) {
                       final p = _products[idx];
                       return Card(
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 1,
                         child: InkWell(
                           onTap: _loading ? null : () => _addItem(p),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(p['name'].toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                const Spacer(),
-                                Text('Rp ${p['price']}'),
-                                Text('Stok: ${p['stock']}'),
-                              ],
-                            ),
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.fastfood_outlined, color: Colors.grey, size: 28),
+                                    const Spacer(),
+                                    Text(
+                                      p['name'].toString(), 
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Rp ${p['price']}', 
+                                      style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (p['stock'] as num).toInt() < 5 ? Colors.redAccent.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Sisa ${p['stock']}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: (p['stock'] as num).toInt() < 5 ? Colors.redAccent : Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
