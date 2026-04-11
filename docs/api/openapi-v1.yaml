@@ -16,6 +16,10 @@ tags:
   - name: Sync
   - name: Reports
   - name: Billing
+  - name: Delivery
+  - name: Loyalty
+  - name: Analytics
+  - name: Inventory
 security:
   - bearerAuth: []
 paths:

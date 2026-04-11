@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 
@@ -6,6 +6,8 @@ Route::prefix('v1')->group(function (): void {
     require base_path('app/Modules/Shared/routes.php');
     require base_path('app/Modules/Auth/routes.php');
     require base_path('app/Modules/Customer/routes.php');
+    require base_path('app/Modules/Delivery/routes.php');
+    require base_path('app/Modules/Loyalty/routes.php');
 
     Route::middleware(['api.token'])->group(function (): void {
         require base_path('app/Modules/Auth/routes_private.php');

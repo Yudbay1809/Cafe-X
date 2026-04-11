@@ -4,6 +4,7 @@ namespace App\Modules\Payment\Controllers;
 
 use App\Support\ApiResponse;
 use App\Modules\Payment\Services\PaymentService;
+use App\Modules\Payment\Services\QrisPaymentService;
 use App\Services\IdempotencyService;
 use Illuminate\Http\Request;
 
@@ -13,7 +14,8 @@ class PaymentController
 
     public function __construct(
         private readonly PaymentService $service,
-        private readonly IdempotencyService $idempotency
+        private readonly IdempotencyService $idempotency,
+        private readonly ?QrisPaymentService $qrisService = null
     ) {
     }
 
@@ -49,6 +51,34 @@ class PaymentController
         ];
         $this->idempotency->store($request, 'payments', $actor, $response);
         return response()->json($response);
+    }
+
+    /**
+     * Handle QRIS payment callback/webhook
+     */
+    public function qrisCallback(Request $request)
+    {
+        if ($this->qrisService === null) {
+            return response()->json(['error' => 'QRIS not configured'], 503);
+        }
+
+        $result = $this->qrisService->handleCallback($request->all());
+
+        return response()->json($result);
+    }
+
+    /**
+     * Check QRIS payment status
+     */
+    public function qrisStatus(string $transactionId)
+    {
+        if ($this->qrisService === null) {
+            return response()->json(['error' => 'QRIS not configured'], 503);
+        }
+
+        $result = $this->qrisService->checkStatus($transactionId);
+
+        return response()->json($result);
     }
 }
 

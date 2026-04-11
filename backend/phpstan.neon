@@ -2,9 +2,11 @@ includes:
   - vendor/nunomaduro/larastan/extension.neon
 
 parameters:
-  level: 6
+  level: 7
   paths:
     - app
     - database
     - routes
   treatPhpDocTypesAsCertain: false
+  baseline:
+    path: phpstan-baseline.neon

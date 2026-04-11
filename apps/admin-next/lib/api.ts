@@ -136,6 +136,34 @@ export const adminApi = {
   },
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
 
+  // Analytics endpoints
+  analyticsSummary: (params?: { tenant_id?: number; start_date?: string; end_date?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.tenant_id) qs.set('tenant_id', String(params.tenant_id));
+    if (params?.start_date) qs.set('start_date', params.start_date);
+    if (params?.end_date) qs.set('end_date', params.end_date);
+    const query = qs.toString();
+    return api(`/analytics/multi-outlet-summary${query ? `?${query}` : ''}`);
+  },
+
+  analyticsOutletPerformance: (params?: { tenant_id?: number; period?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.tenant_id) qs.set('tenant_id', String(params.tenant_id));
+    if (params?.period) qs.set('period', params.period);
+    const query = qs.toString();
+    return api(`/analytics/outlet-performance${query ? `?${query}` : ''}`);
+  },
+
+  analyticsInventoryOverview: (outletId?: number) => {
+    const query = outletId ? `?outlet_id=${outletId}` : '';
+    return api(`/analytics/inventory-overview${query}`);
+  },
+
+  analyticsLowStock: (outletId?: number) => {
+    const query = outletId ? `?outlet_id=${outletId}` : '';
+    return api(`/inventory/alerts/low-stock${query}`);
+  },
+
   auditLogs: (params?: { event?: string; actor?: string; entity?: string; from?: string; to?: string; page?: number; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.event) qs.set('event', params.event);
