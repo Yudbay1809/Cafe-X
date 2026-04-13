@@ -14,8 +14,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <I18nProvider>
           <QueryProvider>{children}</QueryProvider>
         </I18nProvider>

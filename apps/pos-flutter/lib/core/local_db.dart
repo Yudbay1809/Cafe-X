@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class LocalDb {
@@ -8,10 +7,7 @@ class LocalDb {
   static const _dbVersion = 4;
 
   static Future<Database> open() async {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+    // FFI already initialized in main.dart
     final path = join(await getDatabasesPath(), _dbName);
     return openDatabase(
       path,

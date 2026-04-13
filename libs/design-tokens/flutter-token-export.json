@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "brand": "#C8853C",
+  "teal": "#0f6b63",
+  "bg": "#F8F2EA",
+  "surface": "#FFFFFF",
+  "text": "#1B140F",
+  "muted": "#7C6A5A",
+  "spacing": { "1": "4px", "2": "8px", "3": "12px", "4": "16px" },
+  "radius": { "sm": "8px", "md": "12px", "lg": "16px" }
+}

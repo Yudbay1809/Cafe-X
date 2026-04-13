@@ -1,0 +1,53 @@
+/* Cafe-X Design Tokens */
+:root {
+  /* Colors */
+  --cx-bg: #f6efe7;
+  --cx-bg-alt: #efe4d8;
+  --cx-ink: #1b140f;
+  --cx-muted: #6e6158;
+  --cx-brand: #0f6b63;
+  --cx-brand-2: #d07a3a;
+  --cx-card: #ffffff;
+  --cx-border: #e7e1d9;
+  --cx-success: #16a34a;
+  --cx-warning: #f59e0b;
+  --cx-danger: #dc2626;
+  --cx-ring: rgba(15, 107, 99, 0.25);
+  --cx-shadow: 0 20px 50px rgba(20, 12, 6, 0.14);
+
+  /* Typography */
+  --cx-font-display: 'Unbounded', sans-serif;
+  --cx-font-body: 'Manrope', sans-serif;
+
+  /* Spacing */
+  --cx-space-1: 4px;
+  --cx-space-2: 8px;
+  --cx-space-3: 12px;
+  --cx-space-4: 16px;
+  --cx-space-5: 20px;
+  --cx-space-6: 24px;
+  --cx-space-8: 32px;
+
+  /* Radius */
+  --cx-radius-sm: 8px;
+  --cx-radius-md: 12px;
+  --cx-radius-lg: 16px;
+  --cx-radius-xl: 20px;
+
+  /* Shadows */
+  --cx-shadow-card: 0 18px 40px rgba(15, 23, 42, 0.10);
+  --cx-shadow-hero: 0 20px 50px rgba(15, 23, 42, 0.20);
+  --cx-shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  /* Motion */
+  --cx-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --cx-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --cx-dur-1: 150ms;
+  --cx-dur-2: 250ms;
+  --cx-dur-3: 350ms;
+  --cx-dur-hero: 600ms;
+
+  /* Skeleton */
+  --cx-skeleton-bg: #e5e0d8;
+  --cx-skeleton-highlight: #f0ebe3;
+}

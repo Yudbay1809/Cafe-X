@@ -1,0 +1,246 @@
+/* ============================================
+   Cafe-X Design Tokens (Shared CSS Library)
+   Namespace: --cx-*
+   Version: 1.0.0
+   ============================================
+
+   VERSIONING & GOVERNANCE POLICY:
+   - Token changes follow semantic versioning (MAJOR.MINOR.PATCH)
+   - MAJOR: Breaking changes (token removed or renamed)
+   - MINOR: New tokens, non-breaking changes
+   - PATCH: Bug fixes, value adjustments
+
+   DEPRECATION POLICY:
+   - Deprecated tokens remain as aliases for 2 MINOR versions minimum
+   - Tokens use CSS var() to maintain backward compatibility
+   - Deprecation warnings logged in CHANGELOG.md
+   - Quarterly review cycle (Q1, Q2, Q3, Q4)
+   ============================================ */
+
+/* ============================================
+   1. COLOR TOKENS
+   ============================================ */
+:root {
+  /* Version Metadata */
+  --cx-token-version: 1.0.0;
+  --cx-last-updated: 2026-04-11;
+
+  /* Brand Colors */
+  --cx-brand: #C8853C;
+  --cx-brand-deep: #9B5E1D;
+  --cx-brand-light: #F5E0C3;
+  --cx-brand-xl: #FDF4EA;
+  --cx-teal: #0f6b63;
+  --cx-teal-light: #E0F2F0;
+
+  /* Surfaces */
+  --cx-bg: #F8F2EA;
+  --cx-surface: #FFFFFF;
+  --cx-surface-2: #F5EFE6;
+  --cx-dark: #1B140F;
+  --cx-dark-2: #2E2018;
+
+  /* Text */
+  --cx-text: #1B140F;
+  --cx-muted: #7C6A5A;
+  --cx-subtle: #B0997E;
+
+  /* Status */
+  --cx-success: #16A34A;
+  --cx-danger: #DC2626;
+  --cx-warning: #D97706;
+
+  /* Semantic Aliases (for backward compatibility) */
+  --cx-ink: var(--cx-text);
+  --cx-accent: var(--cx-brand);
+  --cx-accent-2: var(--cx-brand-2);
+}
+
+/* ============================================
+   2. TYPOGRAPHY TOKENS
+   ============================================ */
+:root {
+  /* Font Families - defined in each app's CSS import */
+  /* customer-next: Plus Jakarta Sans + Playfair Display */
+  /* admin-next: Space Mono + JetBrains Mono */
+
+  /* Font Sizes (mobile-first scale) */
+  --cx-text-xs: 10px;
+  --cx-text-sm: 12px;
+  --cx-text-base: 14px;
+  --cx-text-md: 15px;
+  --cx-text-lg: 16px;
+  --cx-text-xl: 18px;
+  --cx-text-2xl: 20px;
+  --cx-text-3xl: 22px;
+  --cx-text-4xl: 24px;
+  --cx-text-5xl: 28px;
+
+  /* Font Weights */
+  --cx-font-normal: 400;
+  --cx-font-medium: 500;
+  --cx-font-semibold: 600;
+  --cx-font-bold: 700;
+  --cx-font-extrabold: 800;
+
+  /* Line Heights */
+  --cx-leading-tight: 1.2;
+  --cx-leading-normal: 1.5;
+  --cx-leading-relaxed: 1.6;
+}
+
+/* ============================================
+   3. SPACING TOKENS
+   ============================================ */
+:root {
+  --cx-space-0: 0;
+  --cx-space-1: 4px;
+  --cx-space-2: 8px;
+  --cx-space-3: 12px;
+  --cx-space-4: 16px;
+  --cx-space-5: 20px;
+  --cx-space-6: 24px;
+  --cx-space-8: 32px;
+  --cx-space-10: 40px;
+  --cx-space-12: 48px;
+  --cx-space-16: 64px;
+}
+
+/* ============================================
+   4. RADIUS TOKENS
+   ============================================ */
+:root {
+  --cx-radius-sm: 8px;
+  --cx-radius-md: 12px;
+  --cx-radius-lg: 16px;
+  --cx-radius-xl: 20px;
+  --cx-radius-2xl: 24px;
+  --cx-radius-full: 999px;
+}
+
+/* ============================================
+   5. SHADOW TOKENS
+   ============================================ */
+:root {
+  --cx-shadow-sm: 0 2px 8px rgba(27, 20, 15, 0.08);
+  --cx-shadow-md: 0 8px 24px rgba(27, 20, 15, 0.12);
+  --cx-shadow-lg: 0 20px 50px rgba(27, 20, 15, 0.18);
+  --cx-shadow-brand: 0 8px 24px rgba(200, 133, 60, 0.35);
+
+  /* Neumorphism Shadows (admin) */
+  --cx-shadow-neu: 8px 8px 16px #c4c2c1, -8px -8px 16px #ffffff;
+  --cx-shadow-neu-sm: 4px 4px 8px #c4c2c1, -4px -4px 8px #ffffff;
+  --cx-shadow-neu-hover: 12px 12px 20px #c4c2c1, -12px -12px 20px #ffffff;
+  --cx-shadow-neu-inset: inset 6px 6px 12px #c4c2c1, inset -6px -6px 12px #ffffff;
+  --cx-shadow-neu-accent: 8px 8px 16px rgba(0, 102, 102, 0.4), -8px -8px 16px rgba(0, 153, 153, 0.1);
+}
+
+/* ============================================
+   6. MOTION TOKENS
+   ============================================ */
+:root {
+  --cx-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --cx-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --cx-dur-fast: 150ms;
+  --cx-dur-mid: 280ms;
+  --cx-dur-slow: 450ms;
+}
+
+/* ============================================
+   7. Z-INDEX TOKENS
+   ============================================ */
+:root {
+  --cx-z-base: 0;
+  --cx-z-dropdown: 10;
+  --cx-z-sticky: 20;
+  --cx-z-fixed: 30;
+  --cx-z-modal-backdrop: 40;
+  --cx-z-modal: 50;
+  --cx-z-popover: 60;
+  --cx-z-tooltip: 70;
+}
+
+/* ============================================
+   8. LEGACY ALIASES (for existing code)
+   ============================================ */
+:root {
+  /* customer-next legacy */
+  --c-brand: var(--cx-brand);
+  --c-brand-deep: var(--cx-brand-deep);
+  --c-brand-light: var(--cx-brand-light);
+  --c-brand-xl: var(--cx-brand-xl);
+  --c-teal: var(--cx-teal);
+  --c-teal-light: var(--cx-teal-light);
+  --c-bg: var(--cx-bg);
+  --c-surface: var(--cx-surface);
+  --c-surface-2: var(--cx-surface-2);
+  --c-dark: var(--cx-dark);
+  --c-dark-2: var(--cx-dark-2);
+  --c-text: var(--cx-text);
+  --c-muted: var(--cx-muted);
+  --c-subtle: var(--cx-subtle);
+  --c-success: var(--cx-success);
+  --c-danger: var(--cx-danger);
+  --c-warning: var(--cx-warning);
+  --c-radius-sm: var(--cx-radius-sm);
+  --c-radius-md: var(--cx-radius-md);
+  --c-radius-lg: var(--cx-radius-lg);
+  --c-radius-xl: var(--cx-radius-xl);
+  --c-shadow-sm: var(--cx-shadow-sm);
+  --c-shadow-md: var(--cx-shadow-md);
+  --c-shadow-lg: var(--cx-shadow-lg);
+  --c-shadow-brand: var(--cx-shadow-brand);
+  --dur-fast: var(--cx-dur-fast);
+  --dur-mid: var(--cx-dur-mid);
+  --dur-slow: var(--cx-dur-slow);
+  --ease: var(--cx-ease-out);
+
+  /* admin-next legacy */
+  --cx-bg: var(--cx-bg);
+  --cx-surface: var(--cx-surface);
+  --cx-text: var(--cx-text);
+  --cx-text-muted: var(--cx-muted);
+  --cx-border: transparent;
+  --cx-brand: var(--cx-brand);
+  --cx-brand-2: var(--cx-surface-2);
+  --cx-success: var(--cx-success);
+  --cx-warning: var(--cx-warning);
+  --cx-danger: var(--cx-danger);
+  --cx-radius-sm: var(--cx-radius-sm);
+  --cx-radius-md: var(--cx-radius-md);
+  --cx-radius-lg: var(--cx-radius-lg);
+  --cx-ease-out: var(--cx-ease-out);
+  --cx-ease-in: var(--cx-ease-in);
+  --cx-dur-1: var(--cx-dur-fast);
+  --cx-dur-2: var(--cx-dur-mid);
+  --cx-dur-3: var(--cx-dur-slow);
+
+  /* Legacy aliases */
+  --bg: var(--cx-bg);
+  --panel: var(--cx-surface);
+  --ink: var(--cx-text);
+  --muted: var(--cx-muted);
+  --border: var(--cx-border);
+  --accent: var(--cx-brand);
+  --accent-2: var(--cx-brand-2);
+  --shadow: var(--cx-shadow-neu);
+}
+
+/* ============================================
+   DEPRECATION NOTICES (v1.0.0)
+   ============================================
+   The following legacy aliases are DEPRECATED and will be
+   removed in v2.0.0. Please migrate to --cx-* names.
+
+   Deprecated -> Recommended:
+   - --c-brand    -> --cx-brand
+   - --c-bg      -> --cx-bg
+   - --c-surface -> --cx-surface
+   - --c-text    -> --cx-text
+   - --dur-fast  -> --cx-dur-fast
+   - --dur-mid   -> --cx-dur-mid
+   - --dur-slow  -> --cx-dur-slow
+   - --ease     -> --cx-ease-out
+
+   Timeline: These aliases supported until v2.0.0 (min 2 minor versions)
+   ============================================ */

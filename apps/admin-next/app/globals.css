@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800;900&display=swap');
+
+/* Shared Design Tokens - inline below */
 
 @tailwind base;
 @tailwind components;
@@ -17,6 +19,10 @@
   --cx-success: #00A63D;
   --cx-warning: #FE9900;
   --cx-danger: #FF2157;
+
+  /* Accessibility: High contrast variants */
+  --cx-contrast-strong: #0A0E14;  /* Maximum contrast text */
+  --cx-contrast-muted: #4A5568; /* Muted text meeting 4.5:1 */
 
   --cx-radius-sm: 8px;
   --cx-radius-md: 16px;
@@ -48,15 +54,31 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Skip link for keyboard accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--cx-brand);
+  color: #fff;
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 body {
   margin: 0;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Manrope', system-ui, sans-serif;
   background: var(--cx-bg);
   color: var(--ink);
 }
 
 h1, h2, h3, .title { 
-  font-family: 'Space Mono', monospace; 
+  font-family: 'Unbounded', sans-serif; 
   font-weight: 700;
 }
 
@@ -200,7 +222,7 @@ button { font-family: inherit; }
   padding: 12px 20px;
   cursor: pointer;
   font-weight: 700;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Manrope', sans-serif;
   box-shadow: var(--cx-shadow-neu);
   transition: all var(--cx-dur-1) var(--cx-ease-out);
 }
@@ -233,6 +255,12 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   outline: none;
   box-shadow: inset 8px 8px 16px #c4c2c1, inset -8px -8px 16px #ffffff, 0 0 0 2px rgba(0, 102, 102, 0.4);
+}
+
+/* Focus visible for keyboard accessibility */
+:focus-visible {
+  outline: 3px solid var(--cx-brand);
+  outline-offset: 2px;
 }
 
 .small { color: var(--muted); font-size: 13px; }
@@ -289,8 +317,30 @@ input:focus, select:focus, textarea:focus {
   .sidebar-nav { flex-direction: row; margin-top: 0; }
   .sidebar-meta { display: none; }
 }
-@media (max-width: 720px) {
-  .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
-  .appbar { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .toolbar { flex-direction: column; align-items: stretch; }
+@media (max-width: 768px) {
+  .content { padding: 16px; }
+  .card { padding: 16px; }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+  .grid4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .shell { min-height: auto; }
+  .sidebar { padding: 12px; gap: 8px; }
+  .brand { padding: 6px; }
+  .brand-mark { width: 36px; height: 36px; font-size: 16px; }
+  .brand-title { font-size: 14px; }
+  .content { padding: 12px; }
+  .title { font-size: 20px; }
+  .appbar { flex-direction: column; align-items: stretch; gap: 12px; padding: 12px 16px; }
+  .grid4 { grid-template-columns: 1fr; }
+  .list-cards { grid-template-columns: 1fr; }
+  .table { font-size: 12px; }
+  .table th, .table td { padding: 10px 8px; }
+  .btn { padding: 10px 16px; font-size: 13px; }
+  input, select, textarea { padding: 10px 12px; font-size: 13px; }
+}
+@media (max-width: 320px) {
+  .content { padding: 8px; }
+  .card { padding: 12px; }
+  .title { font-size: 18px; }
 }

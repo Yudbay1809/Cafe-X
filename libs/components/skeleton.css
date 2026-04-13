@@ -1,0 +1,102 @@
+/* Cafe-X Skeleton Loading Styles */
+@import '../design-tokens/tokens.css';
+
+.skeleton {
+  display: inline-block;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--cx-skeleton-bg) 0%,
+    var(--cx-skeleton-highlight) 50%,
+    var(--cx-skeleton-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--cx-radius-sm);
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Component-specific skeleton variants */
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-button {
+  width: 100px;
+  height: 40px;
+}
+
+.skeleton-input {
+  height: 48px;
+  width: 100%;
+}
+
+.skeleton-card {
+  height: 180px;
+}
+
+.skeleton-badge {
+  width: 60px;
+  height: 24px;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 1.5em;
+}
+
+.skeleton-paragraph {
+  width: 100%;
+}
+
+.skeleton-paragraph:nth-child(2) {
+  width: 90%;
+}
+
+.skeleton-paragraph:nth-child(3) {
+  width: 75%;
+}
+
+/* Skeleton layouts */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cx-space-4);
+}
+
+.skeleton-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--cx-space-6);
+}
+
+.skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-space-4);
+  padding: var(--cx-space-4);
+  border-bottom: 1px solid var(--cx-border);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}

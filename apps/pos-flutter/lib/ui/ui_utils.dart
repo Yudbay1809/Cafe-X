@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../features/errors/error_mapper.dart';
 
 void showError(BuildContext context, Object error) {
   final message = toCashierMessage(error);
+  debugPrint('showError: $message');
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(message)),
   );
@@ -30,8 +32,12 @@ Future<String?> promptText(
           decoration: InputDecoration(hintText: hint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('OK')),
         ],
       );
     },

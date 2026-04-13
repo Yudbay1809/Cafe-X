@@ -1,0 +1,17 @@
+name: flutter_pos_api_client
+description: Dart/Flutter OpenAPI client for Flutter POS
+version: 0.1.0
+publish_to: 'none'
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  http: ^0.13.4
+  json_annotation: ^4.4.0
+
+dev_dependencies:
+  test: ^1.20.0
+  mockito: ^5.0.0
+
+flutter:
+  uses-material-design: false

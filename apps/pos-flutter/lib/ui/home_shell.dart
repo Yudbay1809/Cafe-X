@@ -108,15 +108,26 @@ class _HomeShellState extends State<HomeShell>
   }
 
   Future<void> _checkSession() async {
-    final ok = await widget.services.authService.isSessionValid();
-    if (!mounted) return;
-    setState(() {
-      _isLoggedIn = ok;
-      _current = ok ? 'Dashboard' : 'Login';
-    });
-    if (!ok) {
-      await widget.services.authService.logout();
-      await _loadUser();
+    try {
+      final ok = await widget.services.authService.isSessionValid();
+      if (!mounted) return;
+      debugPrint(
+          'Session check: ok=$ok, _isLoggedIn=$_isLoggedIn, _current=$_current');
+      if (!ok && _isLoggedIn) {
+        // Session expired - only navigate to Login if was previously logged in
+        debugPrint('Session expired, navigating to Login');
+        setState(() {
+          _isLoggedIn = false;
+          _current = 'Login';
+        });
+        await widget.services.authService.logout();
+        await _loadUser();
+      }
+    } catch (e) {
+      debugPrint('Session check error: $e');
+      // Network error or other - stay on current screen, don't crash
+      if (!mounted) return;
+      // Keep current state, just log error
     }
   }
 
@@ -332,14 +343,24 @@ class _HomeShellState extends State<HomeShell>
             appBar: AppBar(
               title: Row(
                 children: [
-                  Image.asset('assets/logo.png', width: 32, height: 32, fit: BoxFit.cover),
+                  Image.asset('assets/logo.png',
+                      width: 32, height: 32, fit: BoxFit.cover),
                   const SizedBox(width: 12),
-                  const Text('Cafe-X POS', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                  const Text('Cafe-X POS',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(8)),
-                    child: Text(_deviceName, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Text(_deviceName,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -348,24 +369,37 @@ class _HomeShellState extends State<HomeShell>
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: _shiftStatus.contains('open') ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                        color: _shiftStatus.contains('open')
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Text(_shiftStatus, style: TextStyle(color: _shiftStatus.contains('open') ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text(_shiftStatus,
+                          style: TextStyle(
+                              color: _shiftStatus.contains('open')
+                                  ? Colors.green
+                                  : Colors.red,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13)),
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(child: Text('Kasir: $_userName', style: const TextStyle(fontWeight: FontWeight.w600))),
+                  child: Center(
+                      child: Text('Kasir: $_userName',
+                          style: const TextStyle(fontWeight: FontWeight.w600))),
                 ),
                 TextButton.icon(
                   onPressed: _isLoggedIn && !_syncing ? _syncNow : null,
-                  icon: Icon(Icons.sync, color: Theme.of(context).colorScheme.primary),
+                  icon: Icon(Icons.sync,
+                      color: Theme.of(context).colorScheme.primary),
                   label: const Text('Sync Now'),
-                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primary),
+                  style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.primary),
                 ),
                 TextButton(
                   onPressed: _isLoggedIn
@@ -379,10 +413,13 @@ class _HomeShellState extends State<HomeShell>
                           });
                         }
                       : null,
-                  child: const Text('Logout', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                  child: const Text('Logout',
+                      style: TextStyle(
+                          color: Colors.grey, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -398,18 +435,26 @@ class _HomeShellState extends State<HomeShell>
                           child: Icon(
                             Icons.cloud_upload,
                             size: 20,
-                            color: _pendingEvents > 0 ? Colors.orange : Colors.grey,
+                            color: _pendingEvents > 0
+                                ? Colors.orange
+                                : Colors.grey,
                           ),
                         ),
                         if (_pendingEvents > 0) ...[
                           const SizedBox(width: 4),
-                          Text('$_pendingEvents', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text('$_pendingEvents',
+                              style: const TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
                         ],
                         if (_syncConflict) ...[
                           const SizedBox(width: 16),
                           InkWell(
-                            onTap: () => setState(() => _current = 'Sync Conflicts'),
-                            child: const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 22),
+                            onTap: () =>
+                                setState(() => _current = 'Sync Conflicts'),
+                            child: const Icon(Icons.warning_amber_rounded,
+                                color: Colors.red, size: 22),
                           ),
                         ],
                       ],
@@ -483,32 +528,73 @@ class _HomeShellState extends State<HomeShell>
                       children: [
                         if (isWide && _isLoggedIn)
                           Container(
-                            margin: const EdgeInsets.only(right: 16, top: 16, bottom: 16),
+                            margin: const EdgeInsets.only(
+                                right: 16, top: 16, bottom: 16),
                             clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.only(topRight: Radius.circular(24), bottomRight: Radius.circular(24)),
+                              borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(24),
+                                  bottomRight: Radius.circular(24)),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(5, 0)),
+                                BoxShadow(
+                                    color: Colors.black.withOpacity(0.02),
+                                    blurRadius: 10,
+                                    offset: const Offset(5, 0)),
                               ],
                             ),
                             child: NavigationRail(
                               backgroundColor: Colors.white,
                               selectedIndex: _navIndex(),
                               onDestinationSelected: (i) => _setNavByIndex(i),
-                              labelType: NavigationRailLabelType.all,
-                              selectedIconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
-                              selectedLabelTextStyle: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                              labelType: isWide
+                                  ? NavigationRailLabelType.all
+                                  : NavigationRailLabelType.selected,
+                              selectedIconTheme: IconThemeData(
+                                  color: Theme.of(context).colorScheme.primary),
+                              selectedLabelTextStyle: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold),
                               destinations: const [
-                                NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
-                                NavigationRailDestination(icon: Icon(Icons.schedule_outlined), selectedIcon: Icon(Icons.schedule), label: Text('Shift')),
-                                NavigationRailDestination(icon: Icon(Icons.shopping_bag_outlined), selectedIcon: Icon(Icons.shopping_bag), label: Text('Order')),
-                                NavigationRailDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: Text('Payment')),
-                                NavigationRailDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: Text('Receipt')),
-                                NavigationRailDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: Text('Reports')),
-                                NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Settings')),
-                                NavigationRailDestination(icon: Icon(Icons.monitor_heart_outlined), selectedIcon: Icon(Icons.monitor_heart), label: Text('Health')),
-                                NavigationRailDestination(icon: Icon(Icons.warning_amber_rounded), selectedIcon: Icon(Icons.warning), label: Text('Conflicts')),
-                                NavigationRailDestination(icon: Icon(Icons.help_outline), selectedIcon: Icon(Icons.help), label: Text('SOP')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.dashboard_outlined),
+                                    selectedIcon: Icon(Icons.dashboard),
+                                    label: Text('Dashboard')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.schedule_outlined),
+                                    selectedIcon: Icon(Icons.schedule),
+                                    label: Text('Shift')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.shopping_bag_outlined),
+                                    selectedIcon: Icon(Icons.shopping_bag),
+                                    label: Text('Order')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.payments_outlined),
+                                    selectedIcon: Icon(Icons.payments),
+                                    label: Text('Payment')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.receipt_long_outlined),
+                                    selectedIcon: Icon(Icons.receipt_long),
+                                    label: Text('Receipt')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.bar_chart_outlined),
+                                    selectedIcon: Icon(Icons.bar_chart),
+                                    label: Text('Reports')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.settings_outlined),
+                                    selectedIcon: Icon(Icons.settings),
+                                    label: Text('Settings')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.monitor_heart_outlined),
+                                    selectedIcon: Icon(Icons.monitor_heart),
+                                    label: Text('Health')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.warning_amber_rounded),
+                                    selectedIcon: Icon(Icons.warning),
+                                    label: Text('Conflicts')),
+                                NavigationRailDestination(
+                                    icon: Icon(Icons.help_outline),
+                                    selectedIcon: Icon(Icons.help),
+                                    label: Text('SOP')),
                               ],
                             ),
                           ),
@@ -565,6 +651,7 @@ class _HomeShellState extends State<HomeShell>
       'Sync Conflicts',
       'SOP'
     ];
+    debugPrint('Navigating to index $index: ${labels[index]}');
     setState(() => _current = labels[index]);
   }
 }

@@ -1,0 +1,262 @@
+openapi: 3.0.0
+info:
+  title: Cafe-X Flutter POS API (v1)
+  version: 1.0.0
+  description: OpenAPI specification for Flutter POS UI integration with Cafe-X backend (API v1).
+servers:
+  - url: https://api.example.com/api/v1
+    description: Production server
+  - url: http://localhost/api/v1
+    description: Local development server
+paths:
+  /pos/shifts/start:
+    post:
+      summary: Start a POS shift
+      operationId: startShift
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftStartRequest'
+      responses:
+        '200':
+          description: Shift started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /pos/shifts/end:
+    post:
+      summary: End a POS shift
+      operationId: endShift
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftEndRequest'
+      responses:
+        '200':
+          description: Shift ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /pos/orders:
+    post:
+      summary: Create a POS order
+      operationId: createPosOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /pos/order-items:
+    post:
+      summary: Add order item to POS order
+      operationId: addPosOrderItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderItem'
+      responses:
+        '200':
+          description: Order item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /pos/payments:
+    post:
+      summary: Process a POS payment
+      operationId: createPosPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Payment processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /pos/sync:
+    post:
+      summary: Sync POS state with backend
+      operationId: syncPos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncRequest'
+      responses:
+        '200':
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /product:
+    get:
+      summary: Get product catalog for POS
+      operationId: getProductCatalog
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Catalog
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /outlet/config:
+    get:
+      summary: Get outlet configuration
+      operationId: getOutletConfig
+      responses:
+        '200':
+          description: Outlet config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+        message:
+          type: string
+      required:
+        - success
+        - data
+    ShiftStartRequest:
+      type: object
+      properties:
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - device_id
+        - timestamp
+    ShiftEndRequest:
+      type: object
+      properties:
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - device_id
+        - timestamp
+    OrderCreateRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        payment_method:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - items
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        quantity:
+          type: integer
+        price:
+          type: number
+      required:
+        - product_id
+        - quantity
+        - price
+    PaymentRequest:
+      type: object
+      properties:
+        order_id:
+          type: string
+        amount:
+          type: number
+        method:
+          type: string
+        currency:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - order_id
+        - amount
+    SyncRequest:
+      type: object
+      properties:
+        last_sync:
+          type: string
+          format: date-time
+        device_id:
+          type: string
+      required:
+        - device_id
+    CatalogQuery:
+      type: object
+      properties:
+        q:
+          type: string
+        category:
+          type: string
+        limit:
+          type: integer
+        page:
+          type: integer
+    OutletConfig:
+      type: object
+      properties:
+        tenant_id:
+          type: integer
+        outlet_id:
+          type: integer
+        timezone:
+          type: string
+        currency:
+          type: string
+        branding:
+          type: object

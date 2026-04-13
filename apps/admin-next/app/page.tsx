@@ -69,7 +69,7 @@ export default function Page() {
         const analytics = (analyticsRaw || {}) as AnalyticsSummary;
         
         // Extract data from various sources
-        const analyticsTotals = analytics?.totals || {};
+        const analyticsTotals = (analytics?.totals || {}) as { total_orders?: number; total_sales?: number; avg_order_value?: number };
         
         setStats({
           orders: summary.orders_count ?? analyticsTotals.total_orders ?? 0,
@@ -84,7 +84,7 @@ export default function Page() {
         setDaily(dailyResp.items || []);
         
         // Try to get top products from sales report
-        const salesReport = await adminApi.reportSales().catch(() => null);
+        const salesReport = await adminApi.reportSales().catch(() => null) as { items?: any[] } | null;
         if (salesReport?.items) {
           const products = (salesReport.items as any[]).slice(0, 5).map((p: any) => ({
             name: p.name || p.product_name || 'Unknown',

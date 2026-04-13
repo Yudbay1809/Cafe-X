@@ -1,0 +1,29 @@
+// Flutter token export (SCSS map of design tokens)
+$cx-brand: #C8853C;
+$cx-teal: #0f6b63;
+$cx-bg: #F8F2EA;
+$cx-surface: #FFFFFF;
+$cx-text: #1B140F;
+$cx-muted: #7C6A5A;
+
+$cx-spacing-1: 4px;
+$cx-spacing-2: 8px;
+$cx-spacing-3: 12px;
+$cx-spacing-4: 16px;
+
+$cx-radius-sm: 8px;
+$cx-radius-md: 12px;
+$cx-radius-lg: 16px;
+
+$cx-font-heading: 'Unbounded', sans-serif;
+$cx-font-body: 'Manrope', sans-serif;
+
+// Example token groups
+$cx-colors: (
+  'brand': $cx-brand,
+  'teal': $cx-teal,
+  'bg': $cx-bg,
+  'surface': $cx-surface,
+  'text': $cx-text,
+  'muted': $cx-muted
+);

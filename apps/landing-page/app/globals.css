@@ -1,7 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Fascinate&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Fira+Code:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ===========================
-   VIBRANT DESIGN TOKENS
+   VIBRANT DESIGN TOKENS (Aliases to --cx-*)
    primary=#7C61D4, secondary=#EAAE87
    =========================== */
 :root {
@@ -47,7 +51,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Noto Sans', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
   background: var(--v-bg);
   color: var(--v-text);
   font-size: 16px;
@@ -68,8 +72,8 @@ img { max-width: 100%; display: block; }
 /* ===========================
    TYPOGRAPHY
    =========================== */
-.font-display { font-family: 'Fascinate', cursive; }
-.font-mono    { font-family: 'Fira Code', monospace; }
+.font-display { font-family: 'Unbounded', sans-serif; }
+.font-mono    { font-family: 'Manrope', monospace; }
 
 h1, h2, h3 { line-height: 1.15; }
 
@@ -95,7 +99,7 @@ h1, h2, h3 { line-height: 1.15; }
   box-shadow: 0 4px 32px rgba(124, 97, 212, 0.12);
 }
 .navbar-logo {
-  font-family: 'Fascinate', cursive;
+  font-family: 'Unbounded', sans-serif;
   font-size: 22px;
   color: var(--v-primary);
   letter-spacing: 0.02em;
@@ -112,7 +116,7 @@ h1, h2, h3 { line-height: 1.15; }
   border-radius: var(--v-radius-sm);
   display: grid;
   place-items: center;
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-weight: 900;
   font-size: 18px;
   color: #fff;
@@ -145,7 +149,7 @@ h1, h2, h3 { line-height: 1.15; }
   gap: var(--v-space-8);
   padding: 12px 24px;
   border-radius: var(--v-radius-md);
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Manrope', sans-serif;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
@@ -246,7 +250,7 @@ h1, h2, h3 { line-height: 1.15; }
 }
 
 .hero-heading {
-  font-family: 'Fascinate', cursive;
+  font-family: 'Unbounded', sans-serif;
   font-size: clamp(36px, 5vw, 64px);
   line-height: 1.1;
   color: var(--v-text);
@@ -279,7 +283,7 @@ h1, h2, h3 { line-height: 1.15; }
   animation: slideUp 0.8s var(--v-ease) 0.4s both;
 }
 .hero-stat-val {
-  font-family: 'Fascinate', cursive;
+  font-family: 'Unbounded', sans-serif;
   font-size: 28px;
   color: var(--v-primary);
 }
@@ -318,7 +322,7 @@ h1, h2, h3 { line-height: 1.15; }
 .hero-float-card.card-1 { top: 5%; left: -10%; animation-delay: 0s; }
 .hero-float-card.card-2 { bottom: 10%; right: -8%; animation-delay: 1.5s; }
 .hero-float-title { font-size: 12px; color: var(--v-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
-.hero-float-value { font-family: 'Fascinate', cursive; font-size: 22px; color: var(--v-primary); margin-top: 4px; }
+.hero-float-value { font-family: 'Unbounded', sans-serif; font-size: 22px; color: var(--v-primary); margin-top: 4px; }
 .hero-float-sub { font-size: 12px; color: var(--v-success); font-weight: 700; margin-top: 2px; }
 
 /* ===========================
@@ -328,7 +332,7 @@ h1, h2, h3 { line-height: 1.15; }
   padding: clamp(64px, 10vw, 120px) clamp(24px, 8vw, 120px);
 }
 .section-label {
-  font-family: 'Fira Code', monospace;
+  font-family: 'Manrope', monospace;
   font-size: 13px;
   font-weight: 700;
   color: var(--v-primary);
@@ -337,7 +341,7 @@ h1, h2, h3 { line-height: 1.15; }
   margin-bottom: var(--v-space-12);
 }
 .section-title {
-  font-family: 'Fascinate', cursive;
+  font-family: 'Unbounded', sans-serif;
   font-size: clamp(28px, 4vw, 48px);
   line-height: 1.15;
   color: var(--v-text);
@@ -441,7 +445,7 @@ h1, h2, h3 { line-height: 1.15; }
   margin: 4px 0 8px;
 }
 .menu-card-price {
-  font-family: 'Fascinate', cursive;
+  font-family: 'Unbounded', sans-serif;
   font-size: 20px;
   color: var(--v-secondary);
 }
@@ -554,6 +558,123 @@ h1, h2, h3 { line-height: 1.15; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .hero-float-card.card-1 { display: none; }
   .hero-float-card.card-2 { display: none; }
+}
+@media (max-width: 768px) {
+  .navbar { padding: 0 var(--v-space-16); }
+  .hero { padding: 80px var(--v-space-16) 48px; gap: var(--v-space-32); }
+  .hero-badge { padding: 5px 12px; font-size: 12px; margin-bottom: var(--v-space-16); }
+  .hero-heading { font-size: clamp(28px, 6vw, 44px); }
+  .hero-sub { font-size: 16px; margin-top: var(--v-space-12); }
+  .hero-actions { gap: var(--v-space-12); margin-top: var(--v-space-24); }
+  .btn { padding: 10px 20px; font-size: 14px; }
+  .btn-lg { padding: 14px 28px; font-size: 16px; }
+  .hero-stats { gap: var(--v-space-24); margin-top: var(--v-space-32); }
+  .hero-stat-val { font-size: 24px; }
+  .hero-visual { margin-top: var(--v-space-24); }
+  .section { padding: 48px var(--v-space-16); }
+  .section-title { font-size: clamp(24px, 5vw, 36px); }
+  .section-sub { font-size: 16px; margin-top: var(--v-space-12); }
+  .features-grid { gap: var(--v-space-16); margin-top: var(--v-space-32); }
+  .feature-card { padding: var(--v-space-24); }
+  .feature-icon { width: 48px; height: 48px; font-size: 24px; margin-bottom: var(--v-space-16); }
+  .feature-card h3 { font-size: 18px; }
+  .feature-card p { font-size: 14px; }
+  .menu-section { margin: 0 var(--v-space-12); padding: 40px var(--v-space-16); }
+  .menu-grid { gap: var(--v-space-16); margin-top: var(--v-space-32); }
+  .menu-card-img { height: 120px; font-size: 48px; }
+  .menu-card-body { padding: var(--v-space-12); }
+  .menu-card-name { font-size: 16px; }
+  .menu-card-price { font-size: 18px; }
+  .testimonials-grid { gap: var(--v-space-16); margin-top: var(--v-space-32); }
+  .testimonial-card { padding: var(--v-space-24); }
+  .testimonial-text { font-size: 14px; }
+  .cta-section { margin: 0 var(--v-space-12); padding: 48px var(--v-space-16); }
+  .cta-actions { gap: var(--v-space-12); }
+  .footer { padding: var(--v-space-32) var(--v-space-16); flex-direction: column; text-align: center; }
+}
+@media (max-width: 640px) {
+  .navbar-links { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .hero-badge { font-size: 11px; }
+  .hero-heading { font-size: 28px; }
+  .hero-sub { font-size: 15px; }
+  .btn { padding: 10px 18px; font-size: 14px; min-height: 40px; }
+  .btn-lg { padding: 12px 24px; font-size: 15px; }
+  .hero-stats { flex-direction: column; gap: var(--v-space-16); }
+  .hero-stat-val { font-size: 22px; }
+  .section { padding: 40px var(--v-space-12); }
+  .section-label { font-size: 12px; }
+  .section-title { font-size: 24px; }
+  .section-sub { font-size: 15px; }
+  .feature-card { padding: var(--v-space-20); }
+  .feature-card h3 { font-size: 16px; margin-bottom: var(--v-space-8); }
+  .feature-card p { font-size: 13px; }
+  .menu-section { margin: 0 var(--v-space-8); padding: 32px var(--v-space-12); border-radius: var(--v-radius-lg); }
+  .menu-card-img { height: 100px; font-size: 40px; }
+  .menu-card-body { padding: var(--v-space-10); }
+  .menu-card-name { font-size: 15px; }
+  .menu-card-price { font-size: 16px; }
+  .testimonial-card { padding: var(--v-space-20); }
+  .testimonial-stars { font-size: 16px; margin-bottom: var(--v-space-12); }
+  .testimonial-text { font-size: 13px; margin-bottom: var(--v-space-20); }
+  .cta-section { margin: 0 var(--v-space-8); padding: 40px var(--v-space-12); border-radius: var(--v-radius-lg); }
+  .cta-section .section-title { font-size: 24px; }
+  .cta-section .section-sub { font-size: 15px; }
+  .footer { gap: var(--v-space-12); }
+  .footer-links { flex-wrap: wrap; justify-content: center; }
+}
+@media (max-width: 480px) {
+  .navbar { height: 60px; }
+  .navbar-logo { font-size: 18px; }
+  .navbar-logo-icon { width: 32px; height: 32px; font-size: 16px; }
+  .navbar-cta { gap: var(--v-space-8); }
+  .hero { padding: 70px var(--v-space-12) 40px; }
+  .hero-badge { font-size: 10px; padding: 4px 10px; margin-bottom: var(--v-space-12); }
+  .hero-heading { font-size: 24px; }
+  .hero-sub { font-size: 14px; }
+  .hero-actions { flex-direction: column; align-items: stretch; gap: var(--v-space-10); }
+  .hero-actions .btn { width: 100%; justify-content: center; }
+  .hero-stats { gap: var(--v-space-12); }
+  .hero-stat-val { font-size: 20px; }
+  .hero-stat-label { font-size: 12px; }
+  .section { padding: 32px var(--v-space-12); }
+  .section-title { font-size: 22px; }
+  .section-sub { font-size: 14px; }
+  .feature-card { padding: var(--v-space-16); }
+  .feature-icon { width: 40px; height: 40px; font-size: 20px; margin-bottom: var(--v-space-12); }
+  .feature-card h3 { font-size: 15px; margin-bottom: var(--v-space-6); }
+  .feature-card p { font-size: 12px; }
+  .menu-section { padding: 24px var(--v-space-10); }
+  .menu-card-img { height: 90px; font-size: 36px; }
+  .menu-card-body { padding: var(--v-space-8); }
+  .menu-card-label { font-size: 10px; }
+  .menu-card-name { font-size: 14px; }
+  .menu-card-price { font-size: 15px; }
+  .testimonial-card { padding: var(--v-space-16); }
+  .testimonial-stars { font-size: 14px; margin-bottom: var(--v-space-10); }
+  .testimonial-text { font-size: 12px; margin-bottom: var(--v-space-16); }
+  .testimonial-avatar { width: 36px; height: 36px; font-size: 16px; }
+  .testimonial-name { font-size: 13px; }
+  .testimonial-role { font-size: 11px; }
+  .cta-section { padding: 32px var(--v-space-10); }
+  .cta-section .section-title { font-size: 20px; }
+  .cta-section .section-sub { font-size: 14px; }
+  .cta-actions { flex-direction: column; }
+  .cta-actions .btn { width: 100%; justify-content: center; }
+  .footer { padding: 24px var(--v-space-12); }
+  .footer-copy { font-size: 12px; }
+  .footer-links { gap: var(--v-space-16); }
+  .footer-links a { font-size: 12px; }
+}
+@media (max-width: 360px) {
+  .hero-heading { font-size: 22px; }
+  .hero-sub { font-size: 13px; }
+  .btn { font-size: 13px; padding: 8px 16px; }
+  .section-title { font-size: 20px; }
+  .feature-card { padding: var(--v-space-12); }
+  .menu-section { padding: 20px var(--v-space-8); }
+  .cta-section { padding: 24px var(--v-space-8); }
 }
 @media (max-width: 640px) {
   .navbar-links { display: none; }

@@ -1,4 +1,4 @@
-import { getSession } from './auth';
+  import { getSession } from './auth';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://127.0.0.1:9000/api/v1';
 

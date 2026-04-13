@@ -1,6 +1,14 @@
+import 'package:flutter/foundation.dart';
+
 String toCashierMessage(Object error) {
   final msg = error.toString().toLowerCase();
+  final rawMsg = error.toString();
+  debugPrint('toCashierMessage raw: $rawMsg');
 
+  // Business logic errors first - show actual message
+  if (rawMsg.startsWith('Bad state: ')) {
+    return rawMsg.substring(10); // Remove "Bad state: " prefix
+  }
   if (msg.contains('akun terkunci') || msg.contains('locked')) {
     return 'Akun terkunci sementara. Tunggu beberapa menit lalu coba lagi.';
   }
