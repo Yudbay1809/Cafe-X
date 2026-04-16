@@ -3,13 +3,16 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 import '../../core/constants.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/theme/colors.dart';
 import '../../features/payment/payment_service.dart';
 import '../../pos_app_service.dart';
 import '../ui_utils.dart';
 import '../widgets/section_card.dart';
 
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.services, required this.onChanged});
+  const PaymentScreen(
+      {super.key, required this.services, required this.onChanged});
 
   final PosAppService services;
   final VoidCallback onChanged;
@@ -20,7 +23,9 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final _orderId = TextEditingController();
-  final List<_PayRow> _rows = [const _PayRow(method: PaymentMethod.cash, amount: '0')];
+  final List<_PayRow> _rows = [
+    const _PayRow(method: PaymentMethod.cash, amount: '0')
+  ];
   bool _loading = false;
   String _status = '';
   StreamSubscription<String>? _shortcutSub;
@@ -48,7 +53,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (detail == null) {
       throw StateError('Order tidak ditemukan');
     }
-    if (detail.status == OrderStatus.paid || detail.status == OrderStatus.canceled) {
+    if (detail.status == OrderStatus.paid ||
+        detail.status == OrderStatus.canceled) {
       throw StateError('Order sudah paid/canceled');
     }
     if (detail.totalAmount <= 0) {
@@ -83,8 +89,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       setState(() {
         _rows
           ..clear()
-          ..add(_PayRow(method: PaymentMethod.cash, amount: half.toStringAsFixed(0)))
-          ..add(_PayRow(method: PaymentMethod.qris, amount: (total - half).toStringAsFixed(0)));
+          ..add(_PayRow(
+              method: PaymentMethod.cash, amount: half.toStringAsFixed(0)))
+          ..add(_PayRow(
+              method: PaymentMethod.qris,
+              amount: (total - half).toStringAsFixed(0)));
       });
     } catch (e) {
       if (!mounted) return;
@@ -118,7 +127,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }).toList();
       final sum = payments.fold<double>(0, (a, b) => a + b.amount);
       if (sum <= 0) throw StateError('Total pembayaran harus > 0');
-      if (sum < total) throw StateError('Total pembayaran kurang dari total order');
+      if (sum < total)
+        throw StateError('Total pembayaran kurang dari total order');
       final result = await widget.services.paymentService.payOrder(
         token: session.accessToken,
         actor: session.username,
@@ -154,7 +164,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         orderLocalId: orderLocalId,
         payments: [PaymentPart(method: method, amount: total)],
       );
-      setState(() => _status = 'Quick pay OK. Change: ${result['change_amount']}');
+      setState(
+          () => _status = 'Quick pay OK. Change: ${result['change_amount']}');
       widget.onChanged();
     } catch (e) {
       if (!mounted) return;
@@ -166,114 +177,205 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.enter): const _PayIntent(),
-        LogicalKeySet(LogicalKeyboardKey.escape): const _ClearIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{
-          _PayIntent: CallbackAction<_PayIntent>(
-            onInvoke: (intent) {
-              if (!_loading) _pay();
-              return null;
-            },
-          ),
-          _ClearIntent: CallbackAction<_ClearIntent>(
-            onInvoke: (intent) {
-              _clearForm();
-              return null;
-            },
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.gradientBackground,
+      ),
+      child: Shortcuts(
+        shortcuts: <LogicalKeySet, Intent>{
+          LogicalKeySet(LogicalKeyboardKey.enter): const _PayIntent(),
+          LogicalKeySet(LogicalKeyboardKey.escape): const _ClearIntent(),
         },
-        child: Focus(
-          autofocus: true,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: SectionCard(
-              title: 'Payment',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(controller: _orderId, decoration: const InputDecoration(labelText: 'Order Local ID')),
-                  const SizedBox(height: 12),
-                  const Text('Metode Pembayaran'),
-                  ..._rows.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final row = entry.value;
-                    return Row(
-                      children: [
-                        DropdownButton<PaymentMethod>(
-                          value: row.method,
-                          items: PaymentMethod.values
-                              .map((m) => DropdownMenuItem(value: m, child: Text(m.value)))
-                              .toList(),
-                          onChanged: (v) {
-                            setState(() => _rows[idx] = row.copyWith(method: v ?? row.method));
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextFormField(
-                            key: ValueKey('amount--'),
-                            initialValue: row.amount,
-                            decoration: const InputDecoration(labelText: 'Amount'),
-                            keyboardType: TextInputType.number,
-                            onChanged: (v) => _rows[idx] = row.copyWith(amount: v),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: _rows.length > 1 ? () => setState(() => _rows.removeAt(idx)) : null,
-                        ),
-                      ],
-                    );
-                  }),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: () => setState(() => _rows.add(const _PayRow(method: PaymentMethod.cash, amount: '0'))),
-                      child: const Text('Tambah Split Payment'),
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _PayIntent: CallbackAction<_PayIntent>(
+              onInvoke: (intent) {
+                if (!_loading) _pay();
+                return null;
+              },
+            ),
+            _ClearIntent: CallbackAction<_ClearIntent>(
+              onInvoke: (intent) {
+                _clearForm();
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spacingLg),
+              child: SectionCard(
+                title: 'Payment',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                        controller: _orderId,
+                        decoration:
+                            const InputDecoration(labelText: 'Order Local ID')),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    Text(
+                      'Metode Pembayaran',
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _loading ? null : () => _quickPay(PaymentMethod.cash),
-                        child: const Text('Quick Pay: Cash Exact'),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    ..._rows.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final row = entry.value;
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: AppTheme.spacingSm),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spacingMd),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceDark,
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusMd),
+                              ),
+                              child: DropdownButton<PaymentMethod>(
+                                value: row.method,
+                                underline: const SizedBox(),
+                                items: PaymentMethod.values
+                                    .map((m) => DropdownMenuItem(
+                                        value: m, child: Text(m.value)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() => _rows[idx] =
+                                      row.copyWith(method: v ?? row.method));
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.spacingSm),
+                            Expanded(
+                              child: TextFormField(
+                                key: ValueKey('amount--'),
+                                initialValue: row.amount,
+                                decoration:
+                                    const InputDecoration(labelText: 'Amount'),
+                                keyboardType: TextInputType.number,
+                                onChanged: (v) =>
+                                    _rows[idx] = row.copyWith(amount: v),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: AppColors.danger),
+                              onPressed: _rows.length > 1
+                                  ? () => setState(() => _rows.removeAt(idx))
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => setState(() => _rows.add(const _PayRow(
+                            method: PaymentMethod.cash, amount: '0'))),
+                        child: Text('+ Tambah Split',
+                            style: TextStyle(color: AppColors.brandPrimary)),
                       ),
-                      OutlinedButton(
-                        onPressed: _loading ? null : () => _quickPay(PaymentMethod.qris),
-                        child: const Text('Quick Pay: QRIS'),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMd),
+                    Wrap(
+                      spacing: AppTheme.spacingSm,
+                      runSpacing: AppTheme.spacingSm,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _loading
+                              ? null
+                              : () => _quickPay(PaymentMethod.cash),
+                          child: const Text('Cash'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _loading
+                              ? null
+                              : () => _quickPay(PaymentMethod.qris),
+                          child: const Text('QRIS'),
+                        ),
+                        OutlinedButton(
+                            onPressed: _loading ? null : _splitTwo,
+                            child: const Text('Split 2')),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.spacingLg),
+                    Text(
+                      'Numpad Cepat',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: AppTheme.spacingSm),
+                    Wrap(
+                      spacing: AppTheme.spacingXs,
+                      runSpacing: AppTheme.spacingXs,
+                      children: [
+                        _NumpadButton(
+                            label: 'Exact', onTap: _loading ? null : _setExact),
+                        _NumpadButton(
+                            label: '5k',
+                            onTap:
+                                _loading ? null : () => _setFirstAmount(5000)),
+                        _NumpadButton(
+                            label: '10k',
+                            onTap:
+                                _loading ? null : () => _setFirstAmount(10000)),
+                        _NumpadButton(
+                            label: '20k',
+                            onTap:
+                                _loading ? null : () => _setFirstAmount(20000)),
+                        _NumpadButton(
+                            label: '50k',
+                            onTap:
+                                _loading ? null : () => _setFirstAmount(50000)),
+                        _NumpadButton(
+                            label: '100k',
+                            onTap: _loading
+                                ? null
+                                : () => _setFirstAmount(100000)),
+                        _NumpadButton(
+                            label: '200k',
+                            onTap: _loading
+                                ? null
+                                : () => _setFirstAmount(200000)),
+                        _NumpadButton(
+                            label: '500k',
+                            onTap: _loading
+                                ? null
+                                : () => _setFirstAmount(500000)),
+                        _NumpadButton(
+                            label: 'Clear',
+                            onTap: _loading ? null : _clearForm),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.spacingLg),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _pay,
+                        child: _loading
+                            ? const CircularProgressIndicator()
+                            : const Text('Bayar'),
                       ),
-                      OutlinedButton(onPressed: _loading ? null : _splitTwo, child: const Text('Split 2')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text('Numpad Cepat'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _NumpadButton(label: 'Exact', onTap: _loading ? null : _setExact),
-                      _NumpadButton(label: '5k', onTap: _loading ? null : () => _setFirstAmount(5000)),
-                      _NumpadButton(label: '10k', onTap: _loading ? null : () => _setFirstAmount(10000)),
-                      _NumpadButton(label: '20k', onTap: _loading ? null : () => _setFirstAmount(20000)),
-                      _NumpadButton(label: '50k', onTap: _loading ? null : () => _setFirstAmount(50000)),
-                      _NumpadButton(label: '100k', onTap: _loading ? null : () => _setFirstAmount(100000)),
-                      _NumpadButton(label: '200k', onTap: _loading ? null : () => _setFirstAmount(200000)),
-                      _NumpadButton(label: '500k', onTap: _loading ? null : () => _setFirstAmount(500000)),
-                      _NumpadButton(label: 'Clear', onTap: _loading ? null : _clearForm),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(onPressed: _loading ? null : _pay, child: const Text('Pay')),
-                  if (_status.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_status)),
-                ],
+                    ),
+                    if (_status.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppTheme.spacingSm),
+                        child: Container(
+                          padding: const EdgeInsets.all(AppTheme.spacingSm),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceDark,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSm),
+                          ),
+                          child: Text(_status,
+                              style: Theme.of(context).textTheme.bodySmall),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -290,7 +392,8 @@ class _PayRow {
   final String amount;
 
   _PayRow copyWith({PaymentMethod? method, String? amount}) {
-    return _PayRow(method: method ?? this.method, amount: amount ?? this.amount);
+    return _PayRow(
+        method: method ?? this.method, amount: amount ?? this.amount);
   }
 }
 

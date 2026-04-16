@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_config_service.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/theme/colors.dart';
 import '../../features/errors/error_mapper.dart';
 import '../../pos_app_service.dart';
 import '../ui_utils.dart';
 import '../widgets/section_card.dart';
 
+// MVP Login Screen - Stitch Design Tokens applied
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
@@ -85,87 +88,101 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: SizedBox(
-          width: 520,
-          child: SectionCard(
-            title: 'Cafe-X POS',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Login Kasir',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _username,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                ),
-                TextField(
-                  controller: _password,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                ),
-                TextField(
-                  controller: _deviceName,
-                  decoration: const InputDecoration(labelText: 'Device Name'),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _login,
-                    child: const Text('Login'),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.gradientBackground,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingXl),
+        child: Center(
+          child: SizedBox(
+            width: 400,
+            child: SectionCard(
+              title: 'Cafe-X POS',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Login Kasir',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: _loading ? null : _logout,
-                    child: const Text('Logout'),
+                  const SizedBox(height: AppTheme.spacingLg),
+                  TextField(
+                    controller: _username,
+                    decoration: const InputDecoration(labelText: 'Username'),
                   ),
-                ),
-                const SizedBox(height: 12),
-                if (_status.isNotEmpty)
-                  Container(
+                  const SizedBox(height: AppTheme.spacingMd),
+                  TextField(
+                    controller: _password,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  TextField(
+                    controller: _deviceName,
+                    decoration: const InputDecoration(labelText: 'Device Name'),
+                  ),
+                  const SizedBox(height: AppTheme.spacingXl),
+                  SizedBox(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black54),
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.white,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SelectableText(
-                          _status,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: _status));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Status login disalin'),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.copy, size: 16),
-                            label: const Text('Copy'),
-                          ),
-                        ),
-                      ],
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _login,
+                      child: _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Login'),
                     ),
                   ),
-              ],
+                  const SizedBox(height: AppTheme.spacingSm),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: _loading ? null : _logout,
+                      child: const Text('Logout'),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacingMd),
+                  if (_status.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppTheme.spacingMd),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceDark,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SelectableText(
+                            _status,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: AppTheme.spacingSm),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: _status));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Status login disalin'),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.copy, size: 16),
+                              label: const Text('Copy'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
