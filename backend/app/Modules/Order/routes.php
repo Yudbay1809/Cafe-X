@@ -18,4 +18,5 @@ Route::post('/orders/cancel', [OrderController::class, 'cancel'])->middleware('p
 Route::post('/orders/{orderId}/cancel', [OrderController::class, 'cancelById'])->middleware('perm:order.cancel')->whereNumber('orderId');
 Route::post('/orders/receipt', [OrderController::class, 'receipt'])->middleware('perm:order.reprint');
 Route::post('/orders/reprint', [OrderController::class, 'reprint'])->middleware('perm:order.reprint');
+Route::post('/orders/apply-voucher', [OrderController::class, 'applyVoucher'])->middleware('perm:order.create');
 Route::get('/orders/{orderId}', [OrderController::class, 'detail'])->middleware('perm:order.view')->whereNumber('orderId');

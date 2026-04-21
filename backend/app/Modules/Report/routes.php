@@ -11,6 +11,7 @@ Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('per
 Route::get('/reports/sales', [ReportController::class, 'sales'])->middleware(['perm:report.view', 'feature:reports.basic']);
 Route::get('/reports/products', [ReportController::class, 'products'])->middleware(['perm:report.view', 'feature:reports.basic']);
 Route::get('/reports/daily', [ReportController::class, 'daily'])->middleware(['perm:report.view', 'feature:reports.basic']);
+Route::get('/reports/sales/export', [ReportController::class, 'exportSales'])->middleware(['perm:report.view', 'feature:reports.basic']);
 
 // Analytics API endpoints
 Route::get('/analytics/multi-outlet-summary', function (AnalyticsService $analytics) {

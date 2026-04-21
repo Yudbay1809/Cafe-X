@@ -8,9 +8,8 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class BillingController extends Controller
+class BillingController extends BaseApiController
 {
-    use ApiResponse;
 
     public function subscription(Request $request)
     {

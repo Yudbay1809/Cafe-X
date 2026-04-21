@@ -4,9 +4,10 @@ import { AdminShell } from '@/components/AdminShell';
 import { RequireAuth } from '@/components/RequireAuth';
 import { adminApi } from '@/lib/api';
 import { formatRupiah } from '@/lib/money';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useI18n } from '@/components/I18nProvider';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getEcho } from '@/services/echo';
 
 export default function OrdersPage() {
   const [orderId, setOrderId] = useState(0);
@@ -22,7 +23,7 @@ export default function OrdersPage() {
   const limit = 20;
   const { t } = useI18n();
 
-  async function load(nextPage = page) {
+  const load = useCallback(async (nextPage = page) => {
     try {
       setError('');
       const r = await adminApi.ordersList({
@@ -37,11 +38,40 @@ export default function OrdersPage() {
     } catch (e: any) {
       setError(e.message || 'Gagal load orders');
     }
-  }
+  }, [page, status, query, limit]);
 
   useEffect(() => {
     load(page);
-  }, [page]);
+  }, [page, load]);
+
+  useEffect(() => {
+    const echo = getEcho();
+    if (!echo) return;
+
+    console.log('Listening to orders channel...');
+    const channel = echo.channel('orders')
+      .listen('.order.placed', (e: any) => {
+        console.log('New Order Received:', e);
+        if (page === 1) {
+            load(1);
+        }
+        setMsg(`Pesanan Baru Terdeteksi: #${e.order.id}`);
+      })
+      .listen('.order.updated', (e: any) => {
+        console.log('Order Updated:', e);
+        load(page);
+      })
+      .listen('.order.paid', (e: any) => {
+        console.log('Order Paid:', e);
+        load(page);
+      });
+
+    return () => {
+      channel.stopListening('.order.placed');
+      channel.stopListening('.order.updated');
+      channel.stopListening('.order.paid');
+    };
+  }, [page, load]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 

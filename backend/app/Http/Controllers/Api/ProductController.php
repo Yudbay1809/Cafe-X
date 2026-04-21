@@ -9,9 +9,8 @@ use App\Support\ApiResponse;
 use App\Repositories\ProductRepository;
 use Illuminate\Http\Request;
 
-class ProductController extends Controller
+class ProductController extends BaseApiController
 {
-    use ApiResponse;
 
     public function __construct(private readonly ProductRepository $repo)
     {

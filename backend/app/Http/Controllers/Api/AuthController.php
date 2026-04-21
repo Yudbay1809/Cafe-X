@@ -5,15 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AuthLoginRequest;
 use App\Services\PosService;
-use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
+class AuthController extends BaseApiController
 {
-    use ApiResponse;
 
     public function __construct(private readonly PosService $service)
     {

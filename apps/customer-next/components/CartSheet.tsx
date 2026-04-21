@@ -1,7 +1,8 @@
 'use client';
 
-import { ApiError, customerApi } from '@/lib/api';
-import { clearCart, getCart, moveCart, setCart, type CartItem } from '@/lib/cart';
+import { menuApi } from '@/features/menu/api/menuApi';
+import { cartApi } from '@/features/cart/api/cartApi';
+import { useCartStore } from '@/store/useCartStore';
 import { formatRupiah } from '@/lib/money';
 import { getSession, setSession } from '@/lib/session';
 import type { TableInfo } from '@/lib/types';
@@ -17,55 +18,40 @@ type Props = Readonly<{
 }>;
 
 export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPlaced }: Props) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, updateQty, updateItemNotes, removeItem, clearCart } = useCartStore();
   const [notes, setNotes] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
-  const [discountPct, setDiscountPct] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [voucherMsg, setVoucherMsg] = useState('');
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
   const [tableCode, setTableCode] = useState('');
+  const [memberPhone, setMemberPhone] = useState('');
+  const [memberInfo, setMemberInfo] = useState<any>(null);
+  const [redeemPoints, setRedeemPoints] = useState(0);
+  const [pointsDiscount, setPointsDiscount] = useState(0);
 
   const tableCodePattern = /^[A-Z]{1,2}\d{1,3}$/;
 
   useEffect(() => {
     if (!open) return;
-    setItems(getCart(cartKey));
     setError('');
-  }, [open, cartKey]);
+  }, [open]);
 
-  const subtotal = useMemo(() => items.reduce((a, b) => a + b.price * b.qty, 0), [items]);
-  const discountAmount = Math.round(subtotal * (discountPct / 100));
-  const totalAfterDiscount = Math.max(0, subtotal - discountAmount);
+  const subtotal = useMemo(() => items.reduce((a, b) => a + b.harga * b.qty, 0), [items]);
+  const totalAfterDiscount = Math.max(0, subtotal - discountAmount - pointsDiscount);
   const itemCount = useMemo(() => items.reduce((a, b) => a + b.qty, 0), [items]);
 
-  function syncCart(next: CartItem[]) {
-    setItems(next);
-    setCart(cartKey, next);
-  }
-
-  function updateQty(productId: number, qty: number) {
-    const next = items.map((x) => (x.product_id === productId ? { ...x, qty: Math.max(1, qty) } : x));
-    syncCart(next);
-  }
-
-  function updateItemNotes(productId: number, notes: string) {
-    const next = items.map((x) => (x.product_id === productId ? { ...x, notes } : x));
-    syncCart(next);
-  }
-
-  function removeItem(productId: number) {
-    const next = items.filter((x) => x.product_id !== productId);
-    syncCart(next);
-  }
+  // Removed syncCart, updateQty, updateItemNotes, removeItem as they are now handled by useCartStore
 
   async function resolveTableToken(): Promise<string> {
     if (tableToken) return tableToken;
     const code = tableCode.trim().toUpperCase();
     if (!code) throw new Error('Masukkan nomor meja terlebih dahulu');
     if (!tableCodePattern.test(code)) throw new Error('Format nomor meja harus seperti A1 atau B12');
-    const lookup = await customerApi.tableTokenByCode(code);
+    const response = await menuApi.getTableTokenByCode(code);
+    const lookup = response.data;
     const token = lookup.data.table_token;
-    moveCart(cartKey, token);
     const currentSession = getSession();
     setSession({ ...(currentSession || { tableToken: '' }), tableToken: token, table: lookup.data.table });
     return token;
@@ -81,15 +67,19 @@ export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPla
         table_token: token,
         notes,
         items: items.map((x) => ({ product_id: x.product_id, qty: x.qty, notes: x.notes })),
+        voucher_code: discountAmount > 0 ? voucherCode : undefined,
+        member_phone: memberInfo?.phone || undefined,
+        redeem_points: pointsDiscount > 0 ? redeemPoints : undefined,
       };
-      const r = await customerApi.placeOrder(payload);
-      clearCart(token);
+      const response = await cartApi.placeOrder(payload);
+      const r = response.data;
+      clearCart();
 
       const session = getSession();
       const lastOrderItems = items.map((x) => ({
         product_id: x.product_id,
-        name: x.name,
-        price: x.price,
+        nama_menu: x.nama_menu,
+        harga: x.harga,
         qty: x.qty,
         notes: x.notes,
       }));
@@ -102,17 +92,13 @@ export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPla
       onPlaced({ tableToken: token, orderId: r.data.order_id });
       onClose();
     } catch (e: any) {
-      if (e instanceof Error && !(e instanceof ApiError)) {
-        setError(e.message);
-        return;
-      }
-      if (e instanceof ApiError && [400, 404, 410].includes(e.status)) {
+      if (e.response?.status && [400, 404, 410].includes(e.response.status)) {
         setError('Token meja tidak valid atau sudah expired. Silakan masukkan nomor meja lagi.');
         const currentSession = getSession();
         if (currentSession) setSession({ ...currentSession, tableToken: '', table: undefined });
         else setSession({ tableToken: '' });
       } else {
-        setError(e?.message || 'Gagal place order');
+        setError(e.response?.data?.message || e.message || 'Gagal place order');
       }
     } finally {
       setPlacing(false);
@@ -147,9 +133,9 @@ export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPla
             {items.map((i) => (
               <div key={i.product_id} className="cx-line">
                 <div className="cx-line-main">
-                  <div className="cx-line-title">{i.name}</div>
+                  <div className="cx-line-title">{i.nama_menu}</div>
                   <div className="small">
-                    {formatRupiah(i.price)} • qty {i.qty}
+                    {formatRupiah(i.harga)} • qty {i.qty}
                   </div>
                 </div>
                 <div className="cx-line-actions">
@@ -188,19 +174,110 @@ export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPla
                 Voucher
               </div>
               <div className="toolbar">
-                <input value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} placeholder="Kode voucher" />
+                <input 
+                  value={voucherCode} 
+                  onChange={(e) => {
+                    setVoucherCode(e.target.value.toUpperCase());
+                    if (discountAmount > 0) {
+                        setDiscountAmount(0);
+                        setVoucherMsg('');
+                    }
+                  }} 
+                  placeholder="Kode voucher" 
+                />
                 <button
-                  onClick={() => {
+                  type="button"
+                  onClick={async () => {
                     const code = voucherCode.trim().toUpperCase();
-                    if (code === 'CAFEX10') setDiscountPct(10);
-                    else if (code === 'CAFEX20') setDiscountPct(20);
-                    else setDiscountPct(0);
+                    if (!code) return;
+                    try {
+                        setError('');
+                        const res = await cartApi.validateVoucher({ code, subtotal });
+                        setDiscountAmount(res.data.discount_amount);
+                        setVoucherMsg(`Voucher '${res.data.name}' diterapkan!`);
+                    } catch (e: any) {
+                        setDiscountAmount(0);
+                        setVoucherMsg('');
+                        setError(e.response?.data?.message || 'Voucher tidak valid');
+                    }
                   }}
                 >
                   Terapkan
                 </button>
               </div>
-              {discountPct > 0 ? <div className="small">Diskon {discountPct}% diterapkan (demo)</div> : null}
+              {voucherMsg ? <div className="small" style={{ color: 'var(--success)', fontWeight: 600, marginTop: 4 }}>{voucherMsg}</div> : null}
+            </div>
+
+            <div className="divider" style={{ marginTop: 10 }} />
+            <div>
+              <div className="small">Loyalty Member (Nomor HP)</div>
+              <div className="toolbar">
+                <input 
+                  value={memberPhone} 
+                  onChange={(e) => setMemberPhone(e.target.value)} 
+                  placeholder="08123xxxx" 
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const phone = memberPhone.trim();
+                    if (!phone) return;
+                    try {
+                        setError('');
+                        const res = await cartApi.lookupMember(phone);
+                        setMemberInfo(res.data);
+                    } catch (e: any) {
+                        setMemberInfo(null);
+                        setError(e.response?.data?.message || 'Member tidak ditemukan');
+                    }
+                  }}
+                >
+                  Cek
+                </button>
+              </div>
+              {memberInfo && (
+                <div className="card" style={{ padding: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', marginTop: 8 }}>
+                   <div className="small" style={{ fontWeight: 700, color: '#166534' }}>
+                        Halo, {memberInfo.name}!
+                   </div>
+                   <div className="small">
+                        Poin kamu: {memberInfo.points} Pts. 
+                        Potensi poin baru: <b style={{ color: 'var(--primary)' }}>+{Math.floor(totalAfterDiscount / 1000)} Pts</b>
+                   </div>
+                   
+                   <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <input 
+                            type="number"
+                            min={0}
+                            max={memberInfo.points}
+                            value={redeemPoints}
+                            onChange={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                setRedeemPoints(Math.min(val, memberInfo.points, subtotal));
+                            }}
+                            style={{ flex: 1, padding: '4px 8px', fontSize: '12px' }}
+                            placeholder="Jmh poin"
+                        />
+                        <button 
+                            className="primary small" 
+                            style={{ padding: '6px 10px', fontSize: '10px' }}
+                            onClick={() => {
+                                setPointsDiscount(redeemPoints);
+                            }}
+                        >
+                            Pakai Poin
+                        </button>
+                        {pointsDiscount > 0 && (
+                             <button className="ghost small" style={{ color: 'red' }} onClick={() => { setPointsDiscount(0); setRedeemPoints(0); }}>Batal</button>
+                        )}
+                   </div>
+                   {pointsDiscount > 0 && (
+                        <div className="small" style={{ color: 'var(--success)', marginTop: 4, fontWeight: 700 }}>
+                            Diskon poin berhasil: -{formatRupiah(pointsDiscount)}
+                        </div>
+                   )}
+                </div>
+              )}
             </div>
 
             {error ? (

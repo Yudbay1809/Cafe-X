@@ -10,9 +10,8 @@ use App\Services\SyncService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
-class SyncController extends Controller
+class SyncController extends BaseApiController
 {
-    use ApiResponse;
 
     public function __construct(
         private readonly SyncService $syncService,

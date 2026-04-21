@@ -135,6 +135,10 @@ export const adminApi = {
     return api(`/reports/daily${query ? `?${query}` : ''}`);
   },
   reportShift: (shiftId?: number) => api(`/reports/shift${shiftId ? `?shift_id=${shiftId}` : ''}`),
+  exportSalesUrl: (from: string, to: string) => {
+    const s = getSession();
+    return `${API_BASE}/reports/sales/export?from=${from}&to=${to}&token=${s?.token || ''}`;
+  },
 
   // Analytics endpoints
   analyticsSummary: (params?: { tenant_id?: number; start_date?: string; end_date?: string }) => {
@@ -190,4 +194,19 @@ export const adminApi = {
     api(`/billing/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   billingMarkPaid: (id: number) => api(`/billing/invoices/${id}/mark-paid`, { method: 'POST', body: JSON.stringify({}) }),
   billingDemoReset: () => api('/billing/demo/reset', { method: 'POST', body: JSON.stringify({}) }),
+
+  // Procurement API
+  suppliers: (q?: string) => api<{ items: any[] }>(`/suppliers${q ? `?q=${q}` : ''}`),
+  supplierCreate: (body: any) => api('/suppliers', { method: 'POST', body: JSON.stringify(body) }),
+  supplierUpdate: (id: number, body: any) => api(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  supplierDelete: (id: number) => api(`/suppliers/${id}`, { method: 'DELETE' }),
+
+  purchaseOrders: (status?: string) => api<{ items: any[] }>(`/procurement/purchase-orders${status ? `?status=${status}` : ''}`),
+  poCreate: (body: any) => api('/procurement/purchase-orders', { method: 'POST', body: JSON.stringify(body) }),
+  poDetail: (id: number) => api<{ po: any; items: any[]; receipts: any[] }>(`/procurement/purchase-orders/${id}`),
+  poUpdateStatus: (id: number, status: string) => api(`/procurement/purchase-orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  goodsReceipts: () => api<{ items: any[] }>('/procurement/goods-receipts'),
+  grCreate: (body: any) => api('/procurement/goods-receipts', { method: 'POST', body: JSON.stringify(body) }),
+  grDetail: (id: number) => api<{ gr: any; items: any[] }>(`/procurement/goods-receipts/${id}`),
 };

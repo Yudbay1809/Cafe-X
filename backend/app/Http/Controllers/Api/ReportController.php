@@ -25,16 +25,24 @@ class ReportController extends Controller
             ->whereDate('paid_at', $today)
             ->sum('amount');
 
-        $orders = DB::table('pos_orders')
+        $ordersData = DB::table('pos_orders')
             ->where('tenant_id', $tenantId)
             ->when($outletId > 0, fn ($q) => $q->where('outlet_id', $outletId))
             ->whereDate('created_at', $today)
-            ->count();
+            ->select(
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(total_amount) as net_sales'),
+                DB::raw('SUM(discount_amount) as discount_total'),
+                DB::raw('SUM(subtotal) as gross_subtotal')
+            )
+            ->first();
 
         return $this->ok([
             'date' => $today,
-            'orders_count' => (int) $orders,
-            'sales_total' => (float) $sales,
+            'orders_count' => (int) ($ordersData->count ?? 0),
+            'sales_total' => (float) ($ordersData->net_sales ?? 0),
+            'discount_total' => (float) ($ordersData->discount_total ?? 0),
+            'gross_subtotal' => (float) ($ordersData->gross_subtotal ?? 0),
         ]);
     }
 
@@ -149,7 +157,12 @@ class ReportController extends Controller
         $to = $request->query('to');
 
         $rows = DB::table('pos_orders')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as orders'), DB::raw('SUM(total_amount) as total'))
+            ->select(
+                DB::raw('DATE(created_at) as date'), 
+                DB::raw('COUNT(*) as orders'), 
+                DB::raw('SUM(total_amount) as total'),
+                DB::raw('SUM(discount_amount) as discount')
+            )
             ->when($tenantId > 0, fn ($q) => $q->where('tenant_id', $tenantId))
             ->when($outletId > 0, fn ($q) => $q->where('outlet_id', $outletId))
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
@@ -162,6 +175,48 @@ class ReportController extends Controller
             'items' => $rows->all(),
             'from' => $from,
             'to' => $to,
+        ]);
+    }
+
+    public function exportSales(Request $request)
+    {
+        $auth = (array) $request->attributes->get('auth_user', []);
+        $tenantId = (int) ($auth['tenant_id'] ?? 0);
+        $outletId = (int) ($auth['outlet_id'] ?? 0);
+        $from = $request->query('from') ?? now()->toDateString();
+        $to = $request->query('to') ?? now()->toDateString();
+
+        $rows = DB::table('pos_orders')
+            ->where('tenant_id', $tenantId)
+            ->when($outletId > 0, fn ($q) => $q->where('outlet_id', $outletId))
+            ->whereDate('created_at', '>=', $from)
+            ->whereDate('created_at', '<=', $to)
+            ->orderBy('created_at')
+            ->get();
+
+        $callback = function() use ($rows) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Order No', 'Date', 'Status', 'Subtotal', 'Tax', 'Service', 'Discount', 'Total']);
+
+            foreach ($rows as $row) {
+                fputcsv($file, [
+                    $row->id,
+                    $row->order_no,
+                    $row->created_at,
+                    $row->status,
+                    (float)$row->subtotal,
+                    (float)$row->tax_amount,
+                    (float)$row->service_amount,
+                    (float)$row->discount_amount,
+                    (float)$row->total_amount,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"sales-report-{$from}-to-{$to}.csv\"",
         ]);
     }
 }

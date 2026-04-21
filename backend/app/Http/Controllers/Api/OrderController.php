@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\OrderCancelled;
+use App\Events\OrderPaid;
+use App\Events\OrderPlaced;
+use App\Events\OrderStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OrderAddItemRequest;
 use App\Http\Requests\Api\OrderCancelRequest;
@@ -22,9 +26,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class OrderController extends Controller
+class OrderController extends BaseApiController
 {
-    use ApiResponse;
 
     public function __construct(
         private readonly PosService $service,
@@ -56,6 +59,9 @@ class OrderController extends Controller
             tenantId: isset($auth['tenant_id']) ? (int) $auth['tenant_id'] : null,
             outletId: isset($auth['outlet_id']) ? (int) $auth['outlet_id'] : null
         );
+        
+        event(new OrderPlaced($order));
+
         app(AuditService::class)->log(
             tenantId: $auth['tenant_id'] ?? null,
             outletId: $auth['outlet_id'] ?? null,
@@ -196,6 +202,9 @@ class OrderController extends Controller
                 entityId: (string) $result['order_id'],
                 payload: $result
             );
+            
+            event(new OrderPaid($result));
+
             $response = [
                 'success' => true,
                 'message' => 'Pembayaran berhasil',
@@ -240,6 +249,9 @@ class OrderController extends Controller
                 entityId: (string) $result['order_id'],
                 payload: $result
             );
+
+            event(new OrderCancelled($result));
+
             $response = [
                 'success' => true,
                 'message' => 'Order dibatalkan',
@@ -274,6 +286,9 @@ class OrderController extends Controller
                 entityId: (string) $result['order_id'],
                 payload: $result
             );
+
+            event(new OrderStatusUpdated($result));
+
             return $this->ok($result, 'Status order diperbarui');
         } catch (Throwable $e) {
             return $this->fail($e->getMessage(), 409);
@@ -429,6 +444,21 @@ class OrderController extends Controller
             ];
             $this->idempotency->store($request, 'orders/cancel', $actor, $response);
             return response()->json($response);
+        } catch (Throwable $e) {
+            return $this->fail($e->getMessage(), 409);
+        }
+    }
+
+    public function applyVoucher(Request $request)
+    {
+        $data = $request->validate([
+            'order_id' => 'required|integer',
+            'code' => 'required|string',
+        ]);
+
+        try {
+            $result = $this->service->applyVoucher($data['order_id'], $data['code']);
+            return $this->ok($result, 'Voucher berhasil digunakan');
         } catch (Throwable $e) {
             return $this->fail($e->getMessage(), 409);
         }

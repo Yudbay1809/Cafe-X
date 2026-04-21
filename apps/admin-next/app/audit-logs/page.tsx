@@ -19,6 +19,8 @@ export default function AuditLogsPage() {
   const [error, setError] = useState('');
   const { t } = useI18n();
 
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+
   async function load(p = page) {
     setError('');
     try {
@@ -50,6 +52,30 @@ export default function AuditLogsPage() {
           </div>
         </div>
         {error ? <div className="card">{error}</div> : null}
+        
+        {selectedLog && (
+          <div className="cx-sheet-overlay" onClick={() => setSelectedLog(null)}>
+            <div className="cx-sheet" onClick={e => e.stopPropagation()} style={{ width: '40%' }}>
+              <div className="cx-sheet-header">
+                <div className="cx-sheet-title">Audit Detail #{selectedLog.id}</div>
+                <button className="ghost" onClick={() => setSelectedLog(null)}>Tutup</button>
+              </div>
+              <div className="cx-sheet-body">
+                <pre style={{ 
+                  background: '#f1f5f9', 
+                  padding: 16, 
+                  borderRadius: 8, 
+                  fontSize: 12, 
+                  overflow: 'auto',
+                  maxHeight: 400 
+                }}>
+                  {JSON.stringify(JSON.parse(selectedLog.payload_json || '{}'), null, 2)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="card">
           <table className="table">
             <thead>
@@ -59,7 +85,7 @@ export default function AuditLogsPage() {
                 <th>{t('action')}</th>
                 <th>Actor</th>
                 <th>Entity</th>
-                <th>Entity ID</th>
+                <th>Detail</th>
               </tr>
             </thead>
             <tbody>
@@ -67,10 +93,12 @@ export default function AuditLogsPage() {
                 <tr key={log.id}>
                   <td>{log.id}</td>
                   <td className="small">{log.created_at}</td>
-                  <td>{log.event_type}</td>
+                  <td><b>{log.event_type}</b></td>
                   <td>{log.actor}</td>
-                  <td>{log.entity_type || '-'}</td>
-                  <td>{log.entity_id || '-'}</td>
+                  <td>{log.entity_type} <span className="small">({log.entity_id})</span></td>
+                  <td>
+                    <button className="btn outline sm" onClick={() => setSelectedLog(log)}>Lihat</button>
+                  </td>
                 </tr>
               ))}
             </tbody>

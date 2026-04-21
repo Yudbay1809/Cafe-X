@@ -7,7 +7,7 @@ export type CustomerSession = {
   table?: TableInfo;
   lastOrderId?: number;
   lastOrderNo?: string;
-  lastOrderItems?: Array<{ product_id: number; name: string; price: number; qty: number; notes?: string }>;
+  lastOrderItems?: Array<{ product_id: number; nama_menu: string; harga: number; qty: number; notes?: string }>;
 };
 
 export function getSession(): CustomerSession | null {

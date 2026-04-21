@@ -11,6 +11,8 @@ export default function ReportsPage() {
   const [summary, setSummary] = useState<any>(null);
   const [shift, setShift] = useState<any>(null);
   const [shiftId, setShiftId] = useState(0);
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
   const [error, setError] = useState('');
   const { t } = useI18n();
 
@@ -83,6 +85,23 @@ export default function ReportsPage() {
                 {t('loadShift')}
               </button>
             </div>
+          </div>
+          <div className="divider" style={{ margin: '16px 0' }} />
+          <div className="cx-line-title" style={{ marginBottom: 12 }}>Export Transaksi Detail</div>
+          <div className="grid2">
+            <div className="toolbar">
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+              <span>s/d</span>
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+            <button 
+              className="btn success" 
+              onClick={() => {
+                window.open(adminApi.exportSalesUrl(dateFrom, dateTo), '_blank');
+              }}
+            >
+              Export ke CSV
+            </button>
           </div>
         </div>
         {error ? <div className="card">{error}</div> : null}

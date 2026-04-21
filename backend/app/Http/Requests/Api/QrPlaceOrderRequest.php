@@ -20,6 +20,9 @@ class QrPlaceOrderRequest extends FormRequest
             'items.*.product_id' => ['required', 'integer', 'min:1'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:1000'],
             'items.*.notes' => ['nullable', 'string', 'max:255'],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
+            'member_phone' => ['nullable', 'string', 'max:20'],
+            'redeem_points' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

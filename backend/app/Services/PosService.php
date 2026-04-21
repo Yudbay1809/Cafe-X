@@ -59,14 +59,19 @@ class PosService
             ->where('status', 'active')
             ->sum('line_subtotal');
 
+        $order = DB::table('pos_orders')->where('id', $orderId)->first();
+        $discountAmount = (float) ($order->discount_amount ?? 0);
+
+        $billableSubtotal = max(0, $subtotal - $discountAmount);
+
         $taxPct = (float) DB::table('pos_settings')->where('setting_key', 'tax_pct')->value('setting_value');
         $servicePct = (float) DB::table('pos_settings')->where('setting_key', 'service_pct')->value('setting_value');
         $taxPct = min(100, max(0, $taxPct));
         $servicePct = min(100, max(0, $servicePct));
 
-        $tax = round($subtotal * ($taxPct / 100), 2);
-        $service = round($subtotal * ($servicePct / 100), 2);
-        $total = round($subtotal + $tax + $service, 2);
+        $tax = round($billableSubtotal * ($taxPct / 100), 2);
+        $service = round($billableSubtotal * ($servicePct / 100), 2);
+        $total = round($billableSubtotal + $tax + $service, 2);
 
         DB::table('pos_orders')
             ->where('id', $orderId)
@@ -81,6 +86,8 @@ class PosService
 
         return [
             'subtotal' => $subtotal,
+            'discount_amount' => $discountAmount,
+            'billable_subtotal' => $billableSubtotal,
             'tax_amount' => $tax,
             'service_amount' => $service,
             'total_amount' => $total,
@@ -458,11 +465,22 @@ class PosService
             ];
             if ($toStatus === 'paid') {
                 $updates['paid_at'] = now();
+                $this->calculateLoyaltyPoints($orderId);
+                $this->deductRedeemedPoints($orderId);
             }
             if ($toStatus === 'canceled') {
                 $updates['canceled_at'] = now();
             }
             DB::table('pos_orders')->where('id', $orderId)->update($updates);
+
+            // ✅ Trigger Notifikasi WA jika pesanan sudah SIAP (ready for pickup)
+            if ($toStatus === 'prepared') {
+                try {
+                    app(\App\Services\NotificationService::class)->notifyOrderReady($orderId);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::warning("Gagal mengirim notifikasi WA: " . $ne->getMessage());
+                }
+            }
 
             return [
                 'order_id' => $orderId,
@@ -632,9 +650,263 @@ class PosService
         });
     }
 
-    public function receiptData(int $orderId): array
+    public function validateVoucher(string $code, float $subtotal): array
+    {
+        $voucher = DB::table('pos_vouchers')
+            ->where('code', $code)
+            ->where('is_active', 1)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->first();
+
+        if (!$voucher) {
+            throw new RuntimeException('Kode voucher tidak valid atau sudah kedaluwarsa');
+        }
+
+        if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
+            throw new RuntimeException('Voucher ini sudah mencapai batas penggunaan');
+        }
+
+        if ($subtotal < $voucher->min_order_amount) {
+            throw new RuntimeException('Minimal order untuk voucher ini adalah ' . number_format($voucher->min_order_amount, 0, ',', '.'));
+        }
+
+        $discount = 0;
+        if ($voucher->type === 'percent') {
+            $discount = ($subtotal * ($voucher->value / 100));
+            if ($voucher->max_discount_amount !== null && $discount > $voucher->max_discount_amount) {
+                $discount = $voucher->max_discount_amount;
+            }
+        } else {
+            $discount = (float) $voucher->value;
+        }
+
+        return [
+            'id' => $voucher->id,
+            'code' => $voucher->code,
+            'name' => $voucher->name,
+            'type' => $voucher->type,
+            'value' => (float) $voucher->value,
+            'discount_amount' => round($discount, 2),
+        ];
+    }
+
+    public function applyVoucher(int $orderId, string $code): array
+    {
+        return DB::transaction(function () use ($orderId, $code): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid untuk voucher');
+            }
+
+            $voucher = DB::table('pos_vouchers')
+                ->where('code', $code)
+                ->where('is_active', 1)
+                ->where(function($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->first();
+
+            if (!$voucher) {
+                throw new RuntimeException('Kode voucher tidak valid atau sudah kedaluwarsa');
+            }
+
+            if ($voucher->usage_limit !== null && $voucher->usage_count >= $voucher->usage_limit) {
+                throw new RuntimeException('Voucher ini sudah mencapai batas penggunaan');
+            }
+
+            $subtotal = (float) DB::table('pos_order_items')
+                ->where('order_id', $orderId)
+                ->where('status', 'active')
+                ->sum('line_subtotal');
+
+            if ($subtotal < $voucher->min_order_amount) {
+                throw new RuntimeException('Minimal order untuk voucher ini adalah ' . $voucher->min_order_amount);
+            }
+
+            $discount = 0;
+            if ($voucher->type === 'percent') {
+                $discount = ($subtotal * ($voucher->value / 100));
+                if ($voucher->max_discount_amount !== null && $discount > $voucher->max_discount_amount) {
+                    $discount = $voucher->max_discount_amount;
+                }
+            } else {
+                $discount = (float) $voucher->value;
+            }
+
+            DB::table('pos_orders')->where('id', $orderId)->update([
+                'voucher_id' => $voucher->id,
+                'voucher_code' => $code,
+                'discount_amount' => $discount,
+                'updated_at' => now(),
+            ]);
+
+            DB::table('pos_vouchers')->where('id', $voucher->id)->increment('usage_count');
+
+            $totals = $this->recomputeOrderTotals($orderId);
+
+            return [
+                'order_id' => $orderId,
+                'voucher_code' => $code,
+                'discount_amount' => $discount,
+                'totals' => $totals
+            ];
+        });
+    }
+
+    public function applyMember(int $orderId, string $phone): array
+    {
+        return DB::transaction(function () use ($orderId, $phone): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid untuk member');
+            }
+
+            $member = DB::table('customers')->where('phone', $phone)->first();
+            if (!$member) {
+                throw new RuntimeException('Member tidak ditemukan');
+            }
+
+            DB::table('pos_orders')->where('id', $orderId)->update([
+                'member_id' => $member->id,
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'member' => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'phone' => $member->phone,
+                ]
+            ];
+        });
+    }
+
+    protected function calculateLoyaltyPoints(int $orderId): void
     {
         $order = DB::table('pos_orders')->where('id', $orderId)->first();
+        if (!$order || !$order->member_id) return;
+
+        // Formula: 1 poin per Rp 1.000 (Subtotal)
+        $points = floor((float)$order->total_amount / 1000);
+        if ($points < 1) return;
+
+        $exists = DB::table('customer_points')
+            ->where('customer_id', $order->member_id)
+            ->where('tenant_id', $order->tenant_id)
+            ->exists();
+
+        if ($exists) {
+            DB::table('customer_points')
+                ->where('customer_id', $order->member_id)
+                ->where('tenant_id', $order->tenant_id)
+                ->increment('points', $points, ['updated_at' => now()]);
+        } else {
+            DB::table('customer_points')->insert([
+                'customer_id' => (int) $order->member_id,
+                'tenant_id' => (int) $order->tenant_id,
+                'points' => $points,
+                'updated_at' => now(),
+            ]);
+        }
+
+        // Record transaction
+        DB::table('customer_transactions')->insert([
+            'customer_id' => (int) $order->member_id,
+            'tenant_id' => (int) $order->tenant_id,
+            'order_id' => $orderId,
+            'type' => 'earn',
+            'amount' => $points,
+            'description' => 'Points earned from Order #' . $order->order_no,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    protected function deductRedeemedPoints(int $orderId): void
+    {
+        $order = DB::table('pos_orders')->where('id', $orderId)->first();
+        if (!$order || !$order->member_id || $order->redeem_points <= 0) return;
+
+        DB::table('customer_points')
+            ->where('customer_id', $order->member_id)
+            ->where('tenant_id', $order->tenant_id)
+            ->decrement('points', $order->redeem_points, ['updated_at' => now()]);
+
+        // Record transaction
+        DB::table('customer_transactions')->insert([
+            'customer_id' => (int) $order->member_id,
+            'tenant_id' => (int) $order->tenant_id,
+            'order_id' => $orderId,
+            'type' => 'redeem',
+            'points_delta' => -$order->redeem_points,
+            'ref_type' => 'order',
+            'ref_id' => $orderId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function redeemPoints(int $orderId, int $points): array
+    {
+        return DB::transaction(function () use ($orderId, $points): array {
+            $order = DB::table('pos_orders')->lockForUpdate()->where('id', $orderId)->first();
+            if (!$order || in_array($order->status, ['paid', 'canceled'], true)) {
+                throw new RuntimeException('Order tidak valid untuk penukaran poin');
+            }
+            if (!$order->member_id) {
+                throw new RuntimeException('Order harus terhubung dengan Member sebelum menukar poin');
+            }
+
+            // Check point balance
+            $balance = DB::table('customer_points')
+                ->where('customer_id', $order->member_id)
+                ->where('tenant_id', $order->tenant_id)
+                ->value('points') ?? 0;
+
+            if ($balance < $points) {
+                throw new RuntimeException("Saldo poin tidak mencukupi (Tersedia: {$balance})");
+            }
+
+            // Conversion rate: 1 point = Rp 1
+            $discount = (float) $points;
+
+            // Discount cannot exceed subtotal (assuming subtotal exists or use total_amount)
+            $maxDiscount = (float) $order->subtotal;
+            if ($discount > $maxDiscount) {
+                $discount = $maxDiscount;
+                $points = (int) $discount; // Adjust points to max possible
+            }
+
+            $newTotal = ($order->subtotal + $order->tax_amount) - ($order->discount_amount ?? 0) - $discount;
+
+            DB::table('pos_orders')->where('id', $orderId)->update([
+                'redeem_points' => $points,
+                'points_discount' => $discount,
+                'total_amount' => $newTotal,
+                'updated_at' => now(),
+                'sync_version' => DB::raw('sync_version + 1'),
+            ]);
+
+            return [
+                'order_id' => $orderId,
+                'redeemed_points' => $points,
+                'discount_amount' => $discount,
+                'new_total' => $newTotal
+            ];
+        });
+    }
+
+    public function receiptData(int $orderId): array
+    {
+        $order = DB::table('pos_orders')
+            ->leftJoin('customers', 'customers.id', '=', 'pos_orders.member_id')
+            ->select('pos_orders.*', 'customers.name as member_name')
+            ->where('pos_orders.id', $orderId)
+            ->first();
+
         if (!$order) {
             throw new RuntimeException('Order tidak ditemukan');
         }

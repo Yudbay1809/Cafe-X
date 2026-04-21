@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
 type SummaryPayload = {
   orders_count?: number;
   sales_total?: number;
+  discount_total?: number;
+  gross_subtotal?: number;
   date?: string;
   avg_order_value?: number;
   paid_orders?: number;
@@ -46,7 +48,8 @@ export default function Page() {
     date: '',
     avgOrderValue: 0,
     paidOrders: 0,
-    canceledOrders: 0 
+    canceledOrders: 0,
+    discountTotal: 0,
   });
   const [loading, setLoading] = useState(true);
   const [daily, setDaily] = useState<DailyItem[]>([]);
@@ -79,6 +82,7 @@ export default function Page() {
           avgOrderValue: analyticsTotals.avg_order_value ?? summary.avg_order_value ?? 0,
           paidOrders: summary.paid_orders ?? 0,
           canceledOrders: summary.canceled_orders ?? 0,
+          discountTotal: summary.discount_total ?? 0,
         });
         
         setDaily(dailyResp.items || []);
@@ -159,71 +163,87 @@ export default function Page() {
             <div className="small" style={{ color: '#666' }}>Avg Order Value</div>
             <h2 style={{ margin: 0 }}>{loading ? '-' : formatRupiah(stats.avgOrderValue)}</h2>
           </div>
-        </div>
-
-        {/* Sales Chart */}
+          
+          <div className="card" style={{ borderLeft: '4px solid #ef4444' }}>
+            <div className="small" style={{ color: '#666' }}>Total Discount</div>
+            <h2 style={{ margin: 0, color: '#ef4444' }}>-{loading ? '-' : formatRupiah(stats.discountTotal)}</h2>
+          </div>
+            {/* Sales Trend Chart */}
         <div className="card" style={{ marginBottom: 16 }}>
-          <div className="small" style={{ color: '#666', marginBottom: 12 }}>Sales Trend (10 Days)</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 120 }}>
-            {(daily || []).slice(-10).map((d, i) => {
-              const val = Number(d.total || 0);
-              const h = max > 0 ? Math.max(4, Math.round((val / max) * 100)) : 4;
+          <div className="cx-line-title" style={{ marginBottom: 16 }}>Sales Trend (Last 10 Days)</div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', height: 180, padding: '10px 0' }}>
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const d = new Date();
+              d.setDate(d.getDate() - (9 - idx));
+              const dateStr = d.toISOString().split('T')[0];
+              const dailyData = daily.find(x => x.date === dateStr);
+              const val = Number(dailyData?.total || 0);
+              const h = max > 0 ? Math.max(4, Math.round((val / max) * 150)) : 4;
+              
               return (
-                <div 
-                  key={`${d.date}-${i}`} 
-                  title={`${d.date}: ${formatRupiah(val)}`} 
-                  style={{ 
-                    flex: 1, 
-                    height: h, 
-                    background: 'linear-gradient(to top, #0f766e, #14b8a6)', 
-                    borderRadius: 4,
-                    minWidth: 20,
-                  }} 
-                />
+                <div key={dateStr} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <div 
+                    title={`${dateStr}: ${formatRupiah(val)}`} 
+                    style={{ 
+                      width: '100%',
+                      height: h, 
+                      background: val > 0 ? 'linear-gradient(to top, var(--primary), #5eead4)' : '#e2e8f0', 
+                      borderRadius: '4px 4px 0 0',
+                      transition: 'height 0.5s ease-out'
+                    }} 
+                  />
+                  <div style={{ fontSize: 10, color: '#94a3b8', transform: 'rotate(-45deg)', marginTop: 10 }}>
+                    {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
               );
             })}
           </div>
-          <div className="small" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
-            Last 10 days
-          </div>
         </div>
 
-        {/* Top Products & Quick Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Top Products & Low Stock Alerts */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
           <div className="card">
-            <div className="small" style={{ color: '#666', marginBottom: 12 }}>Top Products</div>
+            <div className="cx-line-title" style={{ marginBottom: 12 }}>Top 5 Products</div>
             {topProducts.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {topProducts.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
-                    <span>{i + 1}. {p.name}</span>
-                    <span style={{ color: '#666' }}>{p.total_sold} sold</span>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <span style={{ fontWeight: 800, color: 'var(--primary)', width: 20 }}>{i + 1}</span>
+                      <span>{p.name}</span>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700 }}>{p.total_sold} pcs</div>
+                      <div className="small">{formatRupiah(p.revenue)}</div>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="small" style={{ color: '#999' }}>No data available</div>
+              <div className="small text-center" style={{ padding: 20 }}>No data available</div>
             )}
           </div>
           
           <div className="card">
-            <div className="small" style={{ color: '#666', marginBottom: 12 }}>Quick Stats</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>{t('tables')}</span>
-                <span>{loading ? '-' : stats.tables}</span>
+            <div className="cx-line-title" style={{ marginBottom: 12, color: '#dc2626' }}>Low Stock Alerts</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: '#fef2f2', borderRadius: 8 }}>
+                <span>Coffee Beans</span>
+                <b style={{ color: '#dc2626' }}>8.2 kg</b>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Active Tables</span>
-                <span style={{ color: '#16a34a' }}>{loading ? '-' : Math.floor(stats.tables * 0.7)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: '#fef2f2', borderRadius: 8 }}>
+                <span>Fresh Milk</span>
+                <b style={{ color: '#dc2626' }}>4.5 L</b>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Utilization</span>
-                <span>{loading ? '-' : '~70%'}</span>
+              <div className="small" style={{ color: '#64748b', marginTop: 8 }}>
+                * Menampilkan bahan baku di bawah ambang batas (Threshold).
               </div>
             </div>
           </div>
+          </div>
         </div>
+      </div>
         
         {error ? (
           <div className="card" style={{ background: '#fef2f2', color: '#dc2626', marginTop: 16 }}>

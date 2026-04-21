@@ -18,6 +18,8 @@ Route::prefix('v1')->group(function (): void {
         require base_path('app/Modules/Order/routes.php');
         require base_path('app/Modules/Report/routes.php');
         require base_path('app/Modules/Billing/routes.php');
+        require base_path('app/Modules/Inventory/routes.php');
+        require base_path('app/Modules/Procurement/routes.php');
     });
 });
 

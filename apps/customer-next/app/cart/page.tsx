@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
-import { ApiError, customerApi } from '@/lib/api';
-import { clearCart, getCart, setCart, moveCart } from '@/lib/cart';
+import { menuApi } from '@/features/menu/api/menuApi';
+import { cartApi } from '@/features/cart/api/cartApi';
+import { useCartStore } from '@/store/useCartStore';
 import { getSession, setSession } from '@/lib/session';
 import type { TableInfo } from '@/lib/types';
 import { formatRupiah } from '@/lib/money';
@@ -11,10 +12,10 @@ import { useEffect, useMemo, useState } from 'react';
 export default function CartPage() {
   const search = useSearchParams();
   const searchToken = search.get('tableToken') || '';
+  const { items, updateQty, updateItemNotes, clearCart } = useCartStore();
   const [activeToken, setActiveToken] = useState(() => searchToken || getSession()?.tableToken || '');
   const [tableInfo, setTableInfo] = useState<TableInfo | null>(getSession()?.table ?? null);
   const cartKey = activeToken || 'public';
-  const [items, setItems] = useState(getCart(cartKey));
   const [notes, setNotes] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
   const [discountPct, setDiscountPct] = useState(0);
@@ -36,25 +37,9 @@ export default function CartPage() {
     }
   }, [searchToken]);
 
-  useEffect(() => {
-    setItems(getCart(cartKey));
-  }, [cartKey]);
-
-  const total = useMemo(() => items.reduce((a, b) => a + b.price * b.qty, 0), [items]);
+  const total = useMemo(() => items.reduce((a, b) => a + b.harga * b.qty, 0), [items]);
   const discountAmount = Math.round(total * (discountPct / 100));
   const totalAfterDiscount = Math.max(0, total - discountAmount);
-
-  function updateQty(productId: number, qty: number) {
-    const next = items.map((x) => (x.product_id === productId ? { ...x, qty: Math.max(1, qty) } : x));
-    setItems(next);
-    setCart(cartKey, next);
-  }
-
-  function updateItemNotes(productId: number, notes: string) {
-    const next = items.map((x) => (x.product_id === productId ? { ...x, notes } : x));
-    setItems(next);
-    setCart(cartKey, next);
-  }
 
   async function placeOrder() {
     setPlacing(true);
@@ -73,9 +58,9 @@ export default function CartPage() {
           setPlacing(false);
           return;
         }
-        const lookup = await customerApi.tableTokenByCode(code);
+        const response = await menuApi.getTableTokenByCode(code);
+        const lookup = response.data;
         token = lookup.data.table_token;
-        moveCart(cartKey, token);
         const currentSession = getSession();
         setSession({ ...(currentSession || { tableToken: '' }), tableToken: token, table: lookup.data.table });
         setActiveToken(token);
@@ -87,13 +72,14 @@ export default function CartPage() {
         notes,
         items: items.map((x) => ({ product_id: x.product_id, qty: x.qty, notes: x.notes })),
       };
-      const r = await customerApi.placeOrder(payload);
-      clearCart(token);
+      const response = await cartApi.placeOrder(payload);
+      const r = response.data;
+      clearCart();
       const session = getSession();
       const lastOrderItems = items.map((x) => ({
         product_id: x.product_id,
-        name: x.name,
-        price: x.price,
+        nama_menu: x.nama_menu,
+        harga: x.harga,
         qty: x.qty,
         notes: x.notes,
       }));
@@ -104,8 +90,7 @@ export default function CartPage() {
       }
       router.push(`/order-status?tableToken=${encodeURIComponent(token)}&orderId=${r.data.order_id}`);
     } catch (e: any) {
-      if (e instanceof ApiError) {
-        if ([400, 404, 410].includes(e.status)) {
+        if (e.response?.status && [400, 404, 410].includes(e.response.status)) {
           setError('Token meja tidak valid atau sudah expired. Silakan masukkan nomor meja lagi.');
           const currentSession = getSession();
           if (currentSession) {
@@ -119,11 +104,8 @@ export default function CartPage() {
             router.replace('/cart');
           }
         } else {
-          setError(e.message || 'Gagal place order');
+          setError(e.response?.data?.message || e.message || 'Gagal place order');
         }
-      } else {
-        setError('Gagal place order');
-      }
     } finally {
       setPlacing(false);
     }
@@ -147,8 +129,8 @@ export default function CartPage() {
         <div className="card" key={i.product_id}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontWeight: 700 }}>{i.name}</div>
-              <div className="small">{formatRupiah(i.price)} x {i.qty}</div>
+              <div style={{ fontWeight: 700 }}>{i.nama_menu}</div>
+              <div className="small">{formatRupiah(i.harga)} x {i.qty}</div>
             </div>
             <div className="toolbar">
               <button className="ghost" onClick={() => updateQty(i.product_id, i.qty - 1)}>-</button>

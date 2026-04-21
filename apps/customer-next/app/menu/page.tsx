@@ -1,7 +1,9 @@
 'use client';
 
-import { ApiError, API_ORIGIN, customerApi } from '@/lib/api';
-import { addToCart, getCart } from '@/lib/cart';
+import { API_ORIGIN } from '@/services/api';
+import { menuApi } from '@/features/menu/api/menuApi';
+import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { getFavorites, toggleFavorite } from '@/lib/favorites';
 import type { Product } from '@/lib/types';
 import type { TableInfo } from '@/lib/types';
@@ -26,6 +28,10 @@ export default function MenuPage() {
   const router       = useRouter();
   const session      = getSession();
 
+  const { items, addItem } = useCartStore();
+  const cartCount = items.reduce((a, b) => a + b.qty, 0);
+  const cartTotal = items.reduce((a, b) => a + b.qty * b.harga, 0);
+
   const [products,         setProducts]        = useState<Product[]>([]);
   const [table,            setTable]           = useState<TableInfo | null>(null);
   const [tableCode,        setTableCode]       = useState('');
@@ -36,8 +42,6 @@ export default function MenuPage() {
   const [offlineNotice,    setOfflineNotice]   = useState('');
   const [q,                setQ]               = useState('');
   const [category,         setCategory]        = useState('All');
-  const [cartCount,        setCartCount]       = useState(0);
-  const [cartTotal,        setCartTotal]       = useState(0);
   const [animateCount,     setAnimateCount]    = useState(false);
   const [favoriteIds,      setFavoriteIds]     = useState<number[]>([]);
   const [voucher,          setVoucher]         = useState('');
@@ -48,8 +52,9 @@ export default function MenuPage() {
   /* ── Load products ─────────────────────── */
   useEffect(() => {
     const load = () => {
-      const req = tableToken ? customerApi.menu(tableToken) : customerApi.publicMenu();
-      req.then((r: any) => {
+      const req = tableToken ? menuApi.getMenu(tableToken) : menuApi.getPublicMenu();
+      req.then((response: any) => {
+        const r = response.data;
         setProducts(r.data.products || []);
         if (tableToken) {
           setTable(r.data.table);
@@ -61,8 +66,8 @@ export default function MenuPage() {
           setTable(null); setTableCode('');
         }
         setMenuCache({ tableToken: cartKey, table: tableToken ? r.data.table : null, products: r.data.products || [], cachedAt: new Date().toISOString() });
-      }).catch((e) => {
-        if (tableToken && e instanceof ApiError && (e.status === 404 || e.status === 410)) {
+      }).catch((e: any) => {
+        if (tableToken && (e.response?.status === 404 || e.response?.status === 410)) {
           clearSession(); router.replace('/menu?error=token'); return;
         }
         const cache = getMenuCache(cartKey);
@@ -81,11 +86,8 @@ export default function MenuPage() {
   }, [tableToken]);
 
   /* ── Sync cart ─────────────────────────── */
-  useEffect(() => {
-    const cart = getCart(cartKey);
-    setCartCount(cart.reduce((a, b) => a + b.qty, 0));
-    setCartTotal(cart.reduce((a, b) => a + b.qty * b.price, 0));
-  }, [cartKey, products]);
+  // Cart synced automatically by useCartStore hooks
+
 
   useEffect(() => { setFavoriteIds(getFavorites()); }, []);
 
@@ -128,17 +130,20 @@ export default function MenuPage() {
   }
 
   function handleAddToCart(p: Product) {
-    addToCart(cartKey, { product_id: p.id_menu, name: p.nama_menu, price: Number(p.harga), qty: 1 });
-    const cart = getCart(cartKey);
-    setCartCount(cart.reduce((a, b) => a + b.qty, 0));
-    setCartTotal(cart.reduce((a, b) => a + b.qty * b.price, 0));
+    addItem({ 
+        product_id: p.id_menu, 
+        nama_menu: p.nama_menu, 
+        harga: Number(p.harga), 
+        qty: 1,
+        gambar: p.gambar 
+    });
     setAnimateCount(true);
     setTimeout(() => setAnimateCount(false), 350);
   }
 
   function handleReorder() {
     if (!session?.lastOrderItems?.length) return;
-    session.lastOrderItems.forEach((item) => addToCart(cartKey, item));
+    session.lastOrderItems.forEach((item) => addItem(item));
     router.push(`/cart?tableToken=${encodeURIComponent(tableToken)}`);
   }
 
@@ -148,11 +153,12 @@ export default function MenuPage() {
     if (!code) { setTableLookupError('Masukkan nomor meja'); return; }
     try {
       setTableLoading(true);
-      const r = await customerApi.tableTokenByCode(code);
+      const response = await menuApi.getTableTokenByCode(code);
+      const r = response.data;
       router.replace(`/menu?tableToken=${encodeURIComponent(r.data.table_token)}`);
       setShowTableInput(false);
     } catch (e: any) {
-      setTableLookupError(e?.message || 'Nomor meja tidak ditemukan');
+      setTableLookupError(e.response?.data?.message || e.message || 'Nomor meja tidak ditemukan');
     } finally { setTableLoading(false); }
   }
 

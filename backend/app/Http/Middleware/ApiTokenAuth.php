@@ -17,16 +17,14 @@ class ApiTokenAuth
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $auth = (string) $request->header('Authorization', '');
-        if (!str_starts_with($auth, 'Bearer ')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-                'errors' => [],
-                'server_time' => now()->format('Y-m-d H:i:s'),
-            ], 401);
+        $token = '';
+        
+        if (str_starts_with($auth, 'Bearer ')) {
+            $token = trim(substr($auth, 7));
+        } else if ($request->has('token')) {
+            $token = (string) $request->query('token');
         }
 
-        $token = trim(substr($auth, 7));
         if ($token === '') {
             return response()->json([
                 'success' => false,

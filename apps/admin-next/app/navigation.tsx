@@ -10,11 +10,16 @@ export type NavItem = {
 // This is a minimal integration point. If the real admin layout imports a different path,
 // adjust accordingly. The goal is to expose a loyal navigation item for the Admin UI.
 export const adminNav: NavItem[] = [
+  { label: 'Dashboard', href: '/', icon: 'dashboard' },
+  { label: 'Orders', href: '/orders', icon: 'list' },
+  { label: 'KDS', href: '/ops/kds', icon: 'kitchen' },
   { label: 'Reports', href: '/reports', icon: 'chart' },
+  { label: 'HQ Insights', href: '/hq', icon: 'business' },
+  { label: 'Suppliers', href: '/procurement/suppliers', icon: 'local_shipping' },
+  { label: 'PO & Stock In', href: '/procurement/purchase-orders', icon: 'inventory_2' },
   { label: 'Tables', href: '/tables', icon: 'table' },
-  // New: Customer Loyalty management
-  { label: 'Customer Loyalty', href: '/loyalty', icon: 'gift' },
-  { label: 'QR Code', href: '/qr', icon: 'qr' },
+  { label: 'Audit Logs', href: '/audit-logs', icon: 'shield' },
+  { label: 'Settings', href: '/settings', icon: 'settings' },
 ];
 
 // Simple hook-like helper for components that import this module
