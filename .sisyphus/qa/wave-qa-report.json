@@ -1,0 +1,180 @@
+{
+  "wave": "Wave 1-4",
+  "date": "2026-04-16",
+  "environment": "customer-next E2E test suite",
+  "total_tests": 18,
+  "passed": 0,
+  "failed": 18,
+  "pass_rate": "0%",
+  "tests": [
+    {
+      "test_case_id": "1",
+      "name": "customer qr flow: menu -> cart -> place order -> status",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED at http://127.0.0.1:3001/",
+        "log": "net::ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable due to port conflicts (3001)"
+    },
+    {
+      "test_case_id": "2",
+      "name": "Customer Menu - should load menu page",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED at http://127.0.0.1:3001/menu"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "3",
+      "name": "Accessibility QA - Menu page - should have no critical accessibility violations",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch - injectAxe API broken"
+    },
+    {
+      "test_case_id": "4",
+      "name": "Accessibility QA - Menu page - should have proper landmark regions",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch"
+    },
+    {
+      "test_case_id": "5",
+      "name": "Accessibility QA - Menu page - interactive elements should be keyboard accessible",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch"
+    },
+    {
+      "test_case_id": "6",
+      "name": "Accessibility QA - Cart page - should have no critical accessibility violations",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch"
+    },
+    {
+      "test_case_id": "7",
+      "name": "Accessibility QA - Order Status page - should have no critical accessibility violations",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch"
+    },
+    {
+      "test_case_id": "8",
+      "name": "Accessibility QA - All pages - color contrast should meet WCAG AA standards",
+      "status": "fail",
+      "evidence": {
+        "type_error": "injectAxe is not a function"
+      },
+      "notes": "AXE integration mismatch"
+    },
+    {
+      "test_case_id": "9",
+      "name": "Accessibility - Focus Management - should show visible focus indicators",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED at http://127.0.0.1:3001/menu"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "10",
+      "name": "Accessibility - Screen Reader Landmarks - should have skip link or landmarks for navigation",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "11",
+      "name": "Accessibility - Screen Reader Landmarks - should have properly labeled form inputs",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "12",
+      "name": "Customer Menu - should display products in grid",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "13",
+      "name": "Customer Menu - should filter by category",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "14",
+      "name": "Customer Menu - should add item to cart",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "15",
+      "name": "Customer Menu - should search products",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "16",
+      "name": "Customer Cart - should show empty cart message",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED at http://127.0.0.1:3001/cart"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "17",
+      "name": "Order Status - should show order status page",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    },
+    {
+      "test_case_id": "18",
+      "name": "Offline Support - should show offline notice when cached",
+      "status": "fail",
+      "evidence": {
+        "error": "ERR_CONNECTION_REFUSED"
+      },
+      "notes": "Server unavailable"
+    }
+  ],
+  "remediation": [
+    "1. Stabilize dev server - use a dedicated port (3001) for E2E tests and ensure it listens before running tests",
+    "2. Fix axe-core Playwright integration - review @axe-core/playwright installation and usage; replace injectAxe with correct API (axe.inject or similar)",
+    "3. Update Playwright config - ensure baseURL aligns with the running server port",
+    "4. Add port availability check in CI pipeline before running E2E tests"
+  ]
+}

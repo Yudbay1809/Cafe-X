@@ -28,7 +28,7 @@ npm run dev -- --port 3002
 
 ## Jalankan Customer Web
 ```
-cd apps/customer-next
+c d apps/customer-next
 npm install
 npm run dev -- --port 3001
 ```

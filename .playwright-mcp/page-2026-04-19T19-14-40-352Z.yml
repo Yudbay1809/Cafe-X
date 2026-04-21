@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - heading "Profil Saya" [level=1] [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Informasi Akun" [level=2] [ref=e7]
+        - paragraph [ref=e8]: Anda sedang dalam mode publik tanpa绑定 meja.
+      - generic [ref=e9]:
+        - heading "Tentang" [level=2] [ref=e10]
+        - paragraph [ref=e11]: Cafe-X Digital Order System v1.0
+        - paragraph [ref=e12]: Powered by Next.js & Laravel
+      - button "Keluar / Logout" [ref=e13] [cursor=pointer]
+    - navigation "Navigasi utama" [ref=e14]:
+      - button "🍽️ Menu" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: 🍽️
+        - text: Menu
+      - button "🧾 Pesanan" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 🧾
+        - text: Pesanan
+      - button "👤 Profil" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: 👤
+        - text: Profil
+  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]
+  - alert [ref=e32]

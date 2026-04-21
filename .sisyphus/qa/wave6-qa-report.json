@@ -1,0 +1,39 @@
+{
+  "wave": "Wave 6",
+  "date": "2026-04-17",
+  "environment": "admin-next E2E test suite",
+  "fixes_applied": [
+    {
+      "issue": "Admin Next port not explicit",
+      "fix": "Updated package.json dev script to 'next dev -p 3002'",
+      "file": "apps/admin-next/package.json"
+    }
+  ],
+  "admin_screens_parity": [
+    {
+      "screen": "Admin Dashboard",
+      "repo_path": "apps/admin-next/app/page.tsx",
+      "parity": "clear",
+      "status": "present"
+    },
+    {
+      "screen": "Admin Orders",
+      "repo_path": "apps/admin-next/app/orders/page.tsx",
+      "parity": "clear", 
+      "status": "present"
+    },
+    {
+      "screen": "Admin Settings / Outlets",
+      "repo_path": "apps/admin-next/app/settings/outlets/page.tsx",
+      "parity": "clear",
+      "status": "present"
+    }
+  ],
+  "tests": [],
+  "status": "pending_execution",
+  "remediation": [
+    "Run 'npx playwright test' to execute Admin Next QA tests",
+    "Review test results and update pass/fail status",
+    "Update this report with actual test results"
+  ]
+}

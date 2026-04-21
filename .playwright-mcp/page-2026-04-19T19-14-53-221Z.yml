@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6]: Cafe-X
+          - heading "Checkout" [level=1] [ref=e7]
+          - generic [ref=e8]: "Meja: -"
+        - button "Kembali ke Menu" [ref=e9] [cursor=pointer]
+      - generic [ref=e10]: Masukkan nomor meja sebelum place order.
+    - generic [ref=e11]:
+      - textbox "Catatan order" [ref=e12]
+      - 'textbox "No meja (contoh: A1)" [ref=e14]'
+      - generic [ref=e15]:
+        - generic [ref=e16]: Voucher
+        - generic [ref=e17]:
+          - textbox "Kode voucher" [ref=e18]
+          - button "Terapkan" [ref=e19] [cursor=pointer]
+    - generic [ref=e20]:
+      - generic [ref=e21]: SubtotalRp 0
+      - generic [ref=e22]: TotalRp 0
+      - button "Place Order" [disabled] [ref=e24]
+  - button "Open Next.js Dev Tools" [ref=e31] [cursor=pointer]:
+    - img [ref=e32]
+  - alert [ref=e36]

@@ -1,0 +1,29 @@
+{
+  "wave": "Wave 5",
+  "date": "2026-04-16",
+  "environment": "customer-next E2E test suite",
+  "fixes_applied": [
+    {
+      "issue": "injectAxe is not a function",
+      "fix": "Replaced deprecated injectAxe API with AxeBuilder class from @axe-core/playwright v4.10.0",
+      "file": "apps/customer-next/tests/e2e/accessibility.spec.ts"
+    },
+    {
+      "issue": "Port mismatch (3001 vs 3000)",
+      "fix": "Updated playwright.config.ts baseURL to http://127.0.0.1:3000 to match running dev server",
+      "file": "apps/customer-next/playwright.config.ts"
+    },
+    {
+      "issue": "Next.js default port",
+      "fix": "Updated package.json dev script to 'next dev -p 3001' for consistency (Playwright config also updated to 3000 for reuseExistingServer)",
+      "file": "apps/customer-next/package.json"
+    }
+  ],
+  "tests": [],
+  "status": "pending_execution",
+  "remediation": [
+    "1. Run 'npx playwright test' to execute QA tests",
+    "2. Review test results and update pass/fail status",
+    "3. Update this report with actual test results"
+  ]
+}

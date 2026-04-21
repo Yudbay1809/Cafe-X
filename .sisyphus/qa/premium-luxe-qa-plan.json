@@ -1,0 +1,188 @@
+{
+  "test_suite": "premium-luxe-qa",
+  "version": "1.0.0",
+  "created": "2026-04-18",
+  "description": "QA validation plan for Cafe Kalcer Premium Luxe theme",
+  "tests": [
+    {
+      "id": "PL-001",
+      "name": "Contrast - Primary on Surface",
+      "category": "Contrast",
+      "criteria": "WCAG AA minimum 4.5:1 for normal text",
+      "tokens": ["--cx-premium-primary", "--cx-premium-surface"],
+      "expected_ratio": "≥4.5:1",
+      "actual_colors": "#1a0f0a on #fdfbf7",
+      "status": "pending"
+    },
+    {
+      "id": "PL-002",
+      "name": "Contrast - Secondary on Surface",
+      "category": "Contrast",
+      "criteria": "WCAG AA minimum 4.5:1",
+      "tokens": ["--cx-premium-secondary", "--cx-premium-surface"],
+      "expected_ratio": "≥4.5:1",
+      "actual_colors": "#b8860b on #fdfbf7",
+      "status": "pending"
+    },
+    {
+      "id": "PL-003",
+      "name": "Contrast - Accent on Dark",
+      "category": "Contrast",
+      "criteria": "WCAG AA minimum 4.5:1",
+      "tokens": ["--cx-premium-accent", "--cx-premium-primary"],
+      "expected_ratio": "≥4.5:1",
+      "actual_colors": "#c9a227 on #1a0f0a",
+      "status": "pending"
+    },
+    {
+      "id": "PL-004",
+      "name": "Typography - Display scale",
+      "category": "Typography",
+      "criteria": "Newsreader font at 4rem for hero",
+      "tokens": ["--cx-premium-display", "--cx-premium-font-display"],
+      "expected": "Newsreader at 4rem",
+      "status": "pending"
+    },
+    {
+      "id": "PL-005",
+      "name": "Typography - Body scale",
+      "category": "Typography",
+      "criteria": "Plus Jakarta Sans at 1.0625rem",
+      "tokens": ["--cx-premium-body", "--cx-premium-font-body"],
+      "expected": "Plus Jakarta Sans at 1.0625rem",
+      "status": "pending"
+    },
+    {
+      "id": "PL-006",
+      "name": "Spacing - Grid alignment",
+      "category": "Spacing",
+      "criteria": "All spacing values are multiples of 4px",
+      "tokens": ["--cx-premium-space-xs", "--cx-premium-space-sm", "--cx-premium-space-md"],
+      "expected": "8px, 16px, 24px",
+      "status": "pending"
+    },
+    {
+      "id": "PL-007",
+      "name": "Spacing - Generous luxury feel",
+      "category": "Spacing",
+      "criteria": "Premium spacing > base spacing",
+      "tokens": ["--cx-premium-space-md"],
+      "expected": "≥24px (vs 16px base)",
+      "status": "pending"
+    },
+    {
+      "id": "PL-008",
+      "name": "Accessibility - Focus ring visible",
+      "category": "Accessibility",
+      "criteria": "Focus ring uses premium accent color",
+      "tokens": ["--cx-premium-focus-ring"],
+      "expected": "3px solid rgba(201,162,39,0.4)",
+      "status": "pending"
+    },
+    {
+      "id": "PL-009",
+      "name": "Accessibility - Reduced motion support",
+      "category": "Accessibility",
+      "criteria": "Respects prefers-reduced-motion",
+      "tokens": ["--cx-premium-dur-fast", "--cx-premium-dur-mid", "--cx-premium-dur-slow"],
+      "media_query": "@media (prefers-reduced-motion: reduce)",
+      "status": "pending"
+    },
+    {
+      "id": "PL-010",
+      "name": "Motion - Fast duration",
+      "category": "Motion",
+      "criteria": "≤200ms for quick interactions",
+      "tokens": ["--cx-premium-dur-fast"],
+      "expected": "≤200ms",
+      "status": "pending"
+    },
+    {
+      "id": "PL-011",
+      "name": "Motion - Elegant easing",
+      "category": "Motion",
+      "criteria": "Custom easing curve applied",
+      "tokens": ["--cx-premium-ease"],
+      "expected": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "status": "pending"
+    },
+    {
+      "id": "PL-012",
+      "name": "Radius - Refined curves",
+      "category": "Styling",
+      "criteria": "Premium radius with elegant curves",
+      "tokens": ["--cx-premium-radius-sm", "--cx-premium-radius-md", "--cx-premium-radius-lg"],
+      "expected": "8px, 12px, 20px",
+      "status": "pending"
+    },
+    {
+      "id": "PL-013",
+      "name": "Shadow - Gold glow effect",
+      "category": "Styling",
+      "criteria": "Shadow with gold tint for premium feel",
+      "tokens": ["--cx-premium-shadow-glow"],
+      "expected": "0 8px 40px rgba(201,162,39,0.2)",
+      "status": "pending"
+    },
+    {
+      "id": "PL-014",
+      "name": "Activation - data-theme attribute",
+      "category": "Functionality",
+      "criteria": "Theme activates via data-theme attribute",
+      "html": "<html data-theme='premium'> or <div data-theme='premium'>",
+      "status": "pending"
+    },
+    {
+      "id": "PL-015",
+      "name": "Theme - Backward compatibility",
+      "category": "Functionality",
+      "criteria": "Standard theme works without data-theme",
+      "fallback": "Default theme when attribute not set",
+      "status": "pending"
+    }
+  ],
+  "summary": {
+    "total_tests": 15,
+    "passed": 0,
+    "failed": 0,
+    "pending": 15,
+    "pass_rate": "0%"
+  },
+  "execution": {
+    "method": "Manual inspection + WCAG contrast tool",
+    "tool": "Manual or axe DevTools",
+    "files_to_test": [
+      "apps/customer-next/app/globals.css",
+      "apps/admin-next/app/globals.css",
+      "libs/design-tokens/design-tokens.css"
+    ]
+  },
+  "regression_screens": [
+    {
+      "screen": "Dashboard (POS)",
+      "file": "apps/pos-flutter/lib/ui/screens/ops_dashboard.dart",
+      "status": "pending"
+    },
+    {
+      "screen": "QR Generator",
+      "file": "apps/admin-next/app/qr/page.tsx",
+      "status": "pending"
+    },
+    {
+      "screen": "Customer Loyalty",
+      "file": "apps/admin-next/app/loyalty/page.tsx",
+      "status": "pending"
+    },
+    {
+      "screen": "Order Notifications",
+      "file": "apps/pos-flutter/lib/ui/screens/order_notifications.dart",
+      "status": "pending"
+    }
+  ],
+  "notes": [
+    "All token values documented in design-tokens.css Section 9",
+    "Premium theme activation requires data-theme attribute on root element",
+    "Default theme works when premium attribute not set (backward compatible)",
+    "Test both customer-next and admin-next for consistency"
+  ]
+}
