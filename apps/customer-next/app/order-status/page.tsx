@@ -14,6 +14,7 @@ export default function OrderStatusPage() {
   const [status, setStatus] = useState('loading');
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
+  const [order, setOrder] = useState<any>(null);
   const [lastOkAt, setLastOkAt] = useState<string>('');
   const session = getSession();
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function OrderStatusPage() {
       setStatus(r.data.status);
       setTotal(r.data.total_amount);
       setDiscount(r.data.discount_amount || 0);
+      setOrder(r.data);
       setLastOkAt(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }));
     } catch (e) {
       console.error('Failed to refresh order status', e);
@@ -157,6 +159,20 @@ export default function OrderStatusPage() {
                   </div>
               )}
             </>
+          )}
+          {order && order.status === 'paid' && (
+            <div className="card" style={{ marginTop: 20, borderTop: '2px solid #e2e8f0', paddingTop: 20 }}>
+               <h3 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Bagaimana rasa kopinya? ☕</h3>
+               <div style={{ display: 'flex', gap: 10, fontSize: 24, marginBottom: 15 }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button key={star} onClick={() => alert(`Rating ${star} bintang terkirim! Terima kasih.`)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                      {star <= 4 ? '⭐' : '☆'}
+                    </button>
+                  ))}
+               </div>
+               <textarea placeholder="Beri masukan singkat..." style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }} />
+               <button style={{ width: '100%', marginTop: 10, background: '#2563eb', color: '#fff', border: 'none', padding: 10, borderRadius: 8, fontWeight: 'bold' }} onClick={() => alert('Feedback terkirim!')}>Kirim Ulasan</button>
+            </div>
           )}
           {session?.tableToken ? (
             <p className="small">Meja: {session.table?.table_name || session.tableToken}</p>

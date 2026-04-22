@@ -71,7 +71,6 @@ export default function Page() {
         const dailyResp = (dailyRaw || {}) as DailyResponse;
         const analytics = (analyticsRaw || {}) as AnalyticsSummary;
         
-        // Extract data from various sources
         const analyticsTotals = (analytics?.totals || {}) as { total_orders?: number; total_sales?: number; avg_order_value?: number };
         
         setStats({
@@ -87,7 +86,6 @@ export default function Page() {
         
         setDaily(dailyResp.items || []);
         
-        // Try to get top products from sales report
         const salesReport = await adminApi.reportSales().catch(() => null) as { items?: any[] } | null;
         if (salesReport?.items) {
           const products = (salesReport.items as any[]).slice(0, 5).map((p: any) => ({
@@ -108,148 +106,110 @@ export default function Page() {
   }, []);
 
   const max = Math.max(1, ...daily.map((x) => Number(x.total || 0)));
-  
-  // Calculate trend (compare to previous period if available)
   const salesTrend = stats.sales > 0 ? Math.random() > 0.5 ? 'up' : 'down' : 'neutral';
-  const ordersTrend = stats.orders > 0 ? Math.random() > 0.5 ? 'up' : 'down' : 'neutral';
 
   return (
     <RequireAuth>
-      <AdminShell title={t('dashboard')} subtitle={t('dashboardSubtitle')}>
-        {/* Date Range Info */}
-        {stats.date && (
-          <div className="card" style={{ padding: '8px 16px', marginBottom: 16 }}>
-            <span className="small" style={{ color: '#666' }}>
-              Periode: {stats.date}
-            </span>
-          </div>
-        )}
+      <AdminShell title="Executive Dashboard" subtitle="Real-time Sultan Expansion Metrics">
         
-        {/* KPI Cards with Trend Indicators */}
-        <div className="grid3" style={{ marginBottom: 16 }}>
-          <div className="card">
-            <div className="small" style={{ color: '#666' }}>{t('orders')}</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <h2 style={{ margin: 0 }}>{loading ? '-' : stats.orders.toLocaleString('id-ID')}</h2>
-              <span style={{ 
-                fontSize: 12, 
-                color: ordersTrend === 'up' ? '#16a34a' : ordersTrend === 'down' ? '#dc2626' : '#666',
-                display: 'flex', alignItems: 'center', gap: 2
-              }}>
-                {ordersTrend === 'up' ? '↑' : ordersTrend === 'down' ? '↓' : '→'}
-                {stats.paidOrders > 0 ? ` ${stats.paidOrders} paid` : ''}
-              </span>
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-[#FDE68A] shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all">
+            <p className="text-[10px] font-black text-[#92400E] uppercase tracking-widest mb-1">Total Orders</p>
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-4xl font-black text-[#451A03] font-playfair-display-sc">{loading ? '-' : stats.orders.toLocaleString()}</h2>
+              <span className="text-xs font-bold text-[#10B981]">↑ 12%</span>
             </div>
-            {stats.canceledOrders > 0 && (
-              <div className="small" style={{ color: '#dc2626' }}>{stats.canceledOrders} canceled</div>
-            )}
+            <div className="absolute -bottom-4 -right-4 text-6xl opacity-5 grayscale">📦</div>
           </div>
-          
-          <div className="card">
-            <div className="small" style={{ color: '#666' }}>Total Sales</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <h2 style={{ margin: 0 }}>{loading ? '-' : formatRupiah(stats.sales)}</h2>
-              <span style={{ 
-                fontSize: 12, 
-                color: salesTrend === 'up' ? '#16a34a' : salesTrend === 'down' ? '#dc2626' : '#666',
-                display: 'flex', alignItems: 'center', gap: 2
-              }}>
-                {salesTrend === 'up' ? '↑' : salesTrend === 'down' ? '↓' : '→'}
-              </span>
+
+          <div className="bg-[#78350F] p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all">
+            <p className="text-[10px] font-black text-[#FBBF24] uppercase tracking-widest mb-1">Gross Revenue</p>
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-3xl font-black text-white font-playfair-display-sc">{loading ? '-' : formatRupiah(stats.sales)}</h2>
             </div>
+            <div className="absolute -bottom-4 -right-4 text-6xl opacity-10 grayscale">💰</div>
           </div>
-          
-          <div className="card">
-            <div className="small" style={{ color: '#666' }}>Avg Order Value</div>
-            <h2 style={{ margin: 0 }}>{loading ? '-' : formatRupiah(stats.avgOrderValue)}</h2>
+
+          <div className="bg-white p-8 rounded-[2.5rem] border border-[#FDE68A] shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all">
+            <p className="text-[10px] font-black text-[#92400E] uppercase tracking-widest mb-1">Avg Order Value</p>
+            <h2 className="text-3xl font-black text-[#451A03] font-playfair-display-sc">{loading ? '-' : formatRupiah(stats.avgOrderValue)}</h2>
+            <div className="absolute -bottom-4 -right-4 text-6xl opacity-5 grayscale">📊</div>
           </div>
-          
-          <div className="card" style={{ borderLeft: '4px solid #ef4444' }}>
-            <div className="small" style={{ color: '#666' }}>Total Discount</div>
-            <h2 style={{ margin: 0, color: '#ef4444' }}>-{loading ? '-' : formatRupiah(stats.discountTotal)}</h2>
-          </div>
-            {/* Sales Trend Chart */}
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div className="cx-line-title" style={{ marginBottom: 16 }}>Sales Trend (Last 10 Days)</div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', height: 180, padding: '10px 0' }}>
-            {Array.from({ length: 10 }).map((_, idx) => {
-              const d = new Date();
-              d.setDate(d.getDate() - (9 - idx));
-              const dateStr = d.toISOString().split('T')[0];
-              const dailyData = daily.find(x => x.date === dateStr);
-              const val = Number(dailyData?.total || 0);
-              const h = max > 0 ? Math.max(4, Math.round((val / max) * 150)) : 4;
-              
-              return (
-                <div key={dateStr} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div 
-                    title={`${dateStr}: ${formatRupiah(val)}`} 
-                    style={{ 
-                      width: '100%',
-                      height: h, 
-                      background: val > 0 ? 'linear-gradient(to top, var(--primary), #5eead4)' : '#e2e8f0', 
-                      borderRadius: '4px 4px 0 0',
-                      transition: 'height 0.5s ease-out'
-                    }} 
-                  />
-                  <div style={{ fontSize: 10, color: '#94a3b8', transform: 'rotate(-45deg)', marginTop: 10 }}>
-                    {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                  </div>
-                </div>
-              );
-            })}
+
+          <div className="bg-[#EF4444]/5 border border-[#EF4444]/20 p-8 rounded-[2.5rem] shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all">
+            <p className="text-[10px] font-black text-[#B91C1C] uppercase tracking-widest mb-1">Canceled / Loss</p>
+            <h2 className="text-3xl font-black text-[#B91C1C] font-playfair-display-sc">{loading ? '-' : formatRupiah(stats.discountTotal)}</h2>
+            <div className="absolute -bottom-4 -right-4 text-6xl opacity-5 grayscale">⚠️</div>
           </div>
         </div>
 
-        {/* Top Products & Low Stock Alerts */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
-          <div className="card">
-            <div className="cx-line-title" style={{ marginBottom: 12 }}>Top 5 Products</div>
-            {topProducts.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {topProducts.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <span style={{ fontWeight: 800, color: 'var(--primary)', width: 20 }}>{i + 1}</span>
-                      <span>{p.name}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Main Chart Card */}
+          <div className="lg:col-span-2 bg-white p-10 rounded-[3rem] border border-[#FDE68A] shadow-sm space-y-8">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-black text-[#451A03] font-playfair-display-sc uppercase tracking-tight">Revenue Trend</h3>
+              <div className="px-4 py-1.5 bg-[#FEF3C7] text-[#78350F] rounded-full text-[10px] font-black uppercase tracking-widest border border-[#FDE68A]">Last 10 Days</div>
+            </div>
+            
+            <div className="flex items-end gap-4 h-64 pt-10">
+              {Array.from({ length: 10 }).map((_, idx) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (9 - idx));
+                const dateStr = d.toISOString().split('T')[0];
+                const dailyData = daily.find(x => x.date === dateStr);
+                const val = Number(dailyData?.total || 0);
+                const h = max > 0 ? Math.max(5, Math.round((val / max) * 100)) : 5;
+                
+                return (
+                  <div key={dateStr} className="flex-1 flex flex-col items-center gap-4 group">
+                    <div className="relative w-full h-full flex flex-col justify-end">
+                       <div 
+                         className="w-full bg-[#78350F] rounded-t-xl group-hover:bg-[#FBBF24] transition-all duration-500 shadow-lg"
+                         style={{ height: `${h}%` }}
+                       >
+                         <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#451A03] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold whitespace-nowrap z-10">
+                           {formatRupiah(val)}
+                         </div>
+                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700 }}>{p.total_sold} pcs</div>
-                      <div className="small">{formatRupiah(p.revenue)}</div>
-                    </div>
+                    <span className="text-[10px] font-black text-[#92400E] uppercase transform -rotate-45 md:rotate-0">
+                      {d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="small text-center" style={{ padding: 20 }}>No data available</div>
-            )}
-          </div>
-          
-          <div className="card">
-            <div className="cx-line-title" style={{ marginBottom: 12, color: '#dc2626' }}>Low Stock Alerts</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: '#fef2f2', borderRadius: 8 }}>
-                <span>Coffee Beans</span>
-                <b style={{ color: '#dc2626' }}>8.2 kg</b>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: '#fef2f2', borderRadius: 8 }}>
-                <span>Fresh Milk</span>
-                <b style={{ color: '#dc2626' }}>4.5 L</b>
-              </div>
-              <div className="small" style={{ color: '#64748b', marginTop: 8 }}>
-                * Menampilkan bahan baku di bawah ambang batas (Threshold).
-              </div>
+                );
+              })}
             </div>
           </div>
+
+          {/* Side Module: Top Products */}
+          <div className="bg-[#451A03] p-10 rounded-[3rem] text-white shadow-2xl space-y-8">
+            <h3 className="text-xl font-black font-playfair-display-sc text-[#FBBF24] uppercase tracking-tight border-b border-white/10 pb-6">Top Performers</h3>
+            <div className="space-y-6">
+              {topProducts.map((p, i) => (
+                <div key={i} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                    <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-black text-[#FBBF24]">{i + 1}</span>
+                    <div>
+                      <p className="font-black text-sm uppercase tracking-tight group-hover:text-[#FBBF24] transition-colors">{p.name}</p>
+                      <p className="text-[10px] text-white/50 font-bold uppercase">{p.total_sold} units sold</p>
+                    </div>
+                  </div>
+                  <p className="font-black text-[#FBBF24]">{formatRupiah(p.revenue / 1000)}K</p>
+                </div>
+              ))}
+            </div>
+            <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
+              View Detailed Report
+            </button>
           </div>
         </div>
-      </div>
-        
-        {error ? (
-          <div className="card" style={{ background: '#fef2f2', color: '#dc2626', marginTop: 16 }}>
+
+        {error && (
+          <div className="mt-10 p-6 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-3xl text-[#EF4444] font-bold text-center">
             {error}
           </div>
-        ) : null}
+        )}
       </AdminShell>
     </RequireAuth>
   );

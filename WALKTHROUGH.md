@@ -51,4 +51,21 @@ php artisan schedule:run
 ```
 
 ---
-*Dokumen ini dibuat otomatis sebagai bagian dari dokumentasi serah terima Cafe-X Enterprise V1.0.*
+
+# Cafe-X Enterprise V2.0: Offline-First Mobile POS
+
+Sistem kini telah berekspansi menjadi V2.0 dengan pemisahan Kasir dari Web Admin menjadi aplikasi **Mobile/Tablet POS** mandiri.
+
+## 1. Arsitektur Cloud & Mobile
+- **HQ Web Dashboard (`admin-next`)**: Fokus murni sebagai pusat kendali untuk mengelola Multi-Outlet, Master Menu, Global Inventory, dan memantau status tablet kasir dari jarak jauh.
+- **Mobile POS (`mobile-pos`)**: Aplikasi Tablet (berbasis React Native/Expo) yang ter-install di kafe. Menggunakan **SQLite Lokal**, sehingga kasir tetap bisa beroperasi 100% secara offline walau koneksi internet terputus.
+
+## 2. Fitur Unggulan Mobile POS
+- **Offline-First Checkout**: Saat offline, transaksi otomatis tertampung di Local DB (Queue System).
+- **Auto-Sync Engine**: Terdapat *engine* di *background* yang akan langsung menembak (*bulk sync*) seluruh riwayat transaksi offline ke Cloud Backend begitu sinyal internet kembali menyala.
+- **Conflict Resolution Anti-Duplikasi**: API Backend memastikan Order ID unik, sehingga tidak akan ada data ganda meski terjadi putus-sambung koneksi.
+- **Simulasi Thermal Printer & Cash Drawer**: Terintegrasi *hardware module* yang mencetak struk secara otomatis saat *checkout*, serta membuka laci kasir (Cash Drawer).
+- **Shift Management**: Mode keamanan di mana sistem terkunci jika kasir belum melakukan "Open Shift", dan terdapat fitur "Close Shift" untuk rekap akhir hari.
+
+---
+*Dokumen ini dibuat otomatis sebagai bagian dari dokumentasi serah terima Cafe-X Enterprise V1.0 & V2.0.*

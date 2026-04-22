@@ -1,1 +1,0 @@
-// Auto-generated placeholder\nclass  productlocaldatasource.Groups[2].Value.ToUpper() roduct productlocaldatasource.Groups[2].Value.ToUpper() ocal productlocaldatasource.Groups[2].Value.ToUpper() atasource {}

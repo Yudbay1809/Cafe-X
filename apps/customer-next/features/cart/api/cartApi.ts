@@ -23,4 +23,10 @@ export const cartApi = {
 
   redeemPoints: (payload: { order_id: number; points: number }) => 
     api.post('/qr/redeem-points', payload),
+
+  submitFeedback: (payload: { order_id: number; rating: number; comment?: string }) => 
+    api.post('/qr/order-feedback', payload),
+
+  getRecommendations: (product_ids: number[]) => 
+    api.post('/qr/recommendations', { product_ids }),
 };

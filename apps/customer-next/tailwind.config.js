@@ -1,41 +1,36 @@
 /** @type {import('tailwindcss').Config} */
-// Tailwind v3 config with design tokens (Wave 1-3)
 module.exports = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,css}',
     './components/**/*.{js,ts,jsx,tsx}',
+    './features/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        display: ['Unbounded', 'sans-serif'],
+        'playfair-display-sc': ['var(--font-playfair)', 'serif'],
+        'karla': ['var(--font-karla)', 'sans-serif'],
       },
       colors: {
-        // Design tokens (from CSS vars)
-        brand: 'var(--cx-brand)',
-        'brand-deep': 'var(--cx-brand-deep)',
-        'brand-light': 'var(--cx-brand-light)',
-        teal: 'var(--cx-teal)',
-        'teal-light': 'var(--cx-teal-light)',
-        bg: 'var(--cx-bg)',
-        surface: 'var(--cx-surface)',
-        'surface-2': 'var(--cx-surface-2)',
-        text: 'var(--cx-text)',
-        muted: 'var(--cx-muted)',
-        subtle: 'var(--cx-subtle)',
-        // Status colors
-        success: 'var(--cx-success)',
-        warning: 'var(--cx-warning)',
-        danger: 'var(--cx-danger)',
+        'sultan-bg': 'var(--sultan-bg)',
+        'sultan-surface': 'var(--sultan-surface)',
+        'sultan-surface-2': 'var(--sultan-surface-2)',
+        'sultan-primary': 'var(--sultan-primary)',
+        'sultan-cta': 'var(--sultan-cta)',
+        'sultan-text': 'var(--sultan-text)',
+        'sultan-text-muted': 'var(--sultan-text-muted)',
+        'sultan-border': 'var(--sultan-border)',
+        'sultan-success': 'var(--sultan-success)',
+        'sultan-danger': 'var(--sultan-danger)',
       },
       borderRadius: {
-        sm: 'var(--cx-radius-sm)',
-        md: 'var(--cx-radius-md)',
-        lg: 'var(--cx-radius-lg)',
-        xl: 'var(--cx-radius-xl)',
+        '3xl': '1.5rem',
+        '4xl': '2rem',
+        '5xl': '2.5rem',
       },
+      boxShadow: {
+        'glow-gold': '0 0 20px rgba(251, 191, 36, 0.2)',
+      }
     },
   },
   plugins: [],

@@ -1,4 +1,4 @@
-// Lightweight admin navigation config
+// Lightweight admin navigation config - Sultan Expansion
 import React from 'react';
 
 export type NavItem = {
@@ -7,24 +7,20 @@ export type NavItem = {
   icon?: string;
 };
 
-// This is a minimal integration point. If the real admin layout imports a different path,
-// adjust accordingly. The goal is to expose a loyal navigation item for the Admin UI.
+// Sultanized Navigation labels for the Enterprise HQ
 export const adminNav: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: 'dashboard' },
-  { label: 'Orders', href: '/orders', icon: 'list' },
-  { label: 'KDS', href: '/ops/kds', icon: 'kitchen' },
-  { label: 'Reports', href: '/reports', icon: 'chart' },
-  { label: 'HQ Insights', href: '/hq', icon: 'business' },
-  { label: 'Suppliers', href: '/procurement/suppliers', icon: 'local_shipping' },
-  { label: 'PO & Stock In', href: '/procurement/purchase-orders', icon: 'inventory_2' },
-  { label: 'Tables', href: '/tables', icon: 'table' },
-  { label: 'Audit Logs', href: '/audit-logs', icon: 'shield' },
-  { label: 'Settings', href: '/settings', icon: 'settings' },
+  { label: 'Executive Dashboard', href: '/', icon: 'dashboard' },
+  { label: 'Revenue Analytics', href: '/analytics', icon: 'payments' },
+  { label: 'Inventory & AI Forecast', href: '/inventory', icon: 'auto_awesome' },
+  { label: 'Staff & Payroll HQ', href: '/staff', icon: 'groups' },
+  { label: 'CRM & Gamification', href: '/crm', icon: 'emoji_events' },
+  { label: 'Multi-Brand HQ', href: '/brands', icon: 'business' },
+  { label: 'Supply Chain & PO', href: '/procurement/suppliers', icon: 'local_shipping' },
+  { label: 'Audit & Security', href: '/audit', icon: 'security' },
+  { label: 'System Settings', href: '/settings', icon: 'settings' },
 ];
 
-// Simple hook-like helper for components that import this module
 export function useAdminNav(): NavItem[] {
-  // In a real app this could pull from global store or config
   return adminNav;
 }
 

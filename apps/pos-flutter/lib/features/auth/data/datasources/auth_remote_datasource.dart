@@ -1,1 +1,0 @@
-// Auto-generated placeholder\nclass  authremotedatasource.Groups[2].Value.ToUpper() uth authremotedatasource.Groups[2].Value.ToUpper() emote authremotedatasource.Groups[2].Value.ToUpper() atasource {}

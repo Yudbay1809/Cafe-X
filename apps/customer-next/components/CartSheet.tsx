@@ -295,9 +295,9 @@ export function CartSheet({ open, onClose, tableToken, tableInfo, cartKey, onPla
               <span>Subtotal</span>
               <span>{formatRupiah(subtotal)}</span>
             </div>
-            {discountPct > 0 ? (
+            {discountAmount > 0 ? (
               <div className="cart-item">
-                <span>Diskon</span>
+                <span>Diskon Voucher</span>
                 <span>-{formatRupiah(discountAmount)}</span>
               </div>
             ) : null}
