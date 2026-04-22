@@ -3,75 +3,83 @@
 @tailwind utilities;
 
 :root {
-  /* Sultan Design Tokens - Warm Coffee Palette */
+  /* Exact Sultan Design Tokens from Pencil */
   --sultan-bg: #FEF3C7;
   --sultan-surface: #FFFFFF;
   --sultan-primary: #78350F;
   --sultan-primary-dark: #451A03;
   --sultan-cta: #FBBF24;
-  --sultan-cta-hover: #D97706;
   --sultan-text: #451A03;
   --sultan-text-muted: #92400E;
   --sultan-border: #FDE68A;
+  
+  /* Status Colors */
   --sultan-success: #10B981;
   --sultan-danger: #EF4444;
-  
-  /* Fonts from Google Fonts (defined in layout.tsx) */
+  --sultan-warning: #D97706;
+
+  /* Font Families */
   --font-playfair: 'Playfair Display SC', serif;
   --font-karla: 'Karla', sans-serif;
 }
 
 body {
-  background-color: rgba(254, 243, 199, 0.2); /* 20% opacity of sultan-bg */
+  background-color: var(--sultan-bg);
   color: var(--sultan-text);
   font-family: var(--font-karla);
   -webkit-font-smoothing: antialiased;
 }
 
+/* Typography with Exact Weights */
 h1, h2, h3, h4, .font-sultan-heading {
   font-family: var(--font-playfair);
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
-/* Custom Utilities for Sultan Design */
+/* Exact Shadow Effects from Pencil */
+.shadow-sultan-soft {
+  box-shadow: 0 2px 12px 0 rgba(120, 53, 15, 0.05);
+}
+
+.shadow-sultan-active {
+  box-shadow: 0 8px 24px 0 rgba(120, 53, 15, 0.15);
+}
+
+.shadow-sultan-gold {
+  box-shadow: 0 8px 28px 0 rgba(251, 191, 36, 0.3);
+}
+
+/* Custom Component Utilities */
 @layer components {
   .sultan-card {
-    @apply bg-white border border-[#FDE68A] rounded-[2rem] shadow-sm overflow-hidden;
+    @apply bg-white border border-[#FDE68A] rounded-[20px] shadow-sultan-soft overflow-hidden;
   }
   
-  .sultan-button-primary {
-    @apply bg-[#78350F] text-white font-black px-6 py-3 rounded-2xl shadow-xl hover:bg-[#451A03] transition-all hover:scale-[1.02] active:scale-95;
+  .sultan-sidebar {
+    @apply bg-[#78350F] text-white flex flex-col h-screen;
   }
   
-  .sultan-button-cta {
-    @apply bg-[#FBBF24] text-[#451A03] font-black px-6 py-3 rounded-2xl shadow-xl hover:bg-[#D97706] transition-all hover:scale-[1.02] active:scale-95;
+  .sultan-btn-primary {
+    @apply bg-[#78350F] text-white font-bold rounded-xl shadow-sultan-soft hover:bg-[#451A03] transition-all;
   }
   
-  .sultan-sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-[#D97706] hover:bg-[#FBBF24]/10;
-  }
-  
-  .sultan-sidebar-link-active {
-    @apply sultan-sidebar-link bg-[#FBBF24]/20 text-[#78350F] border border-[#FDE68A]/50 shadow-sm;
+  .sultan-btn-cta {
+    @apply bg-[#FBBF24] text-[#451A03] font-bold rounded-xl shadow-sultan-gold hover:scale-[1.02] active:scale-95 transition-all;
   }
 }
 
-/* Custom Scrollbar for Premium Feel */
+/* Scrollbar Customization */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  @apply bg-[#FEF3C7]/20;
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  @apply bg-[#78350F]/20 rounded-full hover:bg-[#78350F]/40;
+  background: rgba(120, 53, 15, 0.1);
+  border-radius: 99px;
 }
-
-/* Skip link for accessibility */
-.skip-link {
-  @apply absolute -top-10 left-0 bg-[#78350F] text-white p-2 z-50 transition-all focus:top-0;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 53, 15, 0.2);
 }

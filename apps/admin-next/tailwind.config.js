@@ -12,26 +12,30 @@ module.exports = {
         'karla': ['var(--font-karla)', 'sans-serif'],
       },
       colors: {
-        'sultan-primary': 'var(--sultan-primary)',
-        'sultan-primary-dark': 'var(--sultan-primary-dark)',
-        'sultan-cta': 'var(--sultan-cta)',
-        'sultan-text': 'var(--sultan-text)',
-        'sultan-text-muted': 'var(--sultan-text-muted)',
-        'sultan-bg': 'var(--sultan-bg)',
-        'sultan-surface': 'var(--sultan-surface)',
-        'sultan-border': 'var(--sultan-border)',
-        'sultan-success': 'var(--sultan-success)',
-        'sultan-danger': 'var(--sultan-danger)',
+        'sultan-primary': '#78350F',
+        'sultan-primary-dark': '#451A03',
+        'sultan-cta': '#FBBF24',
+        'sultan-bg-warm': '#FEF3C7',
+        'sultan-surface': '#FFFFFF',
+        'sultan-border': '#FDE68A',
+        'sultan-text': '#451A03',
+        'sultan-text-muted': '#92400E',
+      },
+      spacing: {
+        '10': '2.5rem', // 40px
+        '8': '2rem',    // 32px
+        '5': '1.25rem', // 20px
       },
       borderRadius: {
-        '3xl': '1.5rem',
-        '4xl': '2rem',
-        '5xl': '2.5rem',
-        '6xl': '3rem',
+        'xl': '12px',
+        '2xl': '20px',
+        '3xl': '24px',
+        '4xl': '28px',
       },
       boxShadow: {
-        'sultan': '0 8px 32px rgba(120, 53, 15, 0.1)',
-        'sultan-lg': '0 20px 50px rgba(120, 53, 15, 0.15)',
+        'sultan-soft': '0 2px 12px 0 rgba(120, 53, 15, 0.05)',
+        'sultan-active': '0 8px 24px 0 rgba(120, 53, 15, 0.15)',
+        'sultan-gold': '0 8px 28px 0 rgba(251, 191, 36, 0.3)',
       }
     },
   },

@@ -3,29 +3,25 @@
 @tailwind utilities;
 
 :root {
-  /* Sultan Customer Design Tokens - OLED Dark / Moody Palette */
-  --sultan-bg: #0A0906;
-  --sultan-surface: #0D0B08;
-  --sultan-surface-2: #1A160F;
-  --sultan-primary: #78350F;
+  /* Exact Sultan Dark Tokens from Pencil */
+  --sultan-dark-bg: #0A0906;
+  --sultan-dark-surface: #0D0B08;
+  --sultan-dark-surface-2: #1A160F;
   --sultan-cta: #FBBF24;
   --sultan-text: #FFFBF5;
   --sultan-text-muted: #8B7355;
+  --sultan-text-deep: #451A03;
   --sultan-border: #3D3320;
-  --sultan-success: #10B981;
-  --sultan-danger: #EF4444;
-
-  /* Fonts */
+  
   --font-playfair: 'Playfair Display SC', serif;
   --font-karla: 'Karla', sans-serif;
 }
 
 body {
-  background-color: var(--sultan-bg);
+  background-color: var(--sultan-dark-bg);
   color: var(--sultan-text);
   font-family: var(--font-karla);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-sultan-heading {
@@ -34,45 +30,27 @@ h1, h2, h3, h4, .font-sultan-heading {
   text-transform: uppercase;
 }
 
-/* Custom Utilities for Sultan Customer Experience */
+/* Exact Shadow Effects from Pencil */
+.shadow-glow-gold {
+  box-shadow: 0 8px 32px 0 rgba(251, 191, 36, 0.2);
+}
+
+.shadow-glow-gold-lg {
+  box-shadow: 0 20px 60px 0 rgba(251, 191, 36, 0.25);
+}
+
 @layer components {
-  .sultan-glass {
-    @apply bg-[#0D0B08]/80 backdrop-blur-xl border border-[#3D3320];
-  }
-  
-  .sultan-card-dark {
-    @apply bg-[#1A160F] border border-[#3D3320] rounded-[2rem] overflow-hidden transition-all hover:border-[#FBBF24]/30;
-  }
-  
-  .sultan-btn-gold {
-    @apply bg-[#FBBF24] text-[#451A03] font-black px-8 py-4 rounded-2xl shadow-[0_8px_32px_rgba(251,191,36,0.3)] hover:scale-105 active:scale-95 transition-all;
-  }
-  
-  .sultan-input {
-    @apply bg-[#1A160F] border border-[#3D3320] rounded-2xl p-4 text-[#FFFBF5] focus:border-[#FBBF24] focus:ring-1 focus:ring-[#FBBF24] outline-none transition-all;
+  .sultan-input-dark {
+    @apply bg-[#1A160F] border border-[#3D3320] rounded-2xl p-4 text-[#FFFBF5] focus:border-[#FBBF24] focus:ring-1 focus:ring-[#FBBF24] outline-none;
   }
 }
 
-/* Animated Glow for CTAs */
-.glow-gold {
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+/* Animations from Pencil */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; transform: scale(1.05); }
+  50% { opacity: 0.4; transform: scale(1.08); }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-[#0A0906];
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-[#FBBF24]/20 rounded-full;
-}
-
-/* Next.js Image Fixes */
-img {
-  max-width: 100%;
-  height: auto;
+.animate-pulse-slow {
+  animation: pulse-slow 8s infinite ease-in-out;
 }

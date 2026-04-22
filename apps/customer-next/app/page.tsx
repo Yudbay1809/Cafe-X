@@ -11,108 +11,112 @@ export default function Page() {
 
   useEffect(() => {
     const token = search.get('tableToken');
-    if (token) {
-      setTableToken(token);
-    }
+    if (token) setTableToken(token);
   }, [search]);
 
-  const handleOrderNow = () => {
-    if (tableToken) {
-      router.push(`/menu?tableToken=${tableToken}`);
-    } else {
-      router.push('/menu');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#0A0906] text-[#FFFBF5] font-karla selection:bg-[#FBBF24] selection:text-[#451A03]">
-      {/* Hero Section */}
-      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Background Image with Overlay */}
+    <div className="min-h-screen bg-[#0A0906] text-[#FFFBF5] font-karla selection:bg-[#FBBF24] selection:text-[#451A03] overflow-x-hidden">
+      {/* Hero Section - Exact Layout from Pencil */}
+      <section className="relative h-screen min-h-[960px] flex items-center px-20">
+        {/* Background Image with Exact Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=2000" 
-            alt="Cafe-X Sultan Interior" 
-            className="w-full h-full object-cover opacity-30 scale-105 animate-pulse-slow"
+            src="https://images.unsplash.com/photo-1765894711095-4be58ff7c30a?auto=format&fit=crop&q=80&w=2000" 
+            alt="Cafe-X Sultan Hero" 
+            className="w-full h-full object-cover opacity-30 animate-pulse-slow"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0906] via-[#0A0906]/60 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A090680] to-[#0A0906F0]"></div>
         </div>
         
-        <div className="relative z-10 text-center px-6 max-w-4xl space-y-8">
-          <div className="inline-block px-4 py-1.5 bg-[#FBBF24]/10 border border-[#FBBF24]/30 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-[#FBBF24] mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-            Welcome to the Sultan Expansion
+        {/* Navbar - Exact 80px Height/Padding */}
+        <nav className="absolute top-0 left-0 w-full h-20 px-20 flex justify-between items-center z-50">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-2xl font-black font-playfair-display-sc text-[#FBBF24] leading-none tracking-tighter">CAFE·X</span>
+            <span className="text-[10px] font-bold text-[#8B7355] uppercase tracking-[0.2em]">Jakarta Reserve</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black font-playfair-display-sc leading-none tracking-tighter text-[#FFFBF5] animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            The Art of <span className="text-[#FBBF24]">Coffee</span><br/>Reimagined.
+          <div className="flex items-center gap-10">
+             {['About', 'Menu', 'Gallery', 'Contact'].map(link => (
+               <Link key={link} href="#" className="text-xs font-black uppercase tracking-widest text-[#8B7355] hover:text-[#FBBF24] transition-colors">{link}</Link>
+             ))}
+          </div>
+          <Link href="/booking" className="px-8 py-3 bg-[#FBBF24] text-[#451A03] rounded-full font-black text-xs uppercase tracking-widest shadow-glow-gold hover:scale-105 transition-all">
+             Book Table
+          </Link>
+        </nav>
+
+        {/* Hero Content - Exact 700px Width, 72px Headline */}
+        <div className="relative z-10 max-w-[700px] space-y-8 mt-20">
+          <div className="inline-block px-4 py-1.5 bg-[#FBBF2415] border border-[#FBBF2430] rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-[#FBBF24]">
+             Jakarta's Finest Cafe Culture
+          </div>
+          <h1 className="text-[72px] font-black font-playfair-display-sc leading-[1.15] tracking-tight text-[#FFFBF5]">
+             Where Every Sip <span className="text-[#FBBF24]">Tells a Story</span>
           </h1>
-          <p className="text-lg md:text-xl text-[#8B7355] font-medium max-w-2xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-300">
-            Experience the fusion of traditional brewing mastery and modern digital convenience. 
-            Freshly roasted beans, crafted for the true connoisseur.
+          <p className="text-[18px] text-[#C8B89A] font-medium leading-[1.7] max-w-[620px]">
+             Crafted with passion. Served with purpose. From single-origin espresso to artisanal pastries — experience the Sultan standard.
           </p>
           
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+          <div className="flex items-center gap-6 pt-4">
             <button 
-              className="px-10 py-5 bg-[#78350F] text-[#FBBF24] rounded-2xl font-black text-lg shadow-2xl shadow-[#78350F]/40 hover:scale-105 active:scale-95 transition-all w-full md:w-auto"
-              onClick={handleOrderNow}
+              className="px-10 py-5 bg-[#FBBF24] text-[#451A03] rounded-2xl font-black text-lg shadow-glow-gold hover:scale-105 active:scale-95 transition-all"
+              onClick={() => router.push('/menu')}
             >
-              {tableToken ? 'Continue Your Order' : 'Order Now'}
+              Order Now
             </button>
-            <Link 
-              href="/booking" 
-              className="px-10 py-5 bg-transparent border-2 border-[#3D3320] text-[#FFFBF5] rounded-2xl font-black text-lg hover:border-[#FBBF24] hover:text-[#FBBF24] transition-all w-full md:w-auto text-center"
-            >
-              Reserve a Table
+            <Link href="/booking" className="flex items-center gap-3 text-[#FFFBF5] font-black text-lg group">
+               <span>Explore Experience</span>
+               <span className="group-hover:translate-x-2 transition-transform">→</span>
             </Link>
           </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-30">
-          <div className="w-6 h-10 border-2 border-[#FFFBF5] rounded-full flex justify-center p-1">
-            <div className="w-1 h-2 bg-[#FFFBF5] rounded-full"></div>
-          </div>
+        {/* Stats Bar - Exact 60px Gaps */}
+        <div className="absolute bottom-20 left-20 flex items-center gap-[60px] z-10">
+           <div className="flex flex-col">
+              <span className="text-3xl font-black text-[#FBBF24] font-playfair-display-sc">12+</span>
+              <span className="text-[10px] font-black text-[#8B7355] uppercase tracking-widest">Global Awards</span>
+           </div>
+           <div className="w-px h-12 bg-[#3D3320]"></div>
+           <div className="flex flex-col">
+              <span className="text-3xl font-black text-[#FBBF24] font-playfair-display-sc">24/7</span>
+              <span className="text-[10px] font-black text-[#8B7355] uppercase tracking-widest">Sultan Support</span>
+           </div>
+           <div className="w-px h-12 bg-[#3D3320]"></div>
+           <div className="flex flex-col">
+              <span className="text-3xl font-black text-[#FBBF24] font-playfair-display-sc">4.9</span>
+              <span className="text-[10px] font-black text-[#8B7355] uppercase tracking-widest">User Rating</span>
+           </div>
         </div>
       </section>
 
-      {/* Sultan Features Section */}
-      <section className="py-32 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl font-black font-playfair-display-sc text-[#FFFBF5] mb-4">Elite Craftsmanship</h2>
-          <div className="w-20 h-1 bg-[#FBBF24] mx-auto"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="p-10 bg-[#0D0B08] border border-[#3D3320] rounded-[2.5rem] space-y-6 hover:border-[#FBBF24]/30 transition-all group">
-            <div className="text-5xl group-hover:scale-110 transition-transform duration-500">☕</div>
-            <h3 className="text-2xl font-black font-playfair-display-sc text-[#FBBF24]">Signature Roasts</h3>
-            <p className="text-[#8B7355] leading-relaxed">
-              Directly sourced from high-altitude estates, roasted in small batches to preserve unique aromatic profiles.
+      {/* Featured Section */}
+      <section className="py-40 px-20 grid grid-cols-1 md:grid-cols-2 gap-20 items-center bg-[#0D0B08]">
+         <div className="space-y-10">
+            <h2 className="text-[52px] font-black font-playfair-display-sc leading-tight text-[#FBBF24]">Artisanal Excellence <br/>In Every Cup</h2>
+            <p className="text-[#8B7355] text-lg leading-relaxed max-w-lg">
+               Our beans are ethically sourced from the volcanic soils of Mount Ijen, roasted in micro-batches to unlock a symphony of chocolate and berry notes.
             </p>
-          </div>
-
-          <div className="p-10 bg-[#0D0B08] border border-[#3D3320] rounded-[2.5rem] space-y-6 hover:border-[#FBBF24]/30 transition-all group">
-            <div className="text-5xl group-hover:scale-110 transition-transform duration-500">🪄</div>
-            <h3 className="text-2xl font-black font-playfair-display-sc text-[#FBBF24]">AI-Driven Prep</h3>
-            <p className="text-[#8B7355] leading-relaxed">
-              Our Sultan ecosystem uses predictive analytics to ensure your favorite beans are always fresh and ready for brewing.
-            </p>
-          </div>
-
-          <div className="p-10 bg-[#0D0B08] border border-[#3D3320] rounded-[2.5rem] space-y-6 hover:border-[#FBBF24]/30 transition-all group">
-            <div className="text-5xl group-hover:scale-110 transition-transform duration-500">💎</div>
-            <h3 className="text-2xl font-black font-playfair-display-sc text-[#FBBF24]">Stamp Loyalty</h3>
-            <p className="text-[#8B7355] leading-relaxed">
-              Exclusive Sultan members enjoy the "Buy 9 Get 1 Free" gamified experience, tracking stamps in real-time.
-            </p>
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-8">
+               <div className="space-y-2">
+                  <span className="text-2xl">🌍</span>
+                  <p className="font-bold text-[#FFFBF5]">Ethically Sourced</p>
+               </div>
+               <div className="space-y-2">
+                  <span className="text-2xl">🔥</span>
+                  <p className="font-bold text-[#FFFBF5]">Micro-Roasted</p>
+               </div>
+            </div>
+         </div>
+         <div className="relative">
+            <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl border-2 border-[#3D3320]">
+               <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-10 -left-10 bg-[#FBBF24] p-10 rounded-[2rem] shadow-glow-gold-lg">
+               <p className="text-4xl font-black text-[#451A03] font-playfair-display-sc">100%</p>
+               <p className="text-[10px] font-black text-[#451A03]/60 uppercase tracking-widest">Organic Arabica</p>
+            </div>
+         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-20 border-t border-[#3D3320] text-center bg-[#0D0B08]">
-        <div className="text-3xl font-black font-playfair-display-sc text-[#FBBF24] mb-6">CAFE·X</div>
-        <p className="text-[#8B7355] text-sm uppercase tracking-widest">&copy; 2026 Cafe-X Enterprise. Crafted for Excellence.</p>
-      </footer>
     </div>
   );
 }
