@@ -176,5 +176,39 @@ class MobilePosSyncController extends Controller
             'success' => true,
             'message' => count($expenses) . ' expenses synced'
         ]);
+    /**
+     * Endpoint: POST /api/v1/sync/online-orders/mock
+     * Simulasi pesanan baru yang masuk dari Customer QR Portal untuk keperluan demo.
+     */
+    public function mockOnlineOrder(Request $request)
+    {
+        $orderId = DB::table('pos_orders')->insertGetId([
+            'offline_id' => 'MOCK-' . time(),
+            'tenant_id' => 1,
+            'outlet_id' => 1,
+            'order_type' => 'qr_order',
+            'status' => 'pending',
+            'payment_status' => 'paid',
+            'payment_method' => 'qris',
+            'subtotal_amount' => 50000,
+            'tax_amount' => 5500,
+            'total_amount' => 55500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('pos_order_items')->insert([
+            [
+                'order_id' => $orderId, 
+                'product_id' => rand(1, 3), 
+                'qty' => rand(1, 3), 
+                'price' => 25000, 
+                'subtotal' => 25000, 
+                'created_at' => now(), 
+                'updated_at' => now()
+            ],
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Mock order created']);
     }
 }

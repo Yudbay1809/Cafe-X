@@ -15,6 +15,7 @@ Route::group(['prefix' => 'sync'], function () {
     Route::get('/master', [MobilePosSyncController::class, 'syncMaster']);
     Route::post('/pos/bulk', [MobilePosSyncController::class, 'syncPos']);
     Route::get('/online-orders', [MobilePosSyncController::class, 'getOnlineOrders']);
+    Route::post('/online-orders/mock', [MobilePosSyncController::class, 'mockOnlineOrder']);
     Route::post('/expenses', [MobilePosSyncController::class, 'syncExpenses']);
     
     // Sultan Expansion Routes

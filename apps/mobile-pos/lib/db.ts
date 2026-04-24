@@ -1,12 +1,19 @@
 import * as SQLite from 'expo-sqlite';
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 export async function getDb() {
-  if (!dbInstance) {
-    dbInstance = await SQLite.openDatabaseAsync('cafe_pos.db');
+  if (dbInstance) return dbInstance;
+  
+  if (!dbPromise) {
+    dbPromise = SQLite.openDatabaseAsync('cafe_pos.db').then(db => {
+      dbInstance = db;
+      return db;
+    });
   }
-  return dbInstance;
+  
+  return dbPromise;
 }
 
 export async function initDatabase() {
